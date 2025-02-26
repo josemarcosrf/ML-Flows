@@ -1,11 +1,10 @@
 # ML-Flows
 
-This repo implements a series of Machine Learning dataflows.
+This repo implements a series of Machine Learning [Prefect](https://www.prefect.io/opensource) dataflows.
 
-For example `SHRAG: Structured Heriarchical Retrieval Augmented Generation`
-using [LlamaIndex](https://www.llamaindex.ai/) as [Prefect](https://www.prefect.io/opensource) dataflows.
+For example `SHRAG: Structured Heriarchical Retrieval Augmented Generation` using [LlamaIndex](https://www.llamaindex.ai/) as .
 
-> Once installed, check all the flows with:
+> 💡 Once installed, check all the flows with:
 
 ```shell
 inv ls
