@@ -14,12 +14,12 @@ from flows.deploy import deploy_flow, PoolType
 DEFAULT_PREFECT_STORAGE_PATH = Path.home() / ".prefect" / "storage"
 
 
-@click.group("flows")
-def flows_cli():
+@click.group()
+def cli():
     """Flows CLI"""
 
 
-@flows_cli.command("ls")
+@cli.command("ls")
 def list_flows():
     """List all publicly available flows"""
     repo_root = Path.cwd()
@@ -44,7 +44,7 @@ def list_flows():
     )
 
 
-@flows_cli.command("deploy")
+@cli.command("deploy")
 @click.argument("flow_name", type=click.Choice(list(collect_public_flows().keys())))
 @click.argument("deployment_name")
 @click.argument("pool-type", type=click.Choice([p.value for p in PoolType]))
@@ -61,8 +61,8 @@ def deploy_flow_cli(
 ):
     """Deploy a public flow to a Docker or Process pool.
 
-    e.g.:
-    python -m flows deploy clause-compare LINT process local-process-pool -t myTag
+    e.g.: Deploy the playbook-qa flow to a deployment called DEV on a 'Process' pool named 'test'
+    python -m flows deploy playbook-qa DEV process test -t qa -t playbook
 
     Args:
         flow_name (str): Name fo the flow to deploy
@@ -75,7 +75,7 @@ def deploy_flow_cli(
     deploy_flow(flow_name, deployment_name, pool_type, work_pool_name, build, flow_tags)
 
 
-@flows_cli.command("read-result")
+@cli.command("read-result")
 @click.argument("result_id")
 @click.option(
     "-s",
@@ -133,7 +133,5 @@ def list_collection(
 
 
 if __name__ == "__main__":
-    cli = click.Group()
-    cli.add_command(flows_cli)
     cli.add_command(chroma_cli)
     cli()

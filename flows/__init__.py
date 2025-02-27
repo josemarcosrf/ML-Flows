@@ -4,13 +4,11 @@ import os
 import sys
 from pathlib import Path
 
+from loguru import logger
 from prefect import Flow
 
 sys.tracebacklimit = int(os.getenv("TRACEBACK_LIMIT", 3))
 
-import os
-
-from loguru import logger
 
 # Define the log format
 log_format = "[{time:YYYY-MM-DD HH:mm:ss}] | {level:<8} | {file}:{line} - {message}"
@@ -30,7 +28,7 @@ logger.add(
 # Add a file handler with rotation
 log_level_file = os.getenv("LOG_LEVEL_FILE", "INFO")
 logger.add(
-    "logs/dataflows.log",
+    "logs/flows.log",
     format=log_format,
     level=log_level_file,
     rotation="10 MB",  # Rotate after 10 MB
@@ -52,7 +50,7 @@ def collect_public_flows() -> dict[str, Flow]:
     root_dir = Path()
 
     # Look for all the sub-modules (e.g.: dataflows.shrag, ...)
-    for path in root_dir.rglob("dataflows/**/__init__.py"):
+    for path in root_dir.rglob("flows/**/__init__.py"):
         # Construct the module name by joining path parts and replacing slashes with dots
         relative_path = path.relative_to(root_dir).with_suffix("")  # Remove .py suffix
         module_name = ".".join(relative_path.parts)  # Convert to dotted module name

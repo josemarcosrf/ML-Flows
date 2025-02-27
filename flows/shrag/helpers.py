@@ -31,7 +31,7 @@ def get_project_version():
             return pyproject["project"]["version"]
     else:
         # Fallback to importlib_metadata if not found
-        return importlib_metadata.version("dataflows")
+        return importlib_metadata.version("flows")
 
 
 def get_aws_credentials() -> tuple[str, str]:

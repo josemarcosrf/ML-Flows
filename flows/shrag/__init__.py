@@ -22,7 +22,7 @@ from flows.shrag.constants import (
 )
 
 
-@flow(log_prints=True, flow_run_name="playbook-QA")
+@flow(log_prints=True, flow_run_name="playbook-QA-{collection_name}-{llm_model}")
 def playbook_qa(
     question_library_csv: Path | str,
     proto_questions_json: Path | str,

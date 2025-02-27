@@ -8,17 +8,29 @@ from llama_index.core.vector_stores import (
     MetadataFilters,
 )
 from loguru import logger
-from prefect import task, flow
+from prefect import task
+from prefect.runtime import task_run
 from pydantic import BaseModel
 from tqdm.rich import tqdm
 
-from flows.shrag.constants import (
-    SIMILARITY_CUTOFF_DEFAULT,
-    SIMILARITY_TOP_K_DEFAULT,
-)
+from flows.shrag.constants import SIMILARITY_CUTOFF_DEFAULT, SIMILARITY_TOP_K_DEFAULT
 from flows.shrag.playbook import get_question_prompt, QuestionItem
 from flows.shrag.schemas.answers import BaseAnswer, SummaryAnswer, YesNoEnum
 from flows.shrag.schemas.questions import QuestionType
+
+
+def generate_ask_run_name():
+    task_name = task_run.task_name
+    parameters = task_run.parameters
+    # Get the QuestionItem from the kwargs
+    if q := parameters.get("q"):
+        if hasattr(q, "key") and q.key:
+            return f"{task_name}:{q.key}"
+    if q := parameters.get("questions"):
+        if isinstance(q, list) and len(q) > 0:
+            return f"{task_name}:{q[0].key}"
+
+    return task_name
 
 
 class QAResponse(BaseModel):
@@ -37,7 +49,6 @@ class QAgent:
         self.llm = llm
         self.reranker = reranker  # Optional Reranker to re-rank the retrieved nodes
 
-    @task
     def rag(
         self,
         query: str,
@@ -97,7 +108,7 @@ class QAgent:
 
         return response.response
 
-    @task
+    @task(task_run_name=generate_ask_run_name)
     def ask(
         self,
         q: QuestionItem,
@@ -123,13 +134,6 @@ class QAgent:
                 meta_filters=meta_filters,
                 **kwargs,
             )
-            # # Return a dummy answer for now
-            # return BaseAnswer(
-            #     response="This is a dummy answer",
-            #     page_numbers=[],
-            #     confidence=0.0,
-            #     confidence_explanation="This is a dummy answer",
-            # )
         except Exception as e:
             print(f"❌ Error extracting '{q.key}' [filter={meta_filters}]: {e}")
             return BaseAnswer(
@@ -139,7 +143,7 @@ class QAgent:
                 confidence_explanation=str(e),
             )
 
-    @task
+    @task(task_run_name=generate_ask_run_name)
     def ask_group(
         self, questions: list[QuestionItem], meta_filters: dict[str, Any] = {}, **kwargs
     ) -> dict[str, BaseAnswer] | None:
@@ -156,6 +160,7 @@ class QAgent:
         Returns:
             dict[str, BaseAnswer] | None: A dictionary of the responses
         """
+        # Check if the first question is of type YES/NO. If not, raise an error
         if questions[0].question_type != QuestionType.YES_NO:
             raise ValueError(
                 "The first question of the group should be of type YES/NO. "
@@ -169,7 +174,13 @@ class QAgent:
         res = self.ask(q0, meta_filters, **kwargs)
         responses[q0.key] = res
 
-        # If affirmative, ask all the others
+        # Check if the response is of type YesNoEnum
+        if not isinstance(res.response, YesNoEnum):
+            raise ValueError(
+                "The response of the first question should be of type YesNoEnum. "
+                f"Instead received {type(res.response)}"
+            )
+        # If the response is affirmative, ask all the other questions
         if res.response.value == YesNoEnum.pos.value:
             for q in questions[1:]:
                 responses[q.key] = self.ask(q, meta_filters, **kwargs)
