@@ -22,9 +22,10 @@ from flows.shrag.constants import (
 )
 
 
-@flow(log_prints=True, flow_run_name="playbook-QA-{collection_name}-{llm_model}")
+@flow(log_prints=True, flow_run_name="playbook-QA-{chroma_collection_name}-{llm_model}")
 def playbook_qa(
     playbook_json: Path | str,
+    meta_filters: dict[str, Any],
     chroma_collection_name: str,
     chroma_host: str = os.getenv(CHROMA_HOST_ENV_VAR, CHROMA_HOST_DEFAULT),
     chroma_port: int = os.getenv(CHROMA_PORT_ENV_VAR, CHROMA_PORT_DEFAULT),
@@ -34,7 +35,6 @@ def playbook_qa(
     reranker_model: str | None = None,
     similarity_top_k: int = SIMILARITY_TOP_K_DEFAULT,
     similarity_cutoff: float = SIMILARITY_CUTOFF_DEFAULT,
-    meta_filters: dict[str, Any] = {},
 ):
     """This flow is responsible for performing Structured QA on a set of
     textual chunks retrieved from a vector DB based on metadata filtering.
@@ -43,16 +43,25 @@ def playbook_qa(
 
     Args:
         playbook_json (Path | str): Path to the playbook JSON file
+        meta_filters (dict[str, Any], optional): Metadata filters for retrieval
+            as {key:value} mapping. Leave as an empty dict for no filtering.
         chroma_collection_name (str): Name of the ChromaDB collection
-        chroma_host (str, optional): ChromaDB host. Defaults to CHROMA_HOST_DEFAULT.
-        chroma_port (int, optional): ChromaDB port. Defaults to CHROMA_PORT_DEFAULT.
-        llm_backend (str, optional): LLM backend to use. Defaults to LLM_BACKEND_DEFAULT.
-        llm_model (str, optional): LLM model to use. Defaults to LLM_MODEL_DEFAULT.
-        embedding_model (str, optional): Embedding model to use. Defaults to EMBEDDING_MODEL_DEFAULT.
-        reranker_model (str | None, optional): Reranker model to use. Defaults to None.
-        similarity_top_k (int, optional): Number of top results to retrieve. Defaults to SIMILARITY_TOP_K_DEFAULT.
-        similarity_cutoff (float, optional): Similarity cutoff for retrieval. Defaults to SIMILARITY_CUTOFF_DEFAULT.
-        meta_filters (dict[str, Any], optional): Metadata filters for retrieval. Defaults to {}.
+        chroma_host (str, optional): ChromaDB host.
+            Defaults to CHROMA_HOST_DEFAULT.
+        chroma_port (int, optional): ChromaDB port.
+            Defaults to CHROMA_PORT_DEFAULT.
+        llm_backend (str, optional): LLM backend to use.
+            Defaults to LLM_BACKEND_DEFAULT.
+        llm_model (str, optional): LLM model to use.
+            Defaults to LLM_MODEL_DEFAULT.
+        embedding_model (str, optional): Embedding model to use.
+            Defaults to EMBEDDING_MODEL_DEFAULT.
+        reranker_model (str | None, optional): Reranker model to use.
+            Defaults to None.
+        similarity_top_k (int, optional): Number of top results to retrieve.
+            Defaults to SIMILARITY_TOP_K_DEFAULT.
+        similarity_cutoff (float, optional): Similarity cutoff for retrieval.
+            Defaults to SIMILARITY_CUTOFF_DEFAULT.
     Returns:
         responses (list[QAResponse]): List of QAResponse objects containing the question, question type and answer
         for each question in the question library.
@@ -92,7 +101,7 @@ def playbook_qa(
     # Run the Q-collection and return the responses
     responses = questioner.run_q_collection(
         q_collection=q_collection,
-        meta_filter=meta_filters,
+        meta_filters=meta_filters,
         similarity_top_k=similarity_top_k,
         similarity_cutoff=similarity_cutoff,
         pbar=True,

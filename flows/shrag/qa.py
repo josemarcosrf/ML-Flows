@@ -187,11 +187,11 @@ class QAgent:
 
         return responses
 
-    @task
+    @task(task_run_name="Q-Collection:{meta_filters}")
     def run_q_collection(
         self,
         q_collection: dict[str, list[QuestionItem]],
-        meta_filter: dict[str, Any],
+        meta_filters: dict[str, Any],
         pbar: bool = False,
         **kwargs,
     ) -> dict[str, QAResponse]:
@@ -203,7 +203,7 @@ class QAgent:
 
         Args:
             q_collection (dict[str, list[QuestionItem]]): The Question Collection
-            meta_filter (dict[str, Any]): Metadata filters for retrieval
+            meta_filters (dict[str, Any]): Metadata filters for retrieval
             pbar (bool, optional): Whether to show a progress bar. Defaults to False.
         Raises:
             ValueError: If the first question of the group is not of type YES/NO
@@ -228,7 +228,7 @@ class QAgent:
             if len(q_list) == 1:
                 # A non-hierarchical question
                 try:
-                    answer = self.ask(q, meta_filter, **kwargs)
+                    answer = self.ask(q, meta_filters, **kwargs)
                     responses[q.key] = QAResponse(
                         question=q.question,
                         question_type=q.question_type,
@@ -240,7 +240,7 @@ class QAgent:
             elif len(q_list) > 1:
                 # A hierarchical group of questions
                 try:
-                    group_responses = self.ask_group(q_list, meta_filter, **kwargs)
+                    group_responses = self.ask_group(q_list, meta_filters, **kwargs)
                     for i, (key, res) in enumerate(group_responses.items()):
                         responses[key] = QAResponse(
                             question=q_list[i].question,

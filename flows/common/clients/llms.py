@@ -4,10 +4,7 @@ from enum import Enum
 from loguru import logger
 from prefect import task
 
-from flows.shrag.constants import (
-    LLM_BACKEND_DEFAULT,
-    LLM_BACKEND_ENV_VAR,
-)
+from flows.shrag.constants import LLM_BACKEND_DEFAULT, LLM_BACKEND_ENV_VAR
 
 
 class LLMBackend(str, Enum):
@@ -20,14 +17,15 @@ def get_llm_backend() -> LLMBackend:
     return LLMBackend(os.getenv(LLM_BACKEND_ENV_VAR, LLM_BACKEND_DEFAULT))
 
 
-@task
+@task(task_run_name="get_llm:[{llm_backend}]-{llm_model}")
 def get_llm(llm_backend: LLMBackend | str, llm_model: str) -> None:
     # Init the LLM and embedding models
     try:
         llm_backend = LLMBackend(llm_backend)  # type: ignore
     except ValueError:
         raise ValueError(
-            f"❌ Unknown LLM backend: {llm_backend}. Please use one of {LLMBackend.__members__}"
+            f"❌ Unknown LLM backend: {llm_backend}. "
+            f"Please use one of {LLMBackend.__members__}"
         )
 
     logger.info(f"🔮 Getting ready {llm_backend.value} LLM ({llm_model})")
@@ -42,13 +40,14 @@ def get_llm(llm_backend: LLMBackend | str, llm_model: str) -> None:
         return Ollama(model=llm_model, temperature=0, seed=42)
 
 
-@task
+@task(task_run_name="get_embedding_model:[{llm_backend}]-{embedding_model}")
 def get_embedding_model(llm_backend: LLMBackend | str, embedding_model: str, **kwargs):
     """Returns the embedding model and to use
 
     Args:
         llm_backend (LLMBackend | str): LLM backend to use. One of openai, ollama
-        embedding_model (str): Embedding model to use. E.g.: text-embedding-3-small, nomic-embed-text, ...
+        embedding_model (str): Embedding model to use.
+        E.g.: text-embedding-3-small, nomic-embed-text, ...
 
     Raises:
         ValueError: If the LLM backend is not one of openai, ollama

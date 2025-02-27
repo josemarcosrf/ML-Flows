@@ -47,6 +47,7 @@ def cli():
 )
 def run_playbook_qa(
     playbook_json: str,
+    meta_filters: str,
     chroma_collection_name: str,
     chroma_host: str,
     chroma_port: int,
@@ -56,7 +57,6 @@ def run_playbook_qa(
     reranker_model: str | None,
     similarity_top_k: int,
     similarity_cutoff: float,
-    meta_filters: str,
 ):
     """Runs the RAG dataflow on the specified question library and proto questions.
     Args:
@@ -79,6 +79,7 @@ def run_playbook_qa(
     # Run the RAG dataflow
     playbook_qa(
         playbook_json=playbook_json,
+        meta_filters=meta_filters,
         chroma_collection_name=chroma_collection_name,
         chroma_host=chroma_host,
         chroma_port=chroma_port,
@@ -88,7 +89,6 @@ def run_playbook_qa(
         reranker_model=reranker_model,
         similarity_top_k=similarity_top_k,
         similarity_cutoff=similarity_cutoff,
-        meta_filters=meta_filters,
     )
 
 
