@@ -176,7 +176,7 @@ cython_debug/
 *.xlsx
 *.parquet
 *.DS_Store
-!example.env
+!.example.env
 
 # ChromaDB
 chroma_data/
@@ -186,7 +186,8 @@ notebooks/*/
 notebooks/*/*.txt
 
 # Data files
-data/
+data/*
+!data/playbook_sample.json
 
 # Model files
 models/

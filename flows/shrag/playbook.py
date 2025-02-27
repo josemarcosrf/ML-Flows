@@ -1,10 +1,7 @@
 import json
 from collections import defaultdict
 from pathlib import Path
-from typing import Any
 
-import numpy as np
-import pandas as pd
 from loguru import logger
 from prefect import task
 from pydantic import BaseModel
@@ -22,14 +19,22 @@ class QuestionItem(BaseModel):
 
 @task
 def build_question_library(
-    question_library_csv: Path | str,
-    proto_questions_json: Path | str,
+    playbook_json: Path | str,
 ) -> dict[str, list[QuestionItem]]:
-    """Builds the Question Library from the CSV and proto questions JSON
+    """Builds the Question Library from the playbook JSON file.
+
+    The playbook JSON should have the following structure:
+    {
+        "<Attribute>": {
+            "Group": "<Group>",
+            "Question": "<Question>",
+            "QuestionType": "<Question-Type>",
+            "ValidAnswers": ["answer1", "answer2", ...]
+        }
+    }
 
     Args:
-        question_library_csv (Path | str): _path_ to the Question Library CSV
-        proto_questions_json (Path | str): _path_ to the proto questions JSON
+        playbook_json (Path | str): _path_ to the proto questions JSON
     Returns:
         dict[str, list[QuestionItem]]: Question Library
         - The keys are the group names
@@ -37,22 +42,15 @@ def build_question_library(
         - The QuestionItems are generated from the CSV and proto questions
         - The QuestionItems are generated based on the QuestionType
     """
-    # NOTE: For now we continue building the playbook from the CSV and proto questions
-    # but we should consider a better approach to build the playbook from the proto questions
 
-    # Read Question Library CSV (aka: The Playbook)
-    q_library_df = pd.read_csv(question_library_csv)
-    q_library_df.replace(np.nan, None, inplace=True)
-
-    # Read the parsed attributes and proto generated questions
-    proto_library = json.load(Path(proto_questions_json).open())
+    # Read Question Library JSON (aka: The Playbook)
+    playbook = json.load(Path(playbook_json).open())
 
     # Add the Answer Schema based on the extracted values
     q_collection = defaultdict(list)
-    for _, row in q_library_df.iterrows():
-        group = row["Group"]
-        attr = row["Attribute"]
-        q_type = row["Question-Type"].strip().lower()
+    for attr, qitem in playbook.items():
+        group = qitem["Group"]
+        q_type = qitem["QuestionType"].strip().lower()
 
         if group:
             group = group.strip()
@@ -62,7 +60,7 @@ def build_question_library(
         if q_type == QuestionType.CATEGORICAL:
             # For Categorical questions we use a dynamic schema based on the valid answers
             answer_schema = create_categorical_schema(
-                proto_library[attr]["valid_answers"],
+                qitem["ValidAnswers"],
                 attr,  # use attribute name as description
             )
         else:
@@ -72,12 +70,10 @@ def build_question_library(
         logger.debug(f"group: {group} | attr: {attr}")
 
         # NOTE: Non-hierarchical Qs live in their own 'group' which equals their 'attr'
-        # NOTE: To better understand `group`, `attr` and `key` see:
-        # 'data/banneker_B1_export_openai_2025-02-14.csv
         q_collection[group or attr].append(
             QuestionItem(
-                key=attr or f"{group} - yes/no",
-                question=row["Question"],
+                key=attr or f"{group} - Yes/No",
+                question=qitem["Question"],
                 question_type=q_type,
                 answer_schema=answer_schema,
             )

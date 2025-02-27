@@ -7,7 +7,26 @@ For example `SHRAG: Structured Heriarchical Retrieval Augmented Generation` usin
 > 💡 Once installed, check all the flows with:
 
 ```shell
-inv ls
+$ python -m flows ls
+```
+
+Which should output something like:
+```shell
+╒════╤═════════════╤═════════════════════════╤══════════════════════════════════════════════════════════════════════════════════════════════╕
+│    │ Flow Name   │ From                    │ Flow Parameters                                                                              │
+╞════╪═════════════╪═════════════════════════╪══════════════════════════════════════════════════════════════════════════════════════════════╡
+│  0 │ playbook-qa │ flows/shrag/__init__.py │ - playbook_json: Path to the playbook JSON file                                              │
+│    │             │                         │ - chroma_collection_name: Name of the ChromaDB collection                                    │
+│    │             │                         │ - chroma_host: ChromaDB host. Defaults to CHROMA_HOST_DEFAULT.                               │
+│    │             │                         │ - chroma_port: ChromaDB port. Defaults to CHROMA_PORT_DEFAULT.                               │
+│    │             │                         │ - llm_backend: LLM backend to use. Defaults to LLM_BACKEND_DEFAULT.                          │
+│    │             │                         │ - llm_model: LLM model to use. Defaults to LLM_MODEL_DEFAULT.                                │
+│    │             │                         │ - embedding_model: Embedding model to use. Defaults to EMBEDDING_MODEL_DEFAULT.              │
+│    │             │                         │ - reranker_model: Reranker model to use. Defaults to None.                                   │
+│    │             │                         │ - similarity_top_k: Number of top results to retrieve. Defaults to SIMILARITY_TOP_K_DEFAULT. │
+│    │             │                         │ - similarity_cutoff: Similarity cutoff for retrieval. Defaults to SIMILARITY_CUTOFF_DEFAULT. │
+│    │             │                         │ - meta_filters: Metadata filters for retrieval. Defaults to {}.                              │
+╘════╧═════════════╧═════════════════════════╧══════════════════════════════════════════════════════════════════════════════════════════════╛
 ```
 
 ## How to
@@ -47,15 +66,24 @@ inv ls
    # Running a flow directly from its __main__ entrypoint
    # E.g.: Run a QA-Playbook filtering by document name
    python -m flows.shrag run-playbook-qa \
-      data/Playbook_sample.csv \
-      data/proto_questions_sample.json \
+      data/playbook_sample.json \
       <your-chromaDB-collection-name> \
       -m 'name:<document-name-to-filter-by>'
    ```
 
-   ### As [deployment](https://docs.prefect.io/latest/concepts/deployments/)
+   ### As a Prefect [deployment](https://docs.prefect.io/latest/concepts/deployments/)
 
-   TBD
+   1. Create a deployment:
+
+   ```shell
+   python -m flows deploy playbook-qa DEV process test -t qa -t playbook
+   ```
+
+   2. Run either from the dashboard or programatically:
+
+   ```shell
+   prefect deployment run 'playbook-qa/DEV'
+   ```
 
 
 
