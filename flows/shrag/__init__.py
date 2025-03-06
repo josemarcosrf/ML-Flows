@@ -106,6 +106,8 @@ def playbook_qa(
         similarity_cutoff=similarity_cutoff,
         pbar=True,
     )
+
+    # FIXME: Not all QA responses are serializable
     return {k: v.model_dump() for k, v in responses.items()}
 
 
