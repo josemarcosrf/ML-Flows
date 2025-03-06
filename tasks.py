@@ -47,6 +47,7 @@ def start_worker_pool(
 
     if name is None:
         name = f"local-{pool_type}-pool"
+        print(f"🎱 Using default pool name: {name}")
 
     c.run(
         f"prefect work-pool create --type {pool_type} {name} "

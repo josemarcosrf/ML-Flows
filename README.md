@@ -31,6 +31,8 @@ Which should output something like:
 
 ## How to
 
+### Setup
+
 1. **Create a virtual environment:**
 
    ```shell
@@ -49,14 +51,14 @@ Which should output something like:
    - Ensure you have the Prefect server running: `inv local-prefect`
    - Ensure you have a running Prefect pool: `inv start-worker-pool -p process -n test --overwrite`
 
-5. **Run:**
+### Run
 
    First update the `.env` file as necessary. (See `.example.env` for guidance)
 
    Then there are two ways to run flows;
 
 
-   ### As a python module
+   #### As a python module
 
    Simply, as you'd run the module's CLI present in each submodule's `__main__.py`:
 
@@ -71,7 +73,7 @@ Which should output something like:
       -m 'name:<document-name-to-filter-by>'
    ```
 
-   ### As a Prefect [deployment](https://docs.prefect.io/latest/concepts/deployments/)
+   #### As a Prefect [deployment](https://docs.prefect.io/latest/concepts/deployments/)
 
    1. Create a deployment:
 

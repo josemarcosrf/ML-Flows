@@ -1,3 +1,4 @@
+import json
 import os
 
 import click
@@ -77,7 +78,7 @@ def run_playbook_qa(
         dict(param.split(":") for param in meta_filters) if meta_filters else {}
     )
     # Run the RAG dataflow
-    playbook_qa(
+    res = playbook_qa(
         playbook_json=playbook_json,
         meta_filters=meta_filters,
         chroma_collection_name=chroma_collection_name,
@@ -90,6 +91,10 @@ def run_playbook_qa(
         similarity_top_k=similarity_top_k,
         similarity_cutoff=similarity_cutoff,
     )
+    # Write the results to a file; concatenate the filters to the file name
+    filters = "_".join(f"{k}={v}" for k, v in meta_filters.items())
+    with open(f"{filters}_qa_results.json", "w") as f:
+        f.write(json.dumps(res, indent=2))
 
 
 if __name__ == "__main__":

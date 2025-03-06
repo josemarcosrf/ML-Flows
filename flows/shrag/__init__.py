@@ -106,7 +106,7 @@ def playbook_qa(
         similarity_cutoff=similarity_cutoff,
         pbar=True,
     )
-    return responses
+    return {k: v.model_dump() for k, v in responses.items()}
 
 
 PUBLIC_FLOWS: dict[str, Flow] = {
