@@ -9,14 +9,18 @@ from tabulate import tabulate
 
 from flows import collect_public_flows
 from flows.deploy import deploy_flow, PoolType
-
-# Default storage path for Prefect
-DEFAULT_PREFECT_STORAGE_PATH = Path.home() / ".prefect" / "storage"
+from flows.settings import print_settings, settings
 
 
 @click.group()
 def cli():
     """Flows CLI"""
+
+
+@cli.command("settings")
+def print_settings_cli():
+    """Print settings"""
+    print_settings(settings)
 
 
 @cli.command("ls")
@@ -80,9 +84,15 @@ def deploy_flow_cli(
 @click.option(
     "-s",
     "--storage-path",
-    default=os.getenv("PREFECT_LOCAL_STORAGE_PATH", DEFAULT_PREFECT_STORAGE_PATH),
+    default=settings.PREFECT_STORAGE_PATH,
 )
 def read_from_storage(result_id: str, storage_path: str):
+    """Read a result from the Prefect storage
+
+    Args:
+        result_id (str): The ID of the result to read
+        storage_path (str): The path where Prefect stores the results
+    """
     rfile = Path(storage_path).resolve() / result_id
     if rfile.exists():
         res = json.load(rfile.open())
