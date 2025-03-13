@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from typing import Any
 
@@ -6,20 +5,7 @@ from llama_index.core import Settings
 from loguru import logger
 from prefect import Flow, flow
 
-from flows.shrag.constants import (
-    CHROMA_HOST_DEFAULT,
-    CHROMA_HOST_ENV_VAR,
-    CHROMA_PORT_DEFAULT,
-    CHROMA_PORT_ENV_VAR,
-    EMBEDDING_MODEL_DEFAULT,
-    EMBEDDING_MODEL_ENV_VAR,
-    LLM_BACKEND_DEFAULT,
-    LLM_BACKEND_ENV_VAR,
-    LLM_MODEL_DEFAULT,
-    LLM_MODEL_ENV_VAR,
-    SIMILARITY_CUTOFF_DEFAULT,
-    SIMILARITY_TOP_K_DEFAULT,
-)
+from flows.settings import settings
 
 
 @flow(log_prints=True, flow_run_name="playbook-QA-{chroma_collection_name}-{llm_model}")
@@ -27,14 +13,14 @@ def playbook_qa(
     playbook_json: Path | str,
     meta_filters: dict[str, Any],
     chroma_collection_name: str,
-    chroma_host: str = os.getenv(CHROMA_HOST_ENV_VAR, CHROMA_HOST_DEFAULT),
-    chroma_port: int = os.getenv(CHROMA_PORT_ENV_VAR, CHROMA_PORT_DEFAULT),
-    llm_backend: str = os.getenv(LLM_BACKEND_ENV_VAR, LLM_BACKEND_DEFAULT),
-    llm_model: str = os.getenv(LLM_MODEL_ENV_VAR, LLM_MODEL_DEFAULT),
-    embedding_model: str = os.getenv(EMBEDDING_MODEL_ENV_VAR, EMBEDDING_MODEL_DEFAULT),
+    chroma_host: str = settings.CHROMA_HOST,
+    chroma_port: int = settings.CHROMA_PORT,
+    llm_backend: str = settings.LLM_BACKEND,
+    llm_model: str = settings.LLM_MODEL,
+    embedding_model: str = settings.EMBEDDING_MODEL,
     reranker_model: str | None = None,
-    similarity_top_k: int = SIMILARITY_TOP_K_DEFAULT,
-    similarity_cutoff: float = SIMILARITY_CUTOFF_DEFAULT,
+    similarity_top_k: int = settings.SIMILARITY_TOP_K,
+    similarity_cutoff: float = settings.SIMILARITY_CUTOFF,
 ):
     """This flow is responsible for performing Structured QA on a set of
     textual chunks retrieved from a vector DB based on metadata filtering.

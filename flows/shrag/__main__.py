@@ -1,42 +1,25 @@
 import json
-import os
 from functools import wraps
 from pathlib import Path
 
 import click
 
+from flows.settings import settings
 from flows.shrag import playbook_qa
-from flows.shrag.constants import (
-    CHROMA_HOST_DEFAULT,
-    CHROMA_PORT_DEFAULT,
-    EMBEDDING_MODEL_DEFAULT,
-    EMBEDDING_MODEL_ENV_VAR,
-    LLM_BACKEND_DEFAULT,
-    LLM_BACKEND_ENV_VAR,
-    LLM_MODEL_DEFAULT,
-    LLM_MODEL_ENV_VAR,
-    SIMILARITY_CUTOFF_DEFAULT,
-    SIMILARITY_TOP_K_DEFAULT,
-)
 
 
 def common_rag_options(func):
     @click.argument("chroma_collection_name")
-    @click.option("--chroma-host", default=CHROMA_HOST_DEFAULT)
-    @click.option("--chroma-port", type=int, default=CHROMA_PORT_DEFAULT)
+    @click.option("--chroma-host", default=settings.CHROMA_HOST)
+    @click.option("--chroma-port", type=int, default=settings.CHROMA_PORT)
     @click.option(
-        "--llm-backend", default=os.getenv(LLM_BACKEND_ENV_VAR, LLM_BACKEND_DEFAULT)
+        "--llm-backend", default=settings.LLM_BACKEND, type=click.Choice(["openai"])
     )
-    @click.option(
-        "--llm-model", default=os.getenv(LLM_MODEL_ENV_VAR, LLM_MODEL_DEFAULT)
-    )
-    @click.option(
-        "--embedding-model",
-        default=os.getenv(EMBEDDING_MODEL_ENV_VAR, EMBEDDING_MODEL_DEFAULT),
-    )
+    @click.option("--llm-model", default=settings.LLM_MODEL)
+    @click.option("--embedding-model", default=settings.EMBEDDING_MODEL)
     @click.option("--reranker-model", default=None)
-    @click.option("--similarity-top-k", type=int, default=SIMILARITY_TOP_K_DEFAULT)
-    @click.option("--similarity-cutoff", type=float, default=SIMILARITY_CUTOFF_DEFAULT)
+    @click.option("--similarity-top-k", type=int, default=settings.SIMILARITY_TOP_K)
+    @click.option("--similarity-cutoff", type=float, default=settings.SIMILARITY_CUTOFF)
     @wraps(func)
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)

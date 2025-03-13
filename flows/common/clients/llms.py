@@ -1,10 +1,9 @@
-import os
 from enum import Enum
 
 from loguru import logger
 from prefect import task
 
-from flows.shrag.constants import LLM_BACKEND_DEFAULT, LLM_BACKEND_ENV_VAR
+from flows.settings import settings
 
 
 class LLMBackend(str, Enum):
@@ -14,7 +13,7 @@ class LLMBackend(str, Enum):
 
 def get_llm_backend() -> LLMBackend:
     """Returns the LLM backend to use"""
-    return LLMBackend(os.getenv(LLM_BACKEND_ENV_VAR, LLM_BACKEND_DEFAULT))
+    return LLMBackend(settings.LLM_BACKEND)
 
 
 @task(task_run_name="get_llm:[{llm_backend}]-{llm_model}")

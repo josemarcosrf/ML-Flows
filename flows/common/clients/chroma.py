@@ -1,5 +1,3 @@
-import os
-
 import chromadb
 from llama_index.core import VectorStoreIndex
 from llama_index.vector_stores.chroma import ChromaVectorStore
@@ -8,11 +6,7 @@ from tabulate import tabulate
 from tqdm.rich import tqdm
 
 from flows.common.clients.llms import LLMBackend
-from flows.shrag.constants import (
-    OLLAMA_HOST_DEFAULT,
-    OLLAMA_HOST_ENV_VAR,
-    OPENAI_API_KEY_ENV_VAR,
-)
+from flows.settings import settings
 
 
 class ChromaClient:
@@ -74,11 +68,7 @@ class ChromaClient:
         if backend == LLMBackend.OLLAMA:
             from chromadb.utils.embedding_functions import OllamaEmbeddingFunction
 
-            if ollama_host := (
-                kwargs.get("ollama_host")
-                or os.getenv(OLLAMA_HOST_ENV_VAR)
-                or OLLAMA_HOST_DEFAULT
-            ):
+            if ollama_host := (kwargs.get("ollama_host") or settings.OLLAMA_HOST):
                 return OllamaEmbeddingFunction(
                     url=f"http://{ollama_host}/api/embeddings",
                     model_name=embedding_model,
@@ -93,20 +83,10 @@ class ChromaClient:
         if backend == LLMBackend.OPENAI:
             from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 
-            if openai_api_key := kwargs.get("openai_api_key") or os.getenv(
-                OPENAI_API_KEY_ENV_VAR
-            ):
-                return OpenAIEmbeddingFunction(
-                    api_key=kwargs.get(openai_api_key),
-                    model_name=embedding_model,
-                )
-            else:
-                raise ValueError(
-                    "❌ Missing OpenAI API key."
-                    "Please provide it as a keyword argument or set the OPENAI_API_KEY environment variable."
-                    "E.g.: openai_api_key=sk-..."
-                    "You can get an API key from https://platform.openai.com/account/api-keys"
-                )
+            return OpenAIEmbeddingFunction(
+                api_key=kwargs.get("openai_api_key") or settings.OPENAI_API_KEY,
+                model_name=embedding_model,
+            )
 
         else:
             raise ValueError(
@@ -129,7 +109,7 @@ class ChromaClient:
         """
 
         def get_cols(meta):
-            return tuple([meta.get(field) for field in metadata_fields])
+            return tuple(meta.get(field) for field in metadata_fields)
 
         def get_batch_metas(batch_size, offset):
             return col.get(include=["metadatas"], limit=batch_size, offset=offset)[

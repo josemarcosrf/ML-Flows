@@ -4,8 +4,8 @@ from pathlib import Path
 from prefect import Flow
 
 from flows import collect_public_flows
-from flows.shrag.constants import OPENAI_API_KEY_ENV_VAR
-from flows.shrag.helpers import get_or_raise, get_project_version
+from flows.settings import settings
+from flows.shrag.helpers import get_project_version
 
 
 class PoolType(str, Enum):
@@ -20,7 +20,7 @@ class PoolType(str, Enum):
 def get_shared_env():
     # Wrapped in a function to avoid 'get_or_raise' on import, only @ run-time
     return {
-        "OPENAI_API_KEY": get_or_raise(OPENAI_API_KEY_ENV_VAR),
+        "OPENAI_API_KEY": settings.OPENAI_API_KEY,
         # "RAY_ADDRESS": get_or_raise("RAY_ADDRESS"),
         # "AWS_ACCESS_KEY_ID": aws_key,
         # "AWS_SECRET_ACCESS_KEY": aws_secret,
