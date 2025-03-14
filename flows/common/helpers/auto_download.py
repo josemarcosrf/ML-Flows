@@ -96,4 +96,8 @@ def download_if_remote(func: Callable) -> Callable:
                         f"⚠️ Failed to clean up temporary file {file_info['local']}: {e}"
                     )
 
+    wrapper.__name__ = func.__name__
+    wrapper.__doc__ = func.__doc__
+    wrapper.__module__ = func.__module__
+    wrapper.__qualname__ = func.__qualname__
     return wrapper

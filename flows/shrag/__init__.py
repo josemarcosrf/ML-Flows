@@ -5,10 +5,12 @@ from llama_index.core import Settings
 from loguru import logger
 from prefect import Flow, flow
 
+from flows.common.helpers.auto_download import download_if_remote
 from flows.settings import settings
 
 
 @flow(log_prints=True, flow_run_name="playbook-QA-{chroma_collection_name}-{llm_model}")
+@download_if_remote
 def playbook_qa(
     playbook_json: Path | str,
     meta_filters: dict[str, Any],

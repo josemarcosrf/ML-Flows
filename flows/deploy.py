@@ -27,6 +27,23 @@ def get_shared_env():
     }
 
 
+def unwrap_flow(flow: Flow) -> callable:
+    """Unwraps a flow to get the original function and its code file path
+
+    Args:
+        flow (Flow): Prefect flow object
+
+    Returns:
+        str: The code file path and the function name
+    """
+    # Unwrap the function to get to the original function
+    original_fn = flow.fn
+    while hasattr(original_fn, "__wrapped__"):
+        original_fn = original_fn.__wrapped__
+
+    return original_fn
+
+
 def deploy_flow(
     flow_name: str,
     deployment_name: str,
@@ -52,7 +69,7 @@ def deploy_flow(
 
     # Fetch the flow from its name
     if flow := public_flows.get(flow_name):
-        print("🔖 FLOW TAGS: ", flow_tags)
+        print(f"🔖 FLOW TAGS: {flow_tags}")
         if pool_type.lower() == PoolType.DOCKER:
             image_name = "jmrf/shrag-prefect"
             project_version = get_project_version()
@@ -73,9 +90,15 @@ def deploy_flow(
             # flow file can be included in the deployment.
             # This approach works well for standalone scripts but is limited when the flow
             # depends on additional local modules
-            flow_fn_name = flow.fn.__name__
             repo_root = Path.cwd()
-            code_file_path = Path(flow.fn.__code__.co_filename)
+
+            # NOTE: As the original function might be wrapper before wrapping it in a flow,
+            # we need to unwrap it to get the original function code file path.
+            fn = unwrap_flow(flow)
+            flow_fn_name = fn.__name__
+            code_file_path = Path(fn.__code__.co_filename)
+            print(f"📦 Deploying flow: {flow_name} from {code_file_path}")
+
             Flow.from_source(
                 source=str(repo_root),
                 entrypoint=f"{code_file_path.relative_to(repo_root)}:{flow_fn_name}",

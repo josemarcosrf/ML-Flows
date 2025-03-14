@@ -42,12 +42,16 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "gpt-4o-mini"  # or "qwen2.5"
     EMBEDDING_MODEL: str = "text-embedding-3-small"  # or "nomic-embed-text"
 
-    # OpenAI configuration
-    OPENAI_API_KEY: SecretStr | None = None
-
     # Retrieval configuration
     SIMILARITY_TOP_K: int = 5
     SIMILARITY_CUTOFF: float = 0.3
+
+    # OpenAI configuration
+    OPENAI_API_KEY: SecretStr | None = None
+
+    # AWS credentials
+    AWS_ACCESS_KEY_ID: SecretStr | None = None
+    AWS_SECRET_ACCESS_KEY: SecretStr | None = None
 
     @field_validator("OPENAI_API_KEY")
     @classmethod
