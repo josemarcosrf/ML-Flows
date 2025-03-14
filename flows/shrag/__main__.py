@@ -4,6 +4,7 @@ from pathlib import Path
 
 import click
 
+from flows.common.clients.llms import LLMBackend
 from flows.settings import settings
 from flows.shrag import playbook_qa
 
@@ -13,7 +14,7 @@ def common_rag_options(func):
     @click.option("--chroma-host", default=settings.CHROMA_HOST)
     @click.option("--chroma-port", type=int, default=settings.CHROMA_PORT)
     @click.option(
-        "--llm-backend", default=settings.LLM_BACKEND, type=click.Choice(["openai"])
+        "--llm-backend", default=settings.LLM_BACKEND, type=click.Choice(LLMBackend)
     )
     @click.option("--llm-model", default=settings.LLM_MODEL)
     @click.option("--embedding-model", default=settings.EMBEDDING_MODEL)

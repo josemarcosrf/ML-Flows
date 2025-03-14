@@ -40,7 +40,7 @@ class QAResponse(BaseModel):
 
 
 class QAgent:
-    """A Question Agent that can ask questions and return the answers"""
+    """A Question-Answering Agent implementing the RAG pipeline"""
 
     def __init__(self, index: VectorStoreIndex, llm: Any, reranker: Any = None):
         """Initialize the Question Agent with the index and LLM"""

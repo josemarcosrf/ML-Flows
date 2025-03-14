@@ -1,8 +1,7 @@
 from enum import Enum
-from typing import Any, TypedDict
 
 from dateutil import parser
-from pydantic import BaseModel, create_model, Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class YesNoEnum(Enum):
@@ -12,16 +11,9 @@ class YesNoEnum(Enum):
 
 
 class BaseAnswer(BaseModel):
-    response: str = Field(..., description="Field to be overriden by the sub-class")
-
-    # TODO: Better get this field from the Retriever instead
-    # page_numbers: list[int] = Field(
-    #     ...,
-    #     description=(
-    #         "The page numbers of the sources used to answer this question. "
-    #         "Do not include a page number if the context is irrelevant."
-    #     ),
-    # )
+    response: str | Enum = Field(
+        ..., description="Field to be overriden by the sub-class"
+    )
     confidence: float = Field(
         ...,
         description="Confidence value between 0-1 of the correctness of the result.",
@@ -29,6 +21,12 @@ class BaseAnswer(BaseModel):
     confidence_explanation: str = Field(
         ..., description="Explanation for the confidence score"
     )
+
+    @field_validator("response")
+    def convert_enum_to_str(cls, v):
+        if isinstance(v, Enum):
+            return v.value
+        return v
 
 
 class CustomerInformation(BaseAnswer):

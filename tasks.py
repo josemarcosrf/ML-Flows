@@ -21,7 +21,7 @@ def local_prefect(c, port: int = 4200):
 
 
 @task
-def start_worker_pool(
+def local_worker_pool(
     c, pool_type: str, name: str | None = None, overwrite: bool = False
 ) -> None:
     """Creates and starts a Docker Worker Pool

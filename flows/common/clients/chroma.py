@@ -56,7 +56,7 @@ class ChromaClient:
             backend (str | LLMBackend): LLM backend to use. One of openai, ollama
             embedding_model (str): Embedding model to use. E.g.: text-embedding-3-small, nomic-embed-text, ...
             **kwargs: Additional keyword arguments to pass to the embedding function
-                ollama_host (str): Host of the Ollama server. Defaults to localhost:11434
+                ollama_base_url (str): Host of the Ollama server. Defaults to localhost:11434
                 openai_api_key (str): API key for the OpenAI API. Defaults to None
                     (uses the OPENAI_API_KEY environment variable)
         Raises:
@@ -68,16 +68,18 @@ class ChromaClient:
         if backend == LLMBackend.OLLAMA:
             from chromadb.utils.embedding_functions import OllamaEmbeddingFunction
 
-            if ollama_host := (kwargs.get("ollama_host") or settings.OLLAMA_HOST):
+            if ollama_base_url := (
+                kwargs.get("ollama_base_url") or settings.OLLAMA_BASE_URL
+            ):
                 return OllamaEmbeddingFunction(
-                    url=f"http://{ollama_host}/api/embeddings",
+                    url=f"{ollama_base_url}/api/embeddings",
                     model_name=embedding_model,
                 )
             else:
                 raise ValueError(
-                    "❌ Missing Ollama host. "
-                    "Please provide it as a keyword argument or set the OLLAMA_HOST environment variable."
-                    "E.g.: ollama_host=localhost:11434"
+                    "❌ Missing Ollama host. Please provide it as a keyword argument "
+                    "or set the OLLAMA_BASE_URL environment variable."
+                    "E.g.: OLLAMA_BASE_URL=http://localhost:11434"
                 )
 
         if backend == LLMBackend.OPENAI:

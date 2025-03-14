@@ -7,7 +7,7 @@ For example `SHRAG: Structured Heriarchical Retrieval Augmented Generation` usin
 > 💡 Once installed, check all the flows with:
 
 ```shell
-$ python -m flows ls
+$ python -m flows ls # Or: pdm flows ls
 ```
 
 Which should output something like:
@@ -47,16 +47,23 @@ Which should output something like:
    ```
 
 3. **Auxiliary Services:**
-   - Ensure you have a ChromaDB instance running: `inv local-chroma`
-   - Ensure you have the Prefect server running: `inv local-prefect`
-   - Ensure you have a running Prefect pool: `inv start-worker-pool -p process -n test --overwrite`
+   - Ensure you have a **ChromaDB** instance running: `inv local-chroma`
+   - Ensure you have the **Prefect server** running: `inv local-prefect`
+   - Ensure you have a running **Prefect pool**: `inv start-worker-pool -p process -n test --overwrite`
 
 ### Run
 
    First update the `.env` file as necessary. (See `.example.env` for guidance)
 
-   Then there are two ways to run flows;
+   Additionally, you might want to configure Prefect to store results when running
+   locally:
 
+   ```bash
+   prefect config set PREFECT_LOCAL_STORAGE_PATH="~/.prefect/storage"
+   prefect config view # check modified settings
+   ```
+
+   Then there are two ways to run flows;
 
    #### As a python module
 

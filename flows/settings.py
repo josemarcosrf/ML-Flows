@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     CHROMA_PORT: int = 8000
 
     # Ollama configuration
-    OLLAMA_HOST: str = "localhost:11434"
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
 
     # LLM configuration
     LLM_BACKEND: str = "openai"  # or "ollama"

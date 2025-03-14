@@ -31,6 +31,9 @@ dev = [
 [tool.pdm]
 distribution = false
 
+[tool.pdm.scripts]
+flows = "python -m flows"
+
 [tool.pdm.scripts.check-lint]
 shell = """
     ruff format --check .

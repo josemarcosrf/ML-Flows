@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import uuid
 from pathlib import Path
 
 import click
@@ -86,18 +87,41 @@ def deploy_flow_cli(
     "--storage-path",
     default=settings.PREFECT_STORAGE_PATH,
 )
-def read_from_storage(result_id: str, storage_path: str):
+def read_prefect_result(
+    run_id: str | None, result_id: str | None = None, storage_path: str | None = None
+):
     """Read a result from the Prefect storage
 
     Args:
+        run_id (str): The ID of the flow or task that produced the result
         result_id (str): The ID of the result to read
         storage_path (str): The path where Prefect stores the results
     """
+    storage_path = storage_path or os.getenv("PREFECT_STORAGE_PATH")
+    if not storage_path:
+        print("💥 Please provide a storage path")
+        return
+
+    if not run_id and not result_id:
+        print("💥 Please provide a run ID OR a result ID")
+        return
+
+    if run_id:
+        print("🎰 Computing result ID from run ID...")
+        result_id = (
+            base64.urlsafe_b64encode(uuid.UUID(run_id).bytes).decode().rstrip("=")
+        )
+
     rfile = Path(storage_path).resolve() / result_id
     if rfile.exists():
-        res = json.load(rfile.open())
-        result = cloudpickle.loads(base64.b64decode(res["data"]))
-        print(json.dumps(result, indent=2))
+        try:
+            res = json.load(rfile.open("rb"))
+            res = cloudpickle.loads(base64.b64decode(res["result"]))
+        except json.JSONDecodeError:
+            print(f"💥 {rfile} is not a valid JSON file!")
+            return
+
+        print(json.dumps(res, indent=2))
     else:
         print(f"💥 {rfile} could not be found!")
 
@@ -142,6 +166,10 @@ def list_collection(
     print("✨ Done!")
 
 
-if __name__ == "__main__":
+def main():
     cli.add_command(chroma_cli)
     cli()
+
+
+if __name__ == "__main__":
+    main()
