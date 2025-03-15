@@ -71,7 +71,7 @@ def download_from_s3(s3_path: str) -> Path | None:
         _, temp_path = tempfile.mkstemp()
 
         # Download the file
-        logger.info(f"⬇️ Downloading {object_key} from S3 bucket {bucket_name}")
+        logger.info(f"⬇️  Downloading {object_key} from S3 bucket {bucket_name}")
         s3_client = boto3.client("s3")
         s3_client.download_file(bucket_name, object_key, temp_path)
 

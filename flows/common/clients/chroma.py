@@ -1,3 +1,5 @@
+from typing import Callable
+
 import chromadb
 from llama_index.core import VectorStoreIndex
 from llama_index.vector_stores.chroma import ChromaVectorStore
@@ -14,11 +16,66 @@ class ChromaClient:
         self.db = chromadb.HttpClient(host, port)
         logger.info(f"🔌 Connected to ChromaDB at {host}:{port}")
 
-    def get_collection(self, collection_name: str, create: bool = False):
+    def create_collection(
+        self,
+        collection_name: str,
+        embed_fn: Callable,
+    ) -> chromadb.Collection:
+        """Creates a new collection in the database
+
+        Args:
+            collection_name (str): Name of the collection to create
+            embed_fn (Callable): Embedding function to use for the collection
+        """
+        # Check if the collection already exists
+        if collection_name in self.db.list_collections():
+            raise ValueError(f"💥 Collection {collection_name} already exists!")
+
+        # Otherwise, create a new collection
+        col = self.db.create_collection(collection_name, embedding_function=embed_fn)
+
+        # Add metadata to the collection
+        embed_model_name = embed_fn._model_name
+        embedding_backend = embed_fn.__class__.__name__
+        col_meta = col.metadata or {}
+        if (
+            "embedding_backend" in col_meta
+            and col_meta["embedding_backend"] != embedding_backend
+        ):
+            raise ValueError(
+                "⚠️ Collection marked as using a different embedding backend: "
+                f"{col_meta['embedding_backend']}"
+            )
+        if (
+            "embedding_model" in col_meta
+            and col_meta["embedding_model"] != embed_model_name
+        ):
+            raise ValueError(
+                "⚠️ Collection marked as using a different embedding model: "
+                f"{col_meta['embedding_model']}"
+            )
+
+        col_meta["embedding_backend"] = embedding_backend
+        col_meta["embedding_model"] = embed_model_name
+        col.modify(metadata=col_meta)
+
+        return col
+
+    def get_collection(
+        self,
+        collection_name: str,
+        create: bool = False,
+        embed_fn: Callable | None = None,
+    ):
         """Returns the collection from the database"""
         # Check if the collection exists
         if collection_name not in self.db.list_collections():
             if create:
+                if embed_fn is None:
+                    raise ValueError(
+                        "💥 Please provide an embedding function to create the collection"
+                    )
+
                 # If it doesn't exist, create it
                 logger.warning(f"🪣 Creating empty collection {collection_name}")
                 chroma_collection = self.db.create_collection(collection_name)
@@ -82,7 +139,7 @@ class ChromaClient:
                     "E.g.: OLLAMA_BASE_URL=http://localhost:11434"
                 )
 
-        if backend == LLMBackend.OPENAI:
+        elif backend == LLMBackend.OPENAI:
             from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 
             return OpenAIEmbeddingFunction(

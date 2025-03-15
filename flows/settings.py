@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL: str = "text-embedding-3-small"  # or "nomic-embed-text"
     VISION_MODEL: str | None = None
 
+    # Indexing configuration
+    CHUNK_SIZE: int = 1500
+    CHUNK_OVERLAP: int = 500
+
     # Retrieval configuration
     SIMILARITY_TOP_K: int = 5
     SIMILARITY_CUTOFF: float = 0.3

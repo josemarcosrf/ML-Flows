@@ -17,7 +17,7 @@ class PDFToMarkdown:
     def __init__(
         self,
         use_llm: bool = False,
-        llm_backend: str = "ollama",
+        llm_backend: str | None = None,
         llm_model: str | None = None,
         artifact_dict: dict | None = None,
     ):
@@ -26,6 +26,8 @@ class PDFToMarkdown:
             "llm_model": llm_model,
         }
         if use_llm:
+            if llm_backend is None:
+                raise ValueError("If use_llm is True, llm_backend must be provided")
             if llm_backend == "openai":
                 llm_service = "marker.services.openai.OpenAIService"
             elif llm_backend == "ollama":

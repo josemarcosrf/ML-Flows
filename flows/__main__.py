@@ -9,7 +9,7 @@ import cloudpickle
 from tabulate import tabulate
 
 from flows import collect_public_flows
-from flows.deploy import deploy_flow, PoolType
+from flows.deploy import deploy_flow, PoolType, unwrap_flow
 from flows.settings import print_settings, settings
 
 
@@ -31,7 +31,7 @@ def list_flows():
     rows = []
     headers = ["Flow Name", "From", "Flow Parameters"]
     for flow_name, flow in collect_public_flows().items():
-        code_file_path = Path(flow.fn.__code__.co_filename)
+        code_file_path = Path(unwrap_flow(flow).__code__.co_filename)
         flow_path = code_file_path.relative_to(repo_root)
         flow_params = {
             p: p_info.get("description", "N/D")
