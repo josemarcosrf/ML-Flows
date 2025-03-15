@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Any
 
 from llama_index.core import Settings
@@ -12,7 +11,7 @@ from flows.settings import settings
 @flow(log_prints=True, flow_run_name="playbook-QA-{chroma_collection_name}-{llm_model}")
 @download_if_remote
 def playbook_qa(
-    playbook_json: Path | str,
+    playbook_json: str,
     meta_filters: dict[str, Any],
     chroma_collection_name: str,
     chroma_host: str = settings.CHROMA_HOST,
@@ -30,7 +29,7 @@ def playbook_qa(
     in the given chromaDB collection.
 
     Args:
-        playbook_json (Path | str): Path to the playbook JSON file
+        playbook_json (str): Path to the playbook JSON file
         meta_filters (dict[str, Any], optional): Metadata filters for retrieval
             as {key:value} mapping. Leave as an empty dict for no filtering.
         chroma_collection_name (str): Name of the ChromaDB collection

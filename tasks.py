@@ -1,3 +1,5 @@
+import os
+import re
 from enum import Enum
 
 from invoke import task
@@ -55,3 +57,32 @@ def local_worker_pool(
     )
     c.run("prefect work-pool ls")
     c.run(f"prefect worker start --pool {name}")
+
+
+@task
+def local_ray(ctx, port: int | None = None, n_nodes: int = 1):
+    """Start a local Ray server (port 6789 by default)"""
+
+    # Start Ray on the given port
+    port = port or os.getenv("RAY_HEAD_PORT", 6789)
+    result = ctx.run(
+        f"ray stop && ray start --head --port={port}", hide=False, warn=True
+    )
+    # Find the Ray address
+    # NOTE: Theoretically getting the IP could be done with: `ray get-head-ip`
+    #       But in practice is not working without a config file
+    address_regex = r"--address=\'([^\']+)\'"
+    if m := re.search(address_regex, result.stdout):
+        addr = m.group(1)
+
+        # Start as many nodes as requested
+        for _ in range(n_nodes - 1):
+            ctx.run(f"ray start --address={addr}", hide=False, warn=True)
+
+        # Update the .env file
+        if (
+            input("Do you want to update the 'RAY_ADDRESS' in the .env file? ").lower()
+            == "y"
+        ):
+            print("🖊  Updating .env file ")
+            ctx.run(f'sed -i "s/RAY_ADDRESS=.*/RAY_ADDRESS=\\"{addr}\\"/" .env')

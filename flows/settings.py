@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     LLM_BACKEND: str = "openai"  # or "ollama"
     LLM_MODEL: str = "gpt-4o-mini"  # or "qwen2.5"
     EMBEDDING_MODEL: str = "text-embedding-3-small"  # or "nomic-embed-text"
+    VISION_MODEL: str | None = None
 
     # Retrieval configuration
     SIMILARITY_TOP_K: int = 5

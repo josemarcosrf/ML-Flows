@@ -8,6 +8,10 @@ from botocore.exceptions import ClientError, NoCredentialsError
 from loguru import logger
 
 
+class DownloadError(Exception):
+    pass
+
+
 def is_valid_s3_uri(uri):
     """Validates a S3 URI using a regex pattern"""
     # Don't ask me to explain. This is chatGPT's magnificent ideation....
@@ -67,13 +71,12 @@ def download_from_s3(s3_path: str) -> Path | None:
         _, temp_path = tempfile.mkstemp()
 
         # Download the file
+        logger.info(f"⬇️ Downloading {object_key} from S3 bucket {bucket_name}")
         s3_client = boto3.client("s3")
         s3_client.download_file(bucket_name, object_key, temp_path)
 
         return Path(temp_path)
     except (NoCredentialsError, ClientError) as e:
-        logger.error(f"💥 Error downloading from S3: {e}")
-        return None
+        raise DownloadError(f"💥 Error downloading from S3: {e}")
     except Exception as e:
-        logger.error(f"💥 Unexpected error downloading from S3: {e}")
-        return None
+        raise DownloadError(f"💥 Unexpected error downloading from S3: {e}")
