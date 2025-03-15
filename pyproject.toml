@@ -40,6 +40,7 @@ preproc = [
     "uvicorn>=0.34.0",
     "fastapi>=0.115.11",
     "python-multipart>=0.0.20",
+    "ray[serve]>=2.43.0",
 ]
 [tool.pdm]
 distribution = false
