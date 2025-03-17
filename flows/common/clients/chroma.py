@@ -1,3 +1,4 @@
+import os
 from typing import Callable
 
 import chromadb
@@ -8,7 +9,6 @@ from tabulate import tabulate
 from tqdm.rich import tqdm
 
 from flows.common.clients.llms import LLMBackend
-from flows.settings import settings
 
 
 class ChromaClient:
@@ -105,54 +105,57 @@ class ChromaClient:
         return VectorStoreIndex.from_vector_store(vector_store, embed_model)
 
     def get_embedding_function(
-        self, backend: str | LLMBackend, embedding_model: str, **kwargs
-    ):
+        self,
+        backend: str | LLMBackend,
+        embedding_model: str,
+        ollama_base_url: str = None,
+        openai_api_key: str = None,
+    ) -> Callable:
         """Returns the embedding function for the database
 
         Args:
             backend (str | LLMBackend): LLM backend to use. One of openai, ollama
             embedding_model (str): Embedding model to use. E.g.: text-embedding-3-small, nomic-embed-text, ...
-            **kwargs: Additional keyword arguments to pass to the embedding function
-                ollama_base_url (str): Host of the Ollama server. Defaults to localhost:11434
-                openai_api_key (str): API key for the OpenAI API. Defaults to None
-                    (uses the OPENAI_API_KEY environment variable)
+            ollama_base_url (str, optional): Ollama base URL. Defaults to None.
+            openai_api_key (str, optional): OpenAI API key. Defaults to None.
         Raises:
             ValueError: If the LLM backend is not one of openai, ollama
             ValueError: If the extra keyword arguments are not valid for the embedding function
+            ValueError: If the Ollama base URL is not provided when using the Ollama backend
+            ValueError: If the OpenAI API key is not provided when using the OpenAI backend
         Returns:
-            _type_: _description_
+            Callable: Embedding function to use
         """
         if backend == LLMBackend.OLLAMA:
             from chromadb.utils.embedding_functions import OllamaEmbeddingFunction
 
-            if ollama_base_url := (
-                kwargs.get("ollama_base_url") or settings.OLLAMA_BASE_URL
-            ):
-                return OllamaEmbeddingFunction(
-                    url=f"{ollama_base_url}/api/embeddings",
-                    model_name=embedding_model,
-                )
-            else:
-                raise ValueError(
+            if not ollama_base_url:
+                raise RuntimeError(
                     "❌ Missing Ollama host. Please provide it as a keyword argument "
                     "or set the OLLAMA_BASE_URL environment variable."
                     "E.g.: OLLAMA_BASE_URL=http://localhost:11434"
                 )
 
-        elif backend == LLMBackend.OPENAI:
-            from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
-
-            return OpenAIEmbeddingFunction(
-                api_key=kwargs.get("openai_api_key") or settings.OPENAI_API_KEY,
+            return OllamaEmbeddingFunction(
+                url=f"{ollama_base_url}/api/embeddings",
                 model_name=embedding_model,
             )
 
-        else:
-            raise ValueError(
-                f"❌ Unknown LLM backend: {backend}. Please use one of {LLMBackend.__members__}"
-            )
+        elif backend == LLMBackend.OPENAI:
+            from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 
-    def print_collection_contents(
+            if api_key := (os.getenv("OPENAI_API_KEY") or openai_api_key):
+                return OpenAIEmbeddingFunction(
+                    api_key=api_key,
+                    model_name=embedding_model,
+                )
+            else:
+                raise RuntimeError(
+                    f"❌ Unknown LLM backend: {backend}. "
+                    f"Please use one of {LLMBackend.__members__}"
+                )
+
+    def print_collection_documents(
         self, collection_name: str, metadata_fields: list[str], batch_size: int = 256
     ):
         """Fetches all Chroma collection items' in batches to avoid memory issues and

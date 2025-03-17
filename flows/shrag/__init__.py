@@ -9,7 +9,7 @@ from flows.settings import settings
 
 
 @flow(log_prints=True, flow_run_name="playbook-QA-{chroma_collection_name}-{llm_model}")
-@download_if_remote
+@download_if_remote(include=["playbook_json"])
 def playbook_qa(
     playbook_json: str,
     meta_filters: dict[str, Any],

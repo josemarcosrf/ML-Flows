@@ -13,7 +13,6 @@ from prefect.runtime import task_run
 from pydantic import BaseModel
 from tqdm.rich import tqdm
 
-from flows.settings import settings
 from flows.shrag.playbook import get_question_prompt, QuestionItem
 from flows.shrag.schemas.answers import BaseAnswer, SummaryAnswer, YesNoEnum
 from flows.shrag.schemas.questions import QuestionType
@@ -54,8 +53,8 @@ class QAgent:
         query: str,
         meta_filters: dict[str, Any] = {},
         output_cls: BaseModel = SummaryAnswer,
-        similarity_top_k: int = settings.SIMILARITY_TOP_K,
-        similarity_cutoff: float = settings.SIMILARITY_CUTOFF,
+        similarity_top_k: int = 3,
+        similarity_cutoff: float = 0.2,
     ) -> BaseAnswer:
         """This is the in-effecct RAG pipeline. Retrieves, re-ranks, generates and formats
         the answer

@@ -29,11 +29,11 @@ def common_rag_options(func):
 
 
 @click.group()
-def cli():
-    """Welcome to the SHRAG's Command Line Interface"""
+def shrag_cli():
+    """Structured RAG CLI"""
 
 
-@cli.command()
+@shrag_cli.command()
 @click.argument("input-directory")
 @click.argument("output-directory")
 @click.argument("playbook_json")
@@ -104,7 +104,7 @@ def run_playbook_qa_from_directory(
                 f.write(json.dumps(res, indent=2))
 
 
-@cli.command()
+@shrag_cli.command()
 @click.argument("playbook_json")
 @common_rag_options
 @click.option(
@@ -165,7 +165,3 @@ def run_playbook_qa(
     filters = "_".join(f"{k}={v}" for k, v in meta_filters.items())
     with open(f"{filters}_qa_results.json", "w") as f:
         f.write(json.dumps(res, indent=2))
-
-
-if __name__ == "__main__":
-    cli()

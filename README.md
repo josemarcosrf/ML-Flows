@@ -55,6 +55,15 @@ Which should output something like:
 
    First update the `.env` file as necessary. (See `.example.env` for guidance)
 
+#### Auxiliary Services
+
+   ```shell
+   inv local-chroma &               # start chroma
+   inv local-prefect &              # start prefect
+   inv local-worker-pool process &  # start a prefect process worker pool
+   inv local-marker-ocr &           # start Marker-PDF OCR
+   ```
+
    Additionally, you might want to configure Prefect to store results when running
    locally:
 
@@ -65,7 +74,7 @@ Which should output something like:
 
    Then there are two ways to run flows;
 
-   #### As a python module
+#### Flows - As python modules
 
    Simply, as you'd run the module's CLI present in each submodule's `__main__.py`:
 
@@ -80,19 +89,20 @@ Which should output something like:
       -m 'name:<document-name-to-filter-by>'
    ```
 
-   #### As a Prefect [deployment](https://docs.prefect.io/latest/concepts/deployments/)
+#### Flows - As Prefect [deployments](https://docs.prefect.io/latest/concepts/deployments/)
 
-   1. Create a deployment:
+1. Create a deployment:
 
-   ```shell
-   python -m flows deploy playbook-qa DEV process test -t qa -t playbook
-   ```
+```shell
+pdm flows deploy playbook-qa DEV process local-process-pool -t qa -t playbook
+pdm flows deploy index-files DEV process local-process-pool -t preproc -t markdown
+```
 
-   2. Run either from the dashboard or programatically:
+2. Run either from the dashboard or programatically:
 
-   ```shell
-   prefect deployment run 'playbook-qa/DEV'
-   ```
+```shell
+prefect deployment run 'playbook-qa/DEV'
+```
 
 
 

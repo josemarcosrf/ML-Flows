@@ -1,19 +1,13 @@
+import os
 from enum import Enum
 
 from loguru import logger
 from prefect import task
 
-from flows.settings import settings
-
 
 class LLMBackend(str, Enum):
     OPENAI = "openai"
     OLLAMA = "ollama"
-
-
-def get_llm_backend() -> LLMBackend:
-    """Returns the LLM backend to use"""
-    return LLMBackend(settings.LLM_BACKEND)
 
 
 @task(task_run_name="get_llm:[{llm_backend}]-{llm_model}")
@@ -60,12 +54,25 @@ def get_embedding_model(llm_backend: LLMBackend | str, embedding_model: str, **k
     if llm_backend == LLMBackend.OPENAI:
         from llama_index.embeddings.openai import OpenAIEmbedding
 
-        return OpenAIEmbedding(model=embedding_model)
+        if api_key := (os.getenv("OPENAI_API_KEY") or kwargs.get("openai_api_key")):
+            return OpenAIEmbedding(api_key=api_key, model=embedding_model)
+        else:
+            raise RuntimeError(
+                f"❌ Unknown LLM backend: {llm_backend}. "
+                f"Please use one of {LLMBackend.__members__}"
+            )
 
     elif llm_backend == LLMBackend.OLLAMA:
         from llama_index.embeddings.ollama import OllamaEmbedding
 
-        return OllamaEmbedding(model_name=embedding_model)
+        if ollama_base_url := kwargs.get("ollama_base_url"):
+            return OllamaEmbedding(base_url=ollama_base_url, model_name=embedding_model)
+        else:
+            raise RuntimeError(
+                "❌ Missing Ollama host. Please provide it as a keyword argument "
+                "or set the OLLAMA_BASE_URL environment variable."
+                "E.g.: OLLAMA_BASE_URL=http://localhost:11434"
+            )
 
     else:
         raise ValueError(

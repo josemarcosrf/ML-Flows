@@ -45,11 +45,11 @@ def get_aws_credentials() -> tuple[str, str]:
     # Get credentials from the session
     try:
         credentials = session.get_credentials()
-    except NoCredentialsError:
-        raise ValueError("❌ No AWS credentials found in the environment or session.")
+        return credentials.access_key, credentials.secret_key
+    except (NoCredentialsError, AttributeError):
+        raise RuntimeError("❌ No AWS credentials found in the environment or session.")
 
     # Access the key and secret
-    return credentials.access_key, credentials.secret_key
 
 
 def print_sources(retrieved_nodes, print_text: bool = False):

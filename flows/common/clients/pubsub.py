@@ -1,0 +1,200 @@
+import json
+import threading
+import time
+
+import redis
+from loguru import logger
+
+
+class RedisPubSubClient:
+    def __init__(
+        self,
+        host: str = "localhost",
+        port: int = 6379,
+        db: int = 0,
+        password: str = None,
+    ):
+        """Initialize Redis connection parameters (but don't connect yet).
+
+        Args:
+            host (str): Redis server hostname
+            port (int): Redis server port
+            db (int): Redis database number
+            password (str, optional): Redis password if authentication is required
+        """
+        # Store connection parameters instead of creating connections immediately
+        self.connection_params = {
+            "host": host,
+            "port": port,
+            "db": db,
+            "password": password,
+            "decode_responses": True,
+        }
+        # These will be initialized when needed
+        self._client = None
+        self._pubsub = None
+        self._subscribers = {}
+        self._listener_thread = None
+        self._running = False
+
+    @property
+    def client(self):
+        """Lazy initialization of Redis client."""
+        if self._client is None:
+            self._client = redis.Redis(**self.connection_params)
+        return self._client
+
+    @property
+    def pubsub(self):
+        """Lazy initialization of PubSub object."""
+        if self._pubsub is None:
+            self._pubsub = self.client.pubsub()
+        return self._pubsub
+
+    def publish(self, channel: str, message: dict | str) -> int:
+        """Publish a message to a channel.
+
+        Args:
+            channel (str): The channel to publish to
+            message (dict or str): The message to publish
+
+        Returns:
+            int: Number of clients that received the message
+        """
+        if isinstance(message, dict):
+            message = json.dumps(message)
+        return self.client.publish(channel, message)
+
+    def subscribe(self, channel: str, callback: callable):
+        """Subscribe to a channel.
+
+        Args:
+            channel (str): The channel to subscribe to
+            callback (callable): Function to call when a message is received
+        """
+        self._subscribers[channel] = callback
+
+        if "*" in channel:
+            self.pubsub.psubscribe(**{channel: self._message_handler})
+        else:
+            self.pubsub.subscribe(**{channel: self._message_handler})
+
+        # Start the listener thread if not already running
+        if not self._running:
+            self._start_listener()
+
+    def unsubscribe(self, channel: str):
+        """Unsubscribe from a channel.
+
+        Args:
+            channel (str): The channel to unsubscribe from
+        """
+        if channel in self._subscribers:
+            if "*" in channel:
+                self.pubsub.punsubscribe(channel)
+            else:
+                self.pubsub.unsubscribe(channel)
+            del self._subscribers[channel]
+
+    def _message_handler(self, message):
+        """Handle incoming messages and route to appropriate callbacks.
+
+        Args:
+            message (dict): Redis message
+        """
+        channel = message.get("channel")
+        pattern = message.get("pattern")
+        data = message.get("data")
+
+        # Skip subscription confirmation messages
+        if data == 1 or data == "subscribe" or data == "psubscribe":
+            return
+
+        # Try to parse JSON data
+        try:
+            data = json.loads(data)
+        except (json.JSONDecodeError, TypeError):
+            pass
+
+        # Route to the appropriate callback
+        if pattern and pattern in self._subscribers:
+            self._subscribers[pattern](channel, data)
+        elif channel and channel in self._subscribers:
+            self._subscribers[channel](data)
+
+    def _start_listener(self):
+        """Start the listener thread."""
+        self._running = True
+        self._listener_thread = threading.Thread(target=self._listen)
+        self._listener_thread.daemon = True
+        self._listener_thread.start()
+
+    def _listen(self):
+        """Listen for messages in a separate thread."""
+        while self._running:
+            try:
+                message = self.pubsub.get_message()
+                if message:
+                    self._message_handler(message)
+                time.sleep(0.001)  # Small sleep to prevent CPU hogging
+            except Exception as e:
+                logger.error(f"Error in listener thread: {e}")
+                time.sleep(1)  # Sleep longer on error
+
+    def close(self):
+        """Close connections and stop the listener thread."""
+        self._running = False
+        if self._listener_thread:
+            self._listener_thread.join(timeout=1.0)
+        if self._pubsub:
+            self._pubsub.close()
+        if self._client:
+            self._client.close()
+        self._client = None
+        self._pubsub = None
+        self._listener_thread = None
+
+    def __getstate__(self):
+        """Custom pickling behavior to exclude unpicklable objects."""
+        state = self.__dict__.copy()
+        # Remove unpicklable objects
+        state["_client"] = None
+        state["_pubsub"] = None
+        state["_client"] = None
+        state["_pubsub"] = None
+        state["_running"] = False
+        state["_listener_thread"] = None
+        return state
+
+    def __setstate__(self, state):
+        """Custom unpickling behavior to restore the object state."""
+        self.__dict__.update(state)
+
+
+class UpdatePublisher(RedisPubSubClient):
+    """Very thin wrapper around RedisPubSubClient to publish updates for a given
+    client and document.
+    """
+
+    def __init__(
+        self,
+        client_id: str,
+        host: str = "localhost",
+        port: int = 6379,
+        db: int = 0,
+        password: str = None,
+    ):
+        """Initialize the UpdatePublisher."""
+        super().__init__(host, port, db, password)
+        self.client_id = client_id
+
+    def publish_update(self, doc_id: str, message: dict | str) -> int:
+        channel = f"{self.client_id}/doc:{doc_id}"
+        try:
+            logger.debug(
+                f"📨 Publishing update for document {doc_id} on channel {channel}"
+            )
+            return self.publish(channel, message)
+        except Exception as e:
+            logger.warning(f"🙇 Error publishing update for channel {channel}: {e}")
+            return 0

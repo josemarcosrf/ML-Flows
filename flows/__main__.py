@@ -9,8 +9,12 @@ import cloudpickle
 from tabulate import tabulate
 
 from flows import collect_public_flows
+from flows.cli.chroma import chroma_cli
+from flows.cli.pubsub import pubsub_cli
 from flows.deploy import deploy_flow, PoolType, unwrap_flow
+from flows.preproc.__main__ import preproc_cli
 from flows.settings import print_settings, settings
+from flows.shrag.__main__ import shrag_cli
 
 
 @click.group()
@@ -55,7 +59,7 @@ def list_flows():
 @click.argument("pool-type", type=click.Choice([p.value for p in PoolType]))
 @click.argument("work-pool-name")
 @click.option("-b", "--build", is_flag=True)
-@click.option("-t", "--flow_tags", multiple=True, default=["LINT"])
+@click.option("-t", "--flow_tags", multiple=True, default=["DEUS"])
 def deploy_flow_cli(
     flow_name: str,
     deployment_name: str,
@@ -75,7 +79,7 @@ def deploy_flow_cli(
         pool_type (str): Prefect type of pool to deploy to
         work_pool_name (str): Name of the Prefect work pool
         build (bool, optional): Wether to build docker image. Defaults to False.
-        flow_tags (list[str] | None, optional): List of Prefect tags. Defaults to ['LINT'].
+        flow_tags (list[str] | None, optional): List of Prefect tags. Defaults to ['DEUS'].
     """
     deploy_flow(flow_name, deployment_name, pool_type, work_pool_name, build, flow_tags)
 
@@ -126,48 +130,11 @@ def read_prefect_result(
         print(f"💥 {rfile} could not be found!")
 
 
-@click.group("chroma")
-def chroma_cli():
-    """ChromaDB CLI"""
-    pass
-
-
-@chroma_cli.command("ls")
-@click.option("--host", default=os.getenv("CHROMA_HOST", "localhost"))
-@click.option("--port", default=os.getenv("CHROMA_PORT", 8000))
-def list_collections(host: str, port: int):
-    """List all collections in the ChromaDB"""
-    from flows.common.clients.chroma import ChromaClient
-
-    client = ChromaClient(host, port)
-    print("================ Collections ================")
-    for collection in client.db.list_collections():
-        print(f"- {collection}")
-
-    print("✨ Done!")
-
-
-@chroma_cli.command("lsc")
-@click.argument("collection_name")
-@click.option("-m", "--metadata-fields", default=["doc_id"], multiple=True)
-@click.option("--host", default=os.getenv("CHROMA_HOST", "localhost"))
-@click.option("--port", default=os.getenv("CHROMA_PORT", 8000))
-def list_collection(
-    collection_name: str, metadata_fields: list[str], host: str, port: int
-):
-    """List a ChromaDB's collection contents"""
-    from flows.common.clients.chroma import ChromaClient
-
-    client = ChromaClient(host, port)
-    print(f"================ Collection {collection_name} ================")
-    client.print_collection_contents(
-        collection_name=collection_name, metadata_fields=metadata_fields
-    )
-    print("✨ Done!")
-
-
 def main():
     cli.add_command(chroma_cli)
+    cli.add_command(pubsub_cli)
+    cli.add_command(preproc_cli)
+    cli.add_command(shrag_cli)
     cli()
 
 

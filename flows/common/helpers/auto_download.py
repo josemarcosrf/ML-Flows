@@ -1,3 +1,4 @@
+import copy
 import inspect
 import tempfile
 import urllib.request
@@ -106,6 +107,8 @@ def download_if_remote(
     A decorator that downloads files from S3 or URLs if parameters are remote paths,
     with include and exclude filters. Works with Prefect's @flow and @task decorators.
 
+    NOTE: Will only work on explicit parameters, not *args or **kwargs.
+
     Args:
         include (list[str] | None): List of parameter names to include. If None, include all.
         exclude (list[str] | None): List of parameter names to exclude. If None, exclude none.
@@ -144,18 +147,19 @@ def download_if_remote(
             def process_param(param_name, param_value):
                 """Process a single parameter."""
                 if isinstance(param_value, list):
+                    # Deep copy the list to avoid modifying the original
+                    bound_args.arguments[param_name] = copy.deepcopy(param_value)
                     for i, item in enumerate(param_value):
                         if isinstance(item, str):
-                            local_path = download_if_needed(item)
-                            if local_path:
-                                downloaded_files[param_name] = {
+                            if local_path := download_if_needed(item):
+                                downloaded_files[f"{param_name}-{i}"] = {
                                     "original": item,
                                     "local": local_path,
                                 }
-                                param_value[i] = str(local_path)
+                                bound_args.arguments[param_name][i] = str(local_path)
+
                 elif isinstance(param_value, str):
-                    local_path = download_if_needed(param_value)
-                    if local_path:
+                    if local_path := download_if_needed(param_value):
                         downloaded_files[param_name] = {
                             "original": param_value,
                             "local": local_path,
@@ -163,16 +167,20 @@ def download_if_remote(
                         bound_args.arguments[param_name] = str(local_path)
 
             # Determine which parameters to check
-            params_to_check = (
-                kwargs
-                if include
-                else {k: v for k, v in kwargs.items() if k not in exclude}
-            )
+            if include:
+                params_to_check = {
+                    k: v for k, v in bound_args.arguments.items() if k in include
+                }
+            if exclude:
+                params_to_check = {
+                    k: v for k, v in bound_args.arguments.items() if k not in exclude
+                }
+            if not include and not exclude:
+                params_to_check = bound_args.arguments
 
             # Process each parameter
             for param_name, param_value in params_to_check.items():
-                if param_name in include or not include:
-                    process_param(param_name, param_value)
+                process_param(param_name, param_value)
 
             try:
                 # Call the original function with possibly modified arguments
@@ -191,28 +199,3 @@ def download_if_remote(
         return wrapper
 
     return decorator
-
-
-if __name__ == "__main__":
-    # Test the decorators
-    @download_if_remote()
-    def test_download_if_remote(
-        many_files: list[str], file_path: str, other_param: str
-    ):
-        for fpath in many_files:
-            logger.info(f"👋 Processing file: {fpath}")
-
-        # logger.info(f"🔚 Finally file: {file_path} and other param: {other_param}")
-
-    file_paths = [
-        "s3://my-bucket/my-file.txt",
-        "https://example.com/my-file.txt",
-        "local-file.txt",
-    ]
-    for fpath in file_paths:
-        try:
-            test_download_if_remote(
-                file_paths, file_path=fpath, other_param="something"
-            )
-        except Exception as e:
-            logger.error(f"👎 Error processing file: {fpath}: {e}")

@@ -27,15 +27,21 @@ class Settings(BaseSettings):
 
     # Prefect configuration
     PREFECT_API_URL: str = "http://localhost:4200/api"
-    # Default storage path for Prefect
     PREFECT_STORAGE_PATH: str = str(Path.home() / ".prefect" / "storage")
 
-    # ChromaDB configuration
-    CHROMA_HOST: str = "localhost"
-    CHROMA_PORT: int = 8000
+    # PDF => Markdown service (Ray serve service)
+    PDF_PARSER_BASE_URL: str = "http://localhost:8000"
 
     # Ollama configuration
     OLLAMA_BASE_URL: str = "http://localhost:11434"
+
+    # ChromaDB configuration
+    CHROMA_HOST: str = "localhost"
+    CHROMA_PORT: int = 7000
+
+    # Redis configuration (pub/sub)
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
 
     # LLM configuration
     LLM_BACKEND: str = "openai"  # or "ollama"

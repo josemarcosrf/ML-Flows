@@ -1,16 +1,14 @@
-import os
-import re
 from enum import Enum
 
 from invoke import task
 
 
 @task
-def local_chroma(c, port: int = 8000):
-    """Start a local ChromaDB server (port 8000 by default)
+def local_chroma(c, port: int = 7000):
+    """Start a local ChromaDB server (port 7000 by default)
 
     Args:
-        port (int): Port to run the ChromaDB server on. Defaults to 8000.
+        port (int): Port to run the ChromaDB server on. Defaults to 7000.
     """
     c.run(f"chroma run --port {port}")
 
@@ -61,34 +59,5 @@ def local_worker_pool(
 
 @task
 def local_marker_ocr(c):
-    """Start a local Marker-PDF Converter served by Ray (port 8001 by default)"""
+    """Start a local Marker-PDF Converter served by Ray (port 8000 by default)"""
     c.run(".venv/bin/serve run -r services.ocr:converter")
-
-
-@task
-def local_ray(ctx, port: int | None = None, n_nodes: int = 1):
-    """Start a local Ray server (port 6789 by default)"""
-
-    # Start Ray on the given port
-    port = port or os.getenv("RAY_HEAD_PORT", 6789)
-    result = ctx.run(
-        f"ray stop && ray start --head --port={port}", hide=False, warn=True
-    )
-    # Find the Ray address
-    # NOTE: Theoretically getting the IP could be done with: `ray get-head-ip`
-    #       But in practice is not working without a config file
-    address_regex = r"--address=\'([^\']+)\'"
-    if m := re.search(address_regex, result.stdout):
-        addr = m.group(1)
-
-        # Start as many nodes as requested
-        for _ in range(n_nodes - 1):
-            ctx.run(f"ray start --address={addr}", hide=False, warn=True)
-
-        # Update the .env file
-        if (
-            input("Do you want to update the 'RAY_ADDRESS' in the .env file? ").lower()
-            == "y"
-        ):
-            print("🖊  Updating .env file ")
-            ctx.run(f'sed -i "s/RAY_ADDRESS=.*/RAY_ADDRESS=\\"{addr}\\"/" .env')

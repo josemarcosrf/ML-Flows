@@ -13,17 +13,14 @@ class PoolType(str, Enum):
     PROCESS = "process"
 
 
-# Environment variables shared with Prefect. Different flows will have different needs
-# aws_key, aws_secret = get_aws_credentials()
-
-
 def get_shared_env():
     # Wrapped in a function to avoid 'get_or_raise' on import, only @ run-time
     return {
+        "OLLAMA_BASE_URL": settings.OLLAMA_BASE_URL,
         "OPENAI_API_KEY": settings.OPENAI_API_KEY,
+        "AWS_ACCESS_KEY_ID": settings.AWS_ACCESS_KEY_ID,
+        "AWS_SECRET_ACCESS_KEY": settings.AWS_SECRET_ACCESS_KEY,
         # "RAY_ADDRESS": get_or_raise("RAY_ADDRESS"),
-        # "AWS_ACCESS_KEY_ID": aws_key,
-        # "AWS_SECRET_ACCESS_KEY": aws_secret,
     }
 
 

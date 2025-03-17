@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 from flows.common.clients.chroma import ChromaClient
 from flows.common.clients.llms import get_embedding_model
+from flows.common.clients.pubsub import UpdatePublisher
 
 
 @task
@@ -19,6 +20,9 @@ def index_documents(
     chunk_overlap: int,
     chroma_host: str,
     chroma_port: int,
+    ollama_base_url: str | None = None,
+    openai_api_key: str | None = None,
+    pub: UpdatePublisher | None = None,
 ):
     """Index a list of documents in ChromaDB
 
@@ -35,17 +39,22 @@ def index_documents(
 
     # Connect to ChromaDB and get the embedding function
     vec_db = ChromaClient(chroma_host, chroma_port)
-    embed_fn = vec_db.get_embedding_function(llm_backend, embedding_model_name)
-
+    embed_fn = vec_db.get_embedding_function(
+        llm_backend, embedding_model_name, ollama_base_url, openai_api_key
+    )
     # Get or create the chromaDB collection
     col = vec_db.get_collection(
         collection_name,
         embed_fn=embed_fn,
         create=True,
     )
-
     # Get the Vector Index
-    embed_model = get_embedding_model(embedding_model_name)
+    embed_model = get_embedding_model(
+        llm_backend,
+        embedding_model_name,
+        ollama_base_url=ollama_base_url,
+        openai_api_key=openai_api_key,
+    )
     index = vec_db.get_index(embed_model, collection_name)
 
     # Insertion pipeline
@@ -64,13 +73,20 @@ def index_documents(
     doc_iter = tqdm(docs)
     for doc in doc_iter:
         doc_name = doc.metadata["name"]
+        doc_id = doc.doc_id
         # Add to the document metadata the LLM backend and model
         existing_nodes = col.get(where={"name": doc_name})
         if existing_nodes["ids"]:
-            tqdm.write(f"✅ Found document '{doc_name}'. Skipping...")
+            msg = f"✅ Found document '{doc_name}'. Skipping..."
+            tqdm.write(msg)
+            if pub:
+                pub.publish(doc_id, msg)
             total_skipped += 1
         else:
-            tqdm.write(f"📩 Inserting '{doc_name}'")
+            msg = f"📩 Inserting '{doc_name}'"
+            tqdm.write(msg)
+            if pub:
+                pub.publish(doc_id, msg)
             nodes = pipeline.run(documents=[doc])  # Run the pre-proc pipeline
             index.insert_nodes(nodes)
             total_inserted += 1
