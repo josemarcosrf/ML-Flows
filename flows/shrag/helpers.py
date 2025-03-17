@@ -4,6 +4,7 @@ from typing import Any
 
 import importlib_metadata
 import toml
+from loguru import logger
 
 from flows.shrag.schemas.answers import BaseAnswer
 
@@ -74,7 +75,7 @@ def parse_answer(res: BaseAnswer) -> dict[str, Any]:
         }
     except Exception as e:
         # Otherwise send an empty but structure respecting response
-        print(f"❌ Error parsing response! {e} (res: {res})")
+        logger.error(f"❌ Error parsing response! {e} (res: {res})")
         return {
             "answer": "ERROR",
             "page_numbers": [],

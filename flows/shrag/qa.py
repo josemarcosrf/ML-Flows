@@ -13,6 +13,7 @@ from prefect.runtime import task_run
 from pydantic import BaseModel
 from tqdm.rich import tqdm
 
+from flows.common.clients.pubsub import UpdatePublisher
 from flows.shrag.playbook import get_question_prompt, QuestionItem
 from flows.shrag.schemas.answers import BaseAnswer, SummaryAnswer, YesNoEnum
 from flows.shrag.schemas.questions import QuestionType
@@ -134,7 +135,7 @@ class QAgent:
                 **kwargs,
             )
         except Exception as e:
-            print(f"❌ Error extracting '{q.key}' [filter={meta_filters}]: {e}")
+            logger.error(f"❌ Error extracting '{q.key}' [filter={meta_filters}]: {e}")
             return BaseAnswer(
                 response=f"Error answering q={q.key}",
                 page_numbers=[],
@@ -192,6 +193,7 @@ class QAgent:
         q_collection: dict[str, list[QuestionItem]],
         meta_filters: dict[str, Any],
         pbar: bool = False,
+        pub: UpdatePublisher | None = None,
         **kwargs,
     ) -> dict[str, QAResponse]:
         """Run the entire Q-collection and return the responses
@@ -223,6 +225,8 @@ class QAgent:
             q = q_list[0]  # Get the first question of the group
             if pbar:
                 questions_iter.set_description(q.key)
+            if pub:
+                pub.publish_update(f"🔍 Extracting '{q.key}'...", **meta_filters)
 
             if len(q_list) == 1:
                 # A non-hierarchical question
@@ -234,7 +238,11 @@ class QAgent:
                         answer=answer,
                     )
                 except Exception as e:
-                    print(f"❌ Error asking '{q.key}': {e}")
+                    logger.error(f"❌ Error asking '{q.key}': {e}")
+                    if pub:
+                        pub.publish_update(
+                            f"❌ Error extracting '{q.key}'", **meta_filters
+                        )
 
             elif len(q_list) > 1:
                 # A hierarchical group of questions
@@ -248,5 +256,7 @@ class QAgent:
                         )
                 except Exception as e:
                     logger.error(f"❌ Error asking group '{q.key}': {e}")
+                    if pub:
+                        pub.publish_update(f"❌ Error extracting group '{q.key}'")
 
         return responses

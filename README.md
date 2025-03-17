@@ -94,14 +94,14 @@ Which should output something like:
 1. Create a deployment:
 
 ```shell
-pdm flows deploy playbook-qa DEV process local-process-pool -t qa -t playbook
-pdm flows deploy index-files DEV process local-process-pool -t preproc -t markdown
+pdm flows deploy playbook-qa DEUS process local-process-pool -t qa -t playbook
+pdm flows deploy index-files DEUS process local-process-pool -t preproc -t markdown
 ```
 
 2. Run either from the dashboard or programatically:
 
 ```shell
-prefect deployment run 'playbook-qa/DEV'
+prefect deployment run 'playbook-qa/DEUS'
 ```
 
 

@@ -10,7 +10,7 @@ from flows.shrag import playbook_qa
 
 
 def common_rag_options(func):
-    @click.argument("chroma_collection_name")
+    @click.argument("chroma_collection")
     @click.option("--chroma-host", default=settings.CHROMA_HOST)
     @click.option("--chroma-port", type=int, default=settings.CHROMA_PORT)
     @click.option(
@@ -43,7 +43,7 @@ def run_playbook_qa_from_directory(
     input_directory: str,
     output_directory: str,
     playbook_json: str,
-    chroma_collection_name: str,
+    chroma_collection: str,
     chroma_host: str,
     chroma_port: int,
     llm_backend: str,
@@ -59,7 +59,7 @@ def run_playbook_qa_from_directory(
 
     Args:
         directory (str): Path to the directory containing playbook JSON files.
-        chroma_collection_name (str): Name of the collection to use.
+        chroma_collection (str): Name of the collection to use.
         chroma_host (str, optional): ChromaDB host. Defaults to "localhost".
         chroma_port (int, optional): ChromaDB port. Defaults to 8000.
         llm_backend (str, optional): LLM backend to use. Defaults to "openai".
@@ -82,7 +82,7 @@ def run_playbook_qa_from_directory(
             res = playbook_qa(
                 playbook_json=playbook_json,
                 meta_filters=meta_filters,
-                chroma_collection_name=chroma_collection_name,
+                chroma_collection=chroma_collection,
                 chroma_host=chroma_host,
                 chroma_port=chroma_port,
                 llm_backend=llm_backend,
@@ -117,7 +117,7 @@ def run_playbook_qa_from_directory(
 def run_playbook_qa(
     playbook_json: str,
     meta_filters: str,
-    chroma_collection_name: str,
+    chroma_collection: str,
     chroma_host: str,
     chroma_port: int,
     llm_backend: str,
@@ -132,7 +132,7 @@ def run_playbook_qa(
 
     Args:
         playbook_json (str): Path to the playbook JSON file.
-        chroma_collection_name (str): Name of the collection to use.
+        chroma_collection (str): Name of the collection to use.
         chroma_host (str, optional): ChromaDB host. Defaults to "localhost".
         chroma_port (int, optional): ChromaDB port. Defaults to 8000.
         llm_backend (str, optional): LLM backend to use. Defaults to "openai".
@@ -151,7 +151,7 @@ def run_playbook_qa(
     res = playbook_qa(
         playbook_json=playbook_json,
         meta_filters=meta_filters,
-        chroma_collection_name=chroma_collection_name,
+        chroma_collection=chroma_collection,
         chroma_host=chroma_host,
         chroma_port=chroma_port,
         llm_backend=llm_backend,

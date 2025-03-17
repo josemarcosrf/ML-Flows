@@ -8,12 +8,13 @@ from flows.common.helpers.auto_download import download_if_remote
 from flows.settings import settings
 
 
-@flow(log_prints=True, flow_run_name="playbook-QA-{chroma_collection_name}-{llm_model}")
+@flow(log_prints=True, flow_run_name="playbook-QA-{chroma_collection}-{llm_model}")
 @download_if_remote(include=["playbook_json"])
 def playbook_qa(
+    client_id: str,
     playbook_json: str,
     meta_filters: dict[str, Any],
-    chroma_collection_name: str,
+    chroma_collection: str,
     chroma_host: str = settings.CHROMA_HOST,
     chroma_port: int = settings.CHROMA_PORT,
     llm_backend: str = settings.LLM_BACKEND,
@@ -22,17 +23,20 @@ def playbook_qa(
     reranker_model: str | None = None,
     similarity_top_k: int = settings.SIMILARITY_TOP_K,
     similarity_cutoff: float = settings.SIMILARITY_CUTOFF,
+    redis_host: str = settings.REDIS_HOST,
+    redis_port: int = settings.REDIS_PORT,
+    ollama_base_url: str = settings.OLLAMA_BASE_URL,
+    openai_api_key: str = settings.OPENAI_API_KEY,
 ):
-    """This flow is responsible for performing Structured QA on a set of
-    textual chunks retrieved from a vector DB based on metadata filtering.
-    For this flow to work, the documents must have been pre-processed and present
-    in the given chromaDB collection.
+    """Perform Structured RAG-QA on a set of textual chunks retrieved from a vector DB
+    based on metadata filtering. For this flow to work, the documents must have
+    been pre-processed and present in the given chromaDB collection.
 
     Args:
         playbook_json (str): Path to the playbook JSON file
         meta_filters (dict[str, Any], optional): Metadata filters for retrieval
             as {key:value} mapping. Leave as an empty dict for no filtering.
-        chroma_collection_name (str): Name of the ChromaDB collection
+        chroma_collection (str): Name of the ChromaDB collection
         chroma_host (str, optional): ChromaDB host.
             Defaults to CHROMA_HOST_DEFAULT.
         chroma_port (int, optional): ChromaDB port.
@@ -55,8 +59,16 @@ def playbook_qa(
     """
     from flows.common.clients.chroma import ChromaClient
     from flows.common.clients.llms import get_embedding_model, get_llm
+    from flows.common.clients.pubsub import UpdatePublisher
     from flows.shrag.playbook import build_question_library
     from flows.shrag.qa import QAgent
+
+    if redis_host and redis_port:
+        pub = UpdatePublisher(client_id, host=redis_host, port=redis_port)
+    else:
+        pub = None
+
+    pub.publish_update("📚 Building question library & 🚀 Starting engines!")
 
     # Build the Question Library
     q_collection = build_question_library(playbook_json)
@@ -65,20 +77,26 @@ def playbook_qa(
     llm = get_llm(
         llm_backend=llm_backend,
         llm_model=llm_model,
+        ollama_base_url=ollama_base_url,
+        openai_api_key=openai_api_key,
     )
     embed_model = get_embedding_model(
-        llm_backend=llm_backend, embedding_model=embedding_model
+        llm_backend=llm_backend,
+        embedding_model=embedding_model,
+        ollama_base_url=ollama_base_url,
+        openai_api_key=openai_api_key,
     )
     Settings.llm = llm
     Settings.embed_model = embed_model
 
     # Get the ChromaDB index
     index = ChromaClient(chroma_host, chroma_port).get_index(
-        embed_model, chroma_collection_name
+        embed_model, chroma_collection
     )
     logger.info("🔍 Index loaded successfully!")
 
     # Init the QAgent
+    pub.publish_update("🤖 Initializing QAgent...")
     questioner = QAgent(
         index=index,
         llm=llm,
@@ -91,7 +109,8 @@ def playbook_qa(
         meta_filters=meta_filters,
         similarity_top_k=similarity_top_k,
         similarity_cutoff=similarity_cutoff,
-        pbar=True,
+        pbar=False,
+        pub=pub,
     )
 
     return {k: v.model_dump() for k, v in responses.items()}

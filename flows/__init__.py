@@ -62,8 +62,8 @@ def collect_public_flows() -> dict[str, Flow]:
                 public_flows.update(module.PUBLIC_FLOWS)
 
         except ImportError as e:
-            print(f"Could not import {module_name}: {e}")
+            logger.error(f"Could not import {module_name}: {e}")
         except Exception as e:  # noqa: BLE001
-            print(f"Error accessing PUBLIC_FLOWS in {module_name}: {e}")
+            logger.error(f"Error accessing PUBLIC_FLOWS in {module_name}: {e}")
 
     return public_flows

@@ -78,7 +78,9 @@ class ChromaClient:
 
                 # If it doesn't exist, create it
                 logger.warning(f"🪣 Creating empty collection {collection_name}")
-                chroma_collection = self.db.create_collection(collection_name)
+                chroma_collection = self.create_collection(
+                    collection_name, embed_fn=embed_fn
+                )
             else:
                 raise ValueError(
                     f"💥 Collection {collection_name} does not exist! Please create it first."

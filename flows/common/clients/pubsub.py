@@ -188,13 +188,17 @@ class UpdatePublisher(RedisPubSubClient):
         super().__init__(host, port, db, password)
         self.client_id = client_id
 
-    def publish_update(self, doc_id: str, message: dict | str) -> int:
-        channel = f"{self.client_id}/doc:{doc_id}"
+    def publish_update(
+        self, message: str, doc_id: str | None = None, **extra_fields
+    ) -> int:
+        if doc_id:
+            channel = f"{self.client_id}/doc:{doc_id}"
+        else:
+            channel = f"{self.client_id}/updates"
         try:
-            logger.debug(
-                f"📨 Publishing update for document {doc_id} on channel {channel}"
-            )
-            return self.publish(channel, message)
+            payload = {"message": message, **extra_fields}
+            logger.debug(f"📨 Publishing update for channel {channel}: {payload}")
+            return self.publish(channel, payload)
         except Exception as e:
             logger.warning(f"🙇 Error publishing update for channel {channel}: {e}")
             return 0

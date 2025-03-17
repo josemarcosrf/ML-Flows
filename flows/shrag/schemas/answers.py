@@ -1,6 +1,7 @@
 from enum import Enum
 
 from dateutil import parser
+from loguru import logger
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -77,7 +78,7 @@ class DateAnswer(BaseAnswer):
             parser.parse(value)
             return value
         except (ValueError, TypeError):
-            print(
+            logger.error(
                 f"Error validating Date. '{value}' is not in a recognized date format"
             )
             return None

@@ -2,13 +2,13 @@ from pathlib import Path
 
 import click
 
-from flows.common.helpers.auto_download import is_url
-from flows.common.helpers.s3 import is_s3_path
-from flows.preproc import index_files, pdf_2_md
 from flows.settings import settings
 
 
 def gather_paths(pdf_or_dir):
+    from flows.common.helpers.auto_download import is_url
+    from flows.common.helpers.s3 import is_s3_path
+
     if is_url(pdf_or_dir) or is_s3_path(pdf_or_dir):
         print("🚀 Will automatically try to download file from URL or S3...")
         files = [pdf_or_dir]
@@ -43,6 +43,8 @@ def pdf_to_markdown(pdf_or_dir: str, output_dir: str, parser_base_url: str):
         pdf_or_dir (str): Path to the PDF file or directory containing PDF files
         output_dir (str): Path to the directory where the markdown files will be saved
     """
+    from flows.preproc.convert import pdf_2_md
+
     for file in gather_paths(pdf_or_dir):
         try:
             markdown = pdf_2_md(file, parser_base_url)
@@ -61,6 +63,8 @@ def pdf_to_markdown(pdf_or_dir: str, output_dir: str, parser_base_url: str):
 @click.option("--collection_name", type=str)
 def index_pdfs(client_id: str, pdf_or_dir: str, collection_name: str | None = None):
     """Index a PDF file (local or remote) or all PDF files in a local directory"""
+    from flows.preproc import index_files
+
     paths = gather_paths(pdf_or_dir)
     index_files(
         client_id,

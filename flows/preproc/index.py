@@ -13,11 +13,11 @@ from flows.common.clients.pubsub import UpdatePublisher
 @task
 def index_documents(
     docs: list[Document],
-    collection_name: str,
     llm_backend: str,
-    embedding_model_name: str,
+    embedding_model: str,
     chunk_size: int,
     chunk_overlap: int,
+    chroma_collection: str,
     chroma_host: str,
     chroma_port: int,
     ollama_base_url: str | None = None,
@@ -28,9 +28,9 @@ def index_documents(
 
     Args:
         docs (list[Document]): List of documents to index
-        collection_name (str): Name of the collection to index the documents to
+        chroma_collection (str): Name of the collection to index the documents to
         llm_backend (str): LLM backend to use. One of openai, ollama
-        embedding_model_name (str): Embedding model to use.
+        embedding_model (str): Embedding model to use.
         chunk_size (int): Size of the chunks to split the documents into
         chunk_overlap (int): Overlap between the chunks
         chroma_host (str): ChromaDB host
@@ -40,22 +40,22 @@ def index_documents(
     # Connect to ChromaDB and get the embedding function
     vec_db = ChromaClient(chroma_host, chroma_port)
     embed_fn = vec_db.get_embedding_function(
-        llm_backend, embedding_model_name, ollama_base_url, openai_api_key
+        llm_backend, embedding_model, ollama_base_url, openai_api_key
     )
     # Get or create the chromaDB collection
     col = vec_db.get_collection(
-        collection_name,
+        chroma_collection,
         embed_fn=embed_fn,
         create=True,
     )
     # Get the Vector Index
     embed_model = get_embedding_model(
         llm_backend,
-        embedding_model_name,
+        embedding_model,
         ollama_base_url=ollama_base_url,
         openai_api_key=openai_api_key,
     )
-    index = vec_db.get_index(embed_model, collection_name)
+    index = vec_db.get_index(embed_model, chroma_collection)
 
     # Insertion pipeline
     pipeline = IngestionPipeline(
@@ -64,7 +64,7 @@ def index_documents(
             embed_model,
         ]
     )
-
+    # TODO: This for loop can be parallelized refactoring into a Prefect task
     # Pre-process and index one by one so we are able to check if the document
     # already exists in the index
     logger.info(f"📦 Indexing {len(docs)} documents...")
@@ -80,13 +80,13 @@ def index_documents(
             msg = f"✅ Found document '{doc_name}'. Skipping..."
             tqdm.write(msg)
             if pub:
-                pub.publish(doc_id, msg)
+                pub.publish_update(msg, doc_id=doc_id)
             total_skipped += 1
         else:
             msg = f"📩 Inserting '{doc_name}'"
             tqdm.write(msg)
             if pub:
-                pub.publish(doc_id, msg)
+                pub.publish_update(msg, doc_id=doc_id)
             nodes = pipeline.run(documents=[doc])  # Run the pre-proc pipeline
             index.insert_nodes(nodes)
             total_inserted += 1

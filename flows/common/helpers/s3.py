@@ -67,8 +67,10 @@ def download_from_s3(s3_path: str) -> Path | None:
         if not bucket_name or not object_key:
             raise ValueError(f"Invalid S3 path: {s3_path}")
 
-        # Create a temporary file
-        _, temp_path = tempfile.mkstemp()
+        # Create a temporary file (preserving the original file name)
+        fname = Path(object_key)
+        temp_dir = tempfile.mkdtemp()
+        temp_path = Path(temp_dir) / fname.name
 
         # Download the file
         logger.info(f"⬇️  Downloading {object_key} from S3 bucket {bucket_name}")

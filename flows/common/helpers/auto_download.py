@@ -19,8 +19,10 @@ def is_url(path: str) -> bool:
 def download_from_url(url: str) -> Path | None:
     """Download a file from a URL and return the local path."""
     try:
-        # Create a temporary file
-        _, temp_path = tempfile.mkstemp()
+        # Create a temporary file (preserving the original file name)
+        fname = Path(url.split("/")[-1])
+        temp_dir = tempfile.mkdtemp()
+        temp_path = Path(temp_dir) / fname.name
 
         # Download the file
         urllib.request.urlretrieve(url, temp_path)

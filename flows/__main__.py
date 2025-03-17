@@ -85,7 +85,8 @@ def deploy_flow_cli(
 
 
 @cli.command("read-result")
-@click.argument("result_id")
+@click.option("--run-id")
+@click.option("--result-id")
 @click.option(
     "-s",
     "--storage-path",

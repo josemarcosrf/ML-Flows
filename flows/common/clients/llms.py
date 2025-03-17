@@ -11,7 +11,7 @@ class LLMBackend(str, Enum):
 
 
 @task(task_run_name="get_llm:[{llm_backend}]-{llm_model}")
-def get_llm(llm_backend: LLMBackend | str, llm_model: str) -> None:
+def get_llm(llm_backend: LLMBackend | str, llm_model: str, **kwargs) -> None:
     # Init the LLM and embedding models
     try:
         llm_backend = LLMBackend(llm_backend)  # type: ignore
@@ -25,12 +25,22 @@ def get_llm(llm_backend: LLMBackend | str, llm_model: str) -> None:
     if llm_backend == LLMBackend.OPENAI:
         from llama_index.llms.openai import OpenAI
 
-        return OpenAI(model=llm_model, temperature=0, seed=42)
+        return OpenAI(
+            model=llm_model,
+            temperature=0,
+            seed=42,
+            api_key=kwargs.get("openai_api_key") or os.getenv("OPENAI_API_KEY"),
+        )
 
     if llm_backend == LLMBackend.OLLAMA:
         from llama_index.llms.ollama import Ollama
 
-        return Ollama(model=llm_model, temperature=0, seed=42)
+        return Ollama(
+            model=llm_model,
+            temperature=0,
+            seed=42,
+            base_url=kwargs.get("ollama_base_url") or os.getenv("OLLAMA_BASE_URL"),
+        )
 
 
 @task(task_run_name="get_embedding_model:[{llm_backend}]-{embedding_model}")
@@ -54,18 +64,19 @@ def get_embedding_model(llm_backend: LLMBackend | str, embedding_model: str, **k
     if llm_backend == LLMBackend.OPENAI:
         from llama_index.embeddings.openai import OpenAIEmbedding
 
-        if api_key := (os.getenv("OPENAI_API_KEY") or kwargs.get("openai_api_key")):
+        if api_key := (kwargs.get("openai_api_key") or os.getenv("OPENAI_API_KEY")):
             return OpenAIEmbedding(api_key=api_key, model=embedding_model)
         else:
             raise RuntimeError(
                 f"❌ Unknown LLM backend: {llm_backend}. "
                 f"Please use one of {LLMBackend.__members__}"
             )
-
     elif llm_backend == LLMBackend.OLLAMA:
         from llama_index.embeddings.ollama import OllamaEmbedding
 
-        if ollama_base_url := kwargs.get("ollama_base_url"):
+        if ollama_base_url := (
+            kwargs.get("ollama_base_url") or os.getenv("OLLAMA_BASE_URL")
+        ):
             return OllamaEmbedding(base_url=ollama_base_url, model_name=embedding_model)
         else:
             raise RuntimeError(
@@ -73,7 +84,6 @@ def get_embedding_model(llm_backend: LLMBackend | str, embedding_model: str, **k
                 "or set the OLLAMA_BASE_URL environment variable."
                 "E.g.: OLLAMA_BASE_URL=http://localhost:11434"
             )
-
     else:
         raise ValueError(
             f"❌ Unknown LLM backend: {llm_backend}. "
