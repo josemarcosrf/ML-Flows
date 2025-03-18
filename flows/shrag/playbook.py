@@ -17,13 +17,24 @@ class QuestionItem(BaseModel):
     answer_schema: type[BaseModel]
 
 
+def read_playbook_json(playbook_json: Path | str) -> dict[str, dict[str, str]]:
+    """Reads the playbook JSON file and returns the contents as a dictionary.
+
+    Args:
+        playbook_json (str): Path to the playbook JSON file
+    Returns:
+        dict[str, dict[str, str]]: Playbook JSON contents
+    """
+    return json.load(Path(playbook_json).open())
+
+
 @task
 def build_question_library(
-    playbook_json: Path | str,
+    playbook: dict[str, dict[str, str]],
 ) -> dict[str, list[QuestionItem]]:
     """Builds the Question Library from the playbook JSON file.
 
-    The playbook JSON should have the following structure:
+    The playbook should have the following structure:
     {
         "<Attribute>": {
             "Group": "<Group>",
@@ -42,10 +53,6 @@ def build_question_library(
         - The QuestionItems are generated from the CSV and proto questions
         - The QuestionItems are generated based on the QuestionType
     """
-
-    # Read Question Library JSON (aka: The Playbook)
-    playbook = json.load(Path(playbook_json).open())
-
     # Add the Answer Schema based on the extracted values
     q_collection = defaultdict(list)
     for attr, qitem in playbook.items():

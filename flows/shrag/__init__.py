@@ -12,7 +12,7 @@ from flows.settings import settings
 @download_if_remote(include=["playbook_json"])
 def playbook_qa(
     client_id: str,
-    playbook_json: str,
+    playbook: dict[str, dict[str, str]],
     meta_filters: dict[str, Any],
     chroma_collection: str,
     chroma_host: str = settings.CHROMA_HOST,
@@ -71,7 +71,7 @@ def playbook_qa(
     pub.publish_update("📚 Building question library & 🚀 Starting engines!")
 
     # Build the Question Library
-    q_collection = build_question_library(playbook_json)
+    q_collection = build_question_library(playbook)
 
     # Get the LLM and embedding model
     llm = get_llm(

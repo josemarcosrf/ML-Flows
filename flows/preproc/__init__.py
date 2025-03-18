@@ -92,7 +92,7 @@ def index_files(
             continue
 
     logger.info(f"📚 Gathered {len(documents)} documents for indexing.")
-    index_documents(
+    return index_documents(
         documents,
         chroma_collection=chroma_collection,
         llm_backend=llm_backend,

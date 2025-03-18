@@ -92,3 +92,4 @@ def index_documents(
             total_inserted += 1
 
     logger.info(f"Total inserted: {total_inserted} | Total skipped: {total_skipped}")
+    return {"inserted": total_inserted, "skipped": total_skipped}

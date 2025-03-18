@@ -70,6 +70,8 @@ def run_playbook_qa_from_directory(
         similarity_cutoff (float, optional): Similarity cutoff for retrieval. Defaults to 0.3.
         file_glob (str, optional): File glob pattern. Defaults to "*.canonical.pdf".
     """
+    from flows.shrag.playbook import build_question_library, read_playbook_json
+
     # Iterate over all Document files in the directory
     for filename in Path(input_directory).rglob(file_glob):
         if filename.is_file():
@@ -77,10 +79,13 @@ def run_playbook_qa_from_directory(
             fname = filename.name.replace(ext, "")
             print(f"⚙️ Processing {fname}")
 
+            # Read the playbook JSON file
+            playbook = build_question_library(read_playbook_json(playbook_json))
+
             # Run the RAG dataflow
             meta_filters = {"name": fname}
             res = playbook_qa(
-                playbook_json=playbook_json,
+                playbook=playbook,
                 meta_filters=meta_filters,
                 chroma_collection=chroma_collection,
                 chroma_host=chroma_host,
