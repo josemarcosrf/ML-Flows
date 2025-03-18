@@ -18,9 +18,9 @@ def get_shared_env():
         "PDF_PARSER_BASE_URL": settings.PDF_PARSER_BASE_URL,
         "OLLAMA_BASE_URL": settings.OLLAMA_BASE_URL,
         "CHROMA_HOST": settings.CHROMA_HOST,
-        "CHROMA_PORT": settings.CHROMA_PORT,
+        "CHROMA_PORT": str(settings.CHROMA_PORT),
         "REDIS_HOST": settings.REDIS_HOST,
-        "REDIS_PORT": settings.REDIS_PORT,
+        "REDIS_PORT": str(settings.REDIS_PORT),
     }
     # Add the secrets
     env.update(
