@@ -14,14 +14,9 @@ class PoolType(str, Enum):
 
 
 def get_shared_env():
-    # Wrapped in a function to avoid 'get_or_raise' on import, only @ run-time
-    return {
-        "OLLAMA_BASE_URL": settings.OLLAMA_BASE_URL,
-        "OPENAI_API_KEY": settings.OPENAI_API_KEY,
-        "AWS_ACCESS_KEY_ID": settings.AWS_ACCESS_KEY_ID,
-        "AWS_SECRET_ACCESS_KEY": settings.AWS_SECRET_ACCESS_KEY,
-        # "RAY_ADDRESS": get_or_raise("RAY_ADDRESS"),
-    }
+    # For now dumping the entire settings object
+    # This can be customized to only include the required settings
+    return {k: str(v) for k, v in settings.model_dump().items()}
 
 
 def unwrap_flow(flow: Flow) -> callable:
@@ -102,6 +97,7 @@ def deploy_flow(
             ).deploy(  # type: ignore[attr-defined]
                 name=deployment_name,
                 work_pool_name=work_pool_name,
+                job_variables={"env": get_shared_env()},
                 tags=flow_tags,
             )
         else:

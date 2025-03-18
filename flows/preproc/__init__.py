@@ -19,14 +19,14 @@ def index_files(
     chroma_port: int = settings.CHROMA_PORT,
     metadatas: list[dict] = [],
     parser_base_url: str = settings.PDF_PARSER_BASE_URL,
-    ollama_base_url: str = settings.OLLAMA_BASE_URL,
     llm_backend: str = settings.LLM_BACKEND,
     embedding_model: str = settings.EMBEDDING_MODEL,
-    openai_api_key: str = settings.OPENAI_API_KEY,
     chunk_size: int = settings.CHUNK_SIZE,
     chunk_overlap: int = settings.CHUNK_OVERLAP,
-    redis_host: str = settings.REDIS_HOST,
-    redis_port: int = settings.REDIS_PORT,
+    redis_host: str | None = settings.REDIS_HOST,
+    redis_port: int | None = settings.REDIS_PORT,
+    openai_api_key: str | None = settings.OPENAI_API_KEY,
+    ollama_base_url: str | None = settings.OLLAMA_BASE_URL,
 ):
     """Index all the files in the data directory
 
