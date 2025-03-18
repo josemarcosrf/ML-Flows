@@ -23,6 +23,7 @@ def get_shared_env():
         "REDIS_PORT": str(settings.REDIS_PORT),
     }
     # Add the secrets
+    # TODO: Pass the secrets in a better way than environment variables
     env.update(
         {
             "OPENAI_API_KEY": settings.OPENAI_API_KEY.get_secret_value()
