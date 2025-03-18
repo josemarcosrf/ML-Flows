@@ -15,18 +15,13 @@ def playbook_qa(
     playbook: dict[str, dict[str, str]],
     meta_filters: dict[str, Any],
     chroma_collection: str,
-    chroma_host: str = settings.CHROMA_HOST,
-    chroma_port: int = settings.CHROMA_PORT,
     llm_backend: str = settings.LLM_BACKEND,
     llm_model: str = settings.LLM_MODEL,
     embedding_model: str = settings.EMBEDDING_MODEL,
     reranker_model: str | None = None,
     similarity_top_k: int = settings.SIMILARITY_TOP_K,
     similarity_cutoff: float = settings.SIMILARITY_CUTOFF,
-    redis_host: str = settings.REDIS_HOST,
-    redis_port: int = settings.REDIS_PORT,
-    ollama_base_url: str = settings.OLLAMA_BASE_URL,
-    openai_api_key: str = settings.OPENAI_API_KEY,
+    pubsub: bool = False,
 ):
     """Perform Structured RAG-QA on a set of textual chunks retrieved from a vector DB
     based on metadata filtering. For this flow to work, the documents must have
@@ -37,10 +32,6 @@ def playbook_qa(
         meta_filters (dict[str, Any], optional): Metadata filters for retrieval
             as {key:value} mapping. Leave as an empty dict for no filtering.
         chroma_collection (str): Name of the ChromaDB collection
-        chroma_host (str, optional): ChromaDB host.
-            Defaults to CHROMA_HOST_DEFAULT.
-        chroma_port (int, optional): ChromaDB port.
-            Defaults to CHROMA_PORT_DEFAULT.
         llm_backend (str, optional): LLM backend to use.
             Defaults to LLM_BACKEND_DEFAULT.
         llm_model (str, optional): LLM model to use.
@@ -53,6 +44,8 @@ def playbook_qa(
             Defaults to SIMILARITY_TOP_K_DEFAULT.
         similarity_cutoff (float, optional): Similarity cutoff for retrieval.
             Defaults to SIMILARITY_CUTOFF_DEFAULT.
+        pubsub (bool, optional): Whether to use Pub/Sub for updates.
+            Defaults to False.
     Returns:
         responses (list[QAResponse]): List of QAResponse objects containing the question, question type and answer
         for each question in the question library.
@@ -63,8 +56,8 @@ def playbook_qa(
     from flows.shrag.playbook import build_question_library
     from flows.shrag.qa import QAgent
 
-    if redis_host and redis_port:
-        pub = UpdatePublisher(client_id, host=redis_host, port=redis_port)
+    if pubsub:
+        pub = UpdatePublisher(client_id)
     else:
         pub = None
 
@@ -74,25 +67,15 @@ def playbook_qa(
     q_collection = build_question_library(playbook)
 
     # Get the LLM and embedding model
-    llm = get_llm(
-        llm_backend=llm_backend,
-        llm_model=llm_model,
-        ollama_base_url=ollama_base_url,
-        openai_api_key=openai_api_key,
-    )
+    llm = get_llm(llm_model=llm_model, llm_backend=llm_backend)
     embed_model = get_embedding_model(
-        llm_backend=llm_backend,
-        embedding_model=embedding_model,
-        ollama_base_url=ollama_base_url,
-        openai_api_key=openai_api_key,
+        llm_backend=llm_backend, embedding_model=embedding_model
     )
     Settings.llm = llm
     Settings.embed_model = embed_model
 
     # Get the ChromaDB index
-    index = ChromaClient(chroma_host, chroma_port).get_index(
-        embed_model, chroma_collection
-    )
+    index = ChromaClient().get_index(embed_model, chroma_collection)
     logger.info("🔍 Index loaded successfully!")
 
     # Init the QAgent

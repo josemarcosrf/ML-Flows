@@ -5,12 +5,14 @@ import time
 import redis
 from loguru import logger
 
+from flows.settings import settings
+
 
 class RedisPubSubClient:
     def __init__(
         self,
-        host: str = "localhost",
-        port: int = 6379,
+        host: str = settings.REDIS_HOST,
+        port: int = settings.REDIS_PORT,
         db: int = 0,
         password: str = None,
     ):
@@ -179,8 +181,8 @@ class UpdatePublisher(RedisPubSubClient):
     def __init__(
         self,
         client_id: str,
-        host: str = "localhost",
-        port: int = 6379,
+        host: str = settings.REDIS_HOST,
+        port: int = settings.REDIS_PORT,
         db: int = 0,
         password: str = None,
     ):

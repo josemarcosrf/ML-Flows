@@ -14,9 +14,30 @@ class PoolType(str, Enum):
 
 
 def get_shared_env():
-    # For now dumping the entire settings object
-    # This can be customized to only include the required settings
-    return {k: str(v) for k, v in settings.model_dump().items()}
+    env = {
+        "PDF_PARSER_BASE_URL": settings.PDF_PARSER_BASE_URL,
+        "OLLAMA_BASE_URL": settings.OLLAMA_BASE_URL,
+        "CHROMA_HOST": settings.CHROMA_HOST,
+        "CHROMA_PORT": settings.CHROMA_PORT,
+        "REDIS_HOST": settings.REDIS_HOST,
+        "REDIS_PORT": settings.REDIS_PORT,
+    }
+    # Add the secrets
+    env.update(
+        {
+            "OPENAI_API_KEY": settings.OPENAI_API_KEY.get_secret_value()
+            if settings.OPENAI_API_KEY
+            else None,
+            "AWS_ACCESS_KEY_ID": settings.AWS_ACCESS_KEY_ID.get_secret_value()
+            if settings.AWS_ACCESS_KEY_ID
+            else None,
+            "AWS_SECRET_ACCESS_KEY": settings.AWS_SECRET_ACCESS_KEY.get_secret_value()
+            if settings.AWS_SECRET_ACCESS_KEY
+            else None,
+        }
+    )
+
+    return env
 
 
 def unwrap_flow(flow: Flow) -> callable:

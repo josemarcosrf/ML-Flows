@@ -9,10 +9,13 @@ from tabulate import tabulate
 from tqdm.rich import tqdm
 
 from flows.common.clients.llms import LLMBackend
+from flows.settings import settings
 
 
 class ChromaClient:
-    def __init__(self, host: str, port: int):
+    def __init__(
+        self, host: str = settings.CHROMA_HOST, port: int = settings.CHROMA_PORT
+    ):
         self.db = chromadb.HttpClient(host, port)
         logger.info(f"🔌 Connected to ChromaDB at {host}:{port}")
 
@@ -110,8 +113,8 @@ class ChromaClient:
         self,
         backend: str | LLMBackend,
         embedding_model: str,
-        ollama_base_url: str = None,
-        openai_api_key: str = None,
+        ollama_base_url: str | None = settings.OLLAMA_BASE_URL,
+        openai_api_key: str | None = settings.OPENAI_API_KEY,
     ) -> Callable:
         """Returns the embedding function for the database
 

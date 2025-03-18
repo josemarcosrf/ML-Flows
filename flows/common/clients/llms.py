@@ -1,8 +1,9 @@
-import os
 from enum import Enum
 
 from loguru import logger
 from prefect import task
+
+from flows.settings import settings
 
 
 class LLMBackend(str, Enum):
@@ -11,7 +12,12 @@ class LLMBackend(str, Enum):
 
 
 @task(task_run_name="get_llm:[{llm_backend}]-{llm_model}")
-def get_llm(llm_backend: LLMBackend | str, llm_model: str, **kwargs) -> None:
+def get_llm(
+    llm_model: str,
+    llm_backend: LLMBackend | str,
+    ollama_base_url: str | None = settings.OLLAMA_BASE_URL,
+    openai_api_key: str | None = settings.OPENAI_API_KEY,
+) -> None:
     # Init the LLM and embedding models
     try:
         llm_backend = LLMBackend(llm_backend)  # type: ignore
@@ -25,26 +31,44 @@ def get_llm(llm_backend: LLMBackend | str, llm_model: str, **kwargs) -> None:
     if llm_backend == LLMBackend.OPENAI:
         from llama_index.llms.openai import OpenAI
 
+        if not openai_api_key:
+            raise ValueError(
+                "❌ Missing OpenAI API key. Please pass it as an argument "
+                "or set the OPENAI_API_KEY environment variable."
+            )
+
         return OpenAI(
             model=llm_model,
             temperature=0,
             seed=42,
-            api_key=kwargs.get("openai_api_key") or os.getenv("OPENAI_API_KEY"),
+            api_key=openai_api_key,
         )
 
     if llm_backend == LLMBackend.OLLAMA:
         from llama_index.llms.ollama import Ollama
 
+        if not ollama_base_url:
+            raise ValueError(
+                "❌ Missing Ollama base URL. Please pass it as an argument "
+                "or set the OLLAMA_BASE_URL environment variable."
+                "E.g.: OLLAMA_BASE_URL=http://localhost:11434"
+            )
+
         return Ollama(
             model=llm_model,
             temperature=0,
             seed=42,
-            base_url=kwargs.get("ollama_base_url") or os.getenv("OLLAMA_BASE_URL"),
+            base_url=ollama_base_url,
         )
 
 
 @task(task_run_name="get_embedding_model:[{llm_backend}]-{embedding_model}")
-def get_embedding_model(llm_backend: LLMBackend | str, embedding_model: str, **kwargs):
+def get_embedding_model(
+    embedding_model: str,
+    llm_backend: LLMBackend | str,
+    ollama_base_url: str | None = settings.OLLAMA_BASE_URL,
+    openai_api_key: str | None = settings.OPENAI_API_KEY,
+):
     """Returns the embedding model and to use
 
     Args:
@@ -64,26 +88,24 @@ def get_embedding_model(llm_backend: LLMBackend | str, embedding_model: str, **k
     if llm_backend == LLMBackend.OPENAI:
         from llama_index.embeddings.openai import OpenAIEmbedding
 
-        if api_key := (kwargs.get("openai_api_key") or os.getenv("OPENAI_API_KEY")):
-            return OpenAIEmbedding(api_key=api_key, model=embedding_model)
-        else:
-            raise RuntimeError(
-                f"❌ Unknown LLM backend: {llm_backend}. "
-                f"Please use one of {LLMBackend.__members__}"
+        if not openai_api_key:
+            raise ValueError(
+                "❌ Missing OpenAI API key. Please pass it as an argument "
+                "or set the OPENAI_API_KEY environment variable."
             )
+
+        return OpenAIEmbedding(api_key=openai_api_key, model=embedding_model)
+
     elif llm_backend == LLMBackend.OLLAMA:
         from llama_index.embeddings.ollama import OllamaEmbedding
 
-        if ollama_base_url := (
-            kwargs.get("ollama_base_url") or os.getenv("OLLAMA_BASE_URL")
-        ):
-            return OllamaEmbedding(base_url=ollama_base_url, model_name=embedding_model)
-        else:
+        if not ollama_base_url:
             raise RuntimeError(
-                "❌ Missing Ollama host. Please provide it as a keyword argument "
+                "❌ Missing Ollama base URL. Please provide it as a keyword argument "
                 "or set the OLLAMA_BASE_URL environment variable."
-                "E.g.: OLLAMA_BASE_URL=http://localhost:11434"
             )
+
+        return OllamaEmbedding(base_url=ollama_base_url, model_name=embedding_model)
     else:
         raise ValueError(
             f"❌ Unknown LLM backend: {llm_backend}. "

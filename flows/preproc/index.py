@@ -5,6 +5,7 @@ from loguru import logger
 from prefect import task
 from tqdm import tqdm
 
+from flows import settings
 from flows.common.clients.chroma import ChromaClient
 from flows.common.clients.llms import get_embedding_model
 from flows.common.clients.pubsub import UpdatePublisher
@@ -18,11 +19,9 @@ def index_documents(
     chunk_size: int,
     chunk_overlap: int,
     chroma_collection: str,
-    chroma_host: str,
-    chroma_port: int,
-    ollama_base_url: str | None = None,
-    openai_api_key: str | None = None,
     pub: UpdatePublisher | None = None,
+    chroma_host: str = settings.CHROMA_HOST,
+    chroma_port: int = settings.CHROMA_PORT,
 ):
     """Index a list of documents in ChromaDB
 
@@ -36,12 +35,9 @@ def index_documents(
         chroma_host (str): ChromaDB host
         chroma_port (int): Chroma
     """
-
     # Connect to ChromaDB and get the embedding function
     vec_db = ChromaClient(chroma_host, chroma_port)
-    embed_fn = vec_db.get_embedding_function(
-        llm_backend, embedding_model, ollama_base_url, openai_api_key
-    )
+    embed_fn = vec_db.get_embedding_function(embedding_model, llm_backend)
     # Get or create the chromaDB collection
     col = vec_db.get_collection(
         chroma_collection,
@@ -49,12 +45,7 @@ def index_documents(
         create=True,
     )
     # Get the Vector Index
-    embed_model = get_embedding_model(
-        llm_backend,
-        embedding_model,
-        ollama_base_url=ollama_base_url,
-        openai_api_key=openai_api_key,
-    )
+    embed_model = get_embedding_model(embedding_model, llm_backend)
     index = vec_db.get_index(embed_model, chroma_collection)
 
     # Insertion pipeline
