@@ -15,18 +15,19 @@ def index_files(
     client_id: str,
     file_paths: list[str],
     chroma_collection: str,
-    chroma_host: str = settings.CHROMA_HOST,
-    chroma_port: int = settings.CHROMA_PORT,
     metadatas: list[dict] = [],
-    parser_base_url: str = settings.PDF_PARSER_BASE_URL,
     llm_backend: str = settings.LLM_BACKEND,
     embedding_model: str = settings.EMBEDDING_MODEL,
     chunk_size: int = settings.CHUNK_SIZE,
     chunk_overlap: int = settings.CHUNK_OVERLAP,
+    # From here should all be taken from settings and not passed around (env settings)
+    chroma_host: str = settings.CHROMA_HOST,
+    chroma_port: int = settings.CHROMA_PORT,
     redis_host: str | None = settings.REDIS_HOST,
     redis_port: int | None = settings.REDIS_PORT,
-    openai_api_key: str | None = settings.OPENAI_API_KEY,
     ollama_base_url: str | None = settings.OLLAMA_BASE_URL,
+    parser_base_url: str = settings.PDF_PARSER_BASE_URL,
+    openai_api_key: str | None = None,
 ):
     """Index all the files in the data directory
 
@@ -99,11 +100,12 @@ def index_files(
         embedding_model=embedding_model,
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
+        pub=pub,
+        #  Also env settings
         chroma_host=chroma_host,
         chroma_port=chroma_port,
         ollama_base_url=ollama_base_url,
         openai_api_key=openai_api_key,
-        pub=pub,
     )
 
 
