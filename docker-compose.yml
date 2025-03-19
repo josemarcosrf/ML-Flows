@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   chromadb:
-    image: chromadb/chromadb:latest
-    container_name: chromadb
+    # image: chromadb/chromadb:latest
+    image: ghcr.io/chroma-core/chroma:latest
     ports:
-      - "7000:8000"
+      - "9000:8000"
     environment:
       - CHROMADB_CONFIG=/etc/chromadb/config.yml
     volumes:
@@ -13,11 +11,20 @@ services:
 
   redis:
     image: redis:latest
-    container_name: redis
+
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
 
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+
 volumes:
+  mongo-data:
   redis_data:

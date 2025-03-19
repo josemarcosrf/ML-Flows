@@ -56,7 +56,7 @@ def index_documents(
     # TODO: This for loop can be parallelized refactoring into a Prefect task
     # Pre-process and index one by one so we are able to check if the document
     # already exists in the index
-    logger.info(f"📦 Indexing {len(docs)} documents...")
+    pub(f"📦 Indexing {len(docs)} documents...")
     total_inserted = 0
     total_skipped = 0
     doc_iter = tqdm(docs)

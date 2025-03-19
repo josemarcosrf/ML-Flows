@@ -4,7 +4,7 @@ from llama_index.core import Settings
 from loguru import logger
 from prefect import Flow, flow
 
-from flows.common.helpers import noop
+from flows.common.helpers import pub_and_log
 from flows.settings import settings
 
 
@@ -53,15 +53,11 @@ def playbook_qa(
     """
     from flows.common.clients.chroma import ChromaClient
     from flows.common.clients.llms import get_embedding_model, get_llm
-    from flows.common.clients.pubsub import UpdatePublisher
     from flows.shrag.playbook import build_question_library
     from flows.shrag.qa import QAgent
 
-    if pubsub:
-        pub = UpdatePublisher(client_id).publish_update
-    else:
-        pub = noop
-
+    # Combine the logger and the publisher
+    pub = pub_and_log(client_id, pubsub)
     pub("📚 Building question library & 🚀 Starting engines!")
 
     # Build the Question Library

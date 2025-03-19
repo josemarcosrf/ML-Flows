@@ -5,7 +5,7 @@ from llama_index.core.schema import Document
 from loguru import logger
 from prefect import Flow, flow
 
-from flows.common.helpers import noop
+from flows.common.helpers import pub_and_log
 from flows.common.helpers.auto_download import download_if_remote
 from flows.settings import settings
 
@@ -36,26 +36,24 @@ def index_files(
         chunk_overlap (int, optional): Overlap between the chunks. Defaults to settings.CHUNK_OVERLAP.
         pubsub (bool, optional): Whether to use Pub/Sub for updates. Defaults to False.
     """
-    from flows.common.clients.pubsub import UpdatePublisher
+
     from flows.preproc.convert import pdf_2_md
     from flows.preproc.index import index_documents
 
     if metadatas and len(metadatas) != len(file_paths):
         raise ValueError("⚠️ Length of metadatas should match the length of file_paths")
 
-    if pubsub:
-        pub = UpdatePublisher(client_id)
-    else:
-        pub = noop
+    # Combine the logger and the publisher
+    pub = pub_and_log(client_id, pubsub)
 
+    pub(f"Reading {len(file_paths)} files...")
     documents = []
     for i, fpath in enumerate(file_paths):
         fpath = Path(fpath)
 
         try:
             doc_id = sha1(fpath.open("rb").read()).hexdigest()
-            if pub:
-                pub.publish_update(f"Parsing {fpath.stem}...", doc_id=doc_id)
+            pub(f"Parsing {fpath.stem}...", doc_id=doc_id)
 
             # Read the file (possibly a PDF which will be converted to text)
             if fpath.suffix == ".pdf":
@@ -80,7 +78,7 @@ def index_files(
             logger.error(f"💥 Error processing {fpath.name}: {e}")
             continue
 
-    logger.info(f"📚 Gathered {len(documents)} documents for indexing.")
+    pub(f"📚 Gathered {len(documents)} documents for indexing.")
     return index_documents(
         documents,
         chroma_collection=chroma_collection,

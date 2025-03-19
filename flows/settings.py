@@ -37,7 +37,7 @@ class Settings(BaseSettings):
 
     # ChromaDB configuration
     CHROMA_HOST: str = "localhost"
-    CHROMA_PORT: int = 7000
+    CHROMA_PORT: int = 9000
 
     # Redis configuration (pub/sub)
     REDIS_HOST: str = "localhost"

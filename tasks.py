@@ -4,11 +4,11 @@ from invoke import task
 
 
 @task
-def local_chroma(c, port: int = 7000):
-    """Start a local ChromaDB server (port 7000 by default)
+def local_chroma(c, port: int = 9000):
+    """Start a local ChromaDB server (port 9000 by default)
 
     Args:
-        port (int): Port to run the ChromaDB server on. Defaults to 7000.
+        port (int): Port to run the ChromaDB server on. Defaults to 9000.
     """
     c.run(f"chroma run --port {port}")
 

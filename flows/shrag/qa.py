@@ -113,6 +113,7 @@ class QAgent:
         self,
         q: QuestionItem,
         meta_filters: dict[str, Any] = {},
+        pub: callable = noop,
         **kwargs,
     ) -> BaseAnswer | None:
         """Shorthand method for RAG given a 'Question Item'
@@ -128,6 +129,7 @@ class QAgent:
         """
         prompt = get_question_prompt(q)
         try:
+            pub(f"🔍 Extracting '{q.key}'")
             return self.rag(
                 query=prompt,
                 output_cls=q.answer_schema,
@@ -145,7 +147,11 @@ class QAgent:
 
     @task(task_run_name=generate_ask_run_name)
     def ask_group(
-        self, questions: list[QuestionItem], meta_filters: dict[str, Any] = {}, **kwargs
+        self,
+        questions: list[QuestionItem],
+        meta_filters: dict[str, Any] = {},
+        pub: callable = noop,
+        **kwargs,
     ) -> dict[str, BaseAnswer] | None:
         """Ask a group of questions in sequence. If the first question is affirmative
         then ask all the others. If the first question is negative, return None.
@@ -183,7 +189,7 @@ class QAgent:
         # If the response is affirmative, ask all the other questions
         if res.response.value == YesNoEnum.pos.value:
             for q in questions[1:]:
-                responses[q.key] = self.ask(q, meta_filters, **kwargs)
+                responses[q.key] = self.ask(q, meta_filters, pub=pub, **kwargs)
 
         return responses
 
@@ -230,7 +236,7 @@ class QAgent:
             if len(q_list) == 1:
                 # A non-hierarchical question
                 try:
-                    answer = self.ask(q, meta_filters, **kwargs)
+                    answer = self.ask(q, meta_filters, pub=pub, **kwargs)
                     responses[q.key] = QAResponse(
                         question=q.question,
                         question_type=q.question_type,
@@ -243,7 +249,9 @@ class QAgent:
             elif len(q_list) > 1:
                 # A hierarchical group of questions
                 try:
-                    group_responses = self.ask_group(q_list, meta_filters, **kwargs)
+                    group_responses = self.ask_group(
+                        q_list, meta_filters, pub=pub, **kwargs
+                    )
                     for i, (key, res) in enumerate(group_responses.items()):
                         responses[key] = QAResponse(
                             question=q_list[i].question,
