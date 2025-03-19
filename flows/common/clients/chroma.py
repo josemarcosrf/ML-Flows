@@ -1,4 +1,3 @@
-import os
 from typing import Callable
 
 import chromadb
@@ -111,8 +110,8 @@ class ChromaClient:
 
     def get_embedding_function(
         self,
-        backend: str | LLMBackend,
         embedding_model: str,
+        backend: str | LLMBackend,
         ollama_base_url: str | None = settings.OLLAMA_BASE_URL,
         openai_api_key: str | None = settings.OPENAI_API_KEY,
     ) -> Callable:
@@ -149,16 +148,20 @@ class ChromaClient:
         elif backend == LLMBackend.OPENAI:
             from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 
-            if api_key := (os.getenv("OPENAI_API_KEY") or openai_api_key):
-                return OpenAIEmbeddingFunction(
-                    api_key=api_key,
-                    model_name=embedding_model,
-                )
-            else:
+            if not openai_api_key:
                 raise RuntimeError(
-                    f"❌ Unknown LLM backend: {backend}. "
-                    f"Please use one of {LLMBackend.__members__}"
+                    "❌ Missing OpenAI API key. Please provide it as a keyword argument "
+                    "or set the OPENAI_API_KEY environment variable."
                 )
+
+            return OpenAIEmbeddingFunction(
+                api_key=openai_api_key,
+                model_name=embedding_model,
+            )
+        else:
+            raise ValueError(
+                f"❌ Invalid LLM backend: {backend}. Please use one of {LLMBackend}"
+            )
 
     def print_collection_documents(
         self, collection_name: str, metadata_fields: list[str], batch_size: int = 256

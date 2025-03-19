@@ -5,6 +5,7 @@ from llama_index.core.schema import Document
 from loguru import logger
 from prefect import Flow, flow
 
+from flows.common.helpers import noop
 from flows.common.helpers.auto_download import download_if_remote
 from flows.settings import settings
 
@@ -45,7 +46,7 @@ def index_files(
     if pubsub:
         pub = UpdatePublisher(client_id)
     else:
-        pub = None
+        pub = noop
 
     documents = []
     for i, fpath in enumerate(file_paths):

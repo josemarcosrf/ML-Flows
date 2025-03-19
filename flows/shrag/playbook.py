@@ -30,7 +30,7 @@ def read_playbook_json(playbook_json: Path | str) -> dict[str, dict[str, str]]:
 
 @task
 def build_question_library(
-    playbook: dict[str, dict[str, str]],
+    playbook: dict[str, dict[str, str | list[str]]],
 ) -> dict[str, list[QuestionItem]]:
     """Builds the Question Library from the playbook JSON file.
 

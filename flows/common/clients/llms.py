@@ -60,6 +60,11 @@ def get_llm(
             seed=42,
             base_url=ollama_base_url,
         )
+    else:
+        raise ValueError(
+            f"❌ Unknown LLM backend: {llm_backend}. "
+            f"Please use one of {LLMBackend.__members__}"
+        )
 
 
 @task(task_run_name="get_embedding_model:[{llm_backend}]-{embedding_model}")

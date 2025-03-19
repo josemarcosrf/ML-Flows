@@ -5,10 +5,9 @@ from loguru import logger
 from prefect import task
 from tqdm import tqdm
 
-from flows import settings
 from flows.common.clients.chroma import ChromaClient
 from flows.common.clients.llms import get_embedding_model
-from flows.common.clients.pubsub import UpdatePublisher
+from flows.common.helpers import noop
 
 
 @task
@@ -19,9 +18,7 @@ def index_documents(
     chunk_size: int,
     chunk_overlap: int,
     chroma_collection: str,
-    pub: UpdatePublisher | None = None,
-    chroma_host: str = settings.CHROMA_HOST,
-    chroma_port: int = settings.CHROMA_PORT,
+    pub: callable = noop,
 ):
     """Index a list of documents in ChromaDB
 
@@ -36,8 +33,9 @@ def index_documents(
         chroma_port (int): Chroma
     """
     # Connect to ChromaDB and get the embedding function
-    vec_db = ChromaClient(chroma_host, chroma_port)
+    vec_db = ChromaClient()
     embed_fn = vec_db.get_embedding_function(embedding_model, llm_backend)
+
     # Get or create the chromaDB collection
     col = vec_db.get_collection(
         chroma_collection,
@@ -70,14 +68,12 @@ def index_documents(
         if existing_nodes["ids"]:
             msg = f"✅ Found document '{doc_name}'. Skipping..."
             tqdm.write(msg)
-            if pub:
-                pub.publish_update(msg, doc_id=doc_id)
+            pub(msg, doc_id=doc_id)
             total_skipped += 1
         else:
             msg = f"📩 Inserting '{doc_name}'"
             tqdm.write(msg)
-            if pub:
-                pub.publish_update(msg, doc_id=doc_id)
+            pub(msg, doc_id=doc_id)
             nodes = pipeline.run(documents=[doc])  # Run the pre-proc pipeline
             index.insert_nodes(nodes)
             total_inserted += 1
