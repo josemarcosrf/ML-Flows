@@ -1,5 +1,6 @@
 import json
 from collections import defaultdict
+from hashlib import sha1
 from pathlib import Path
 
 from loguru import logger
@@ -15,6 +16,19 @@ class QuestionItem(BaseModel):
     question: str
     question_type: str
     answer_schema: type[BaseModel]
+
+
+def q_library_hash(q_library) -> str:
+    """Hash the question library to determine if it has changed"""
+
+    # First dump the question library to a JSON string
+    d = {k: [q.model_dump() for q in q_list] for k, q_list in q_library.items()}
+    for k, q_list in d.items():
+        for i, q in enumerate(q_list):
+            if "answer_schema" in q:
+                d[k][i]["answer_schema"] = str(q["answer_schema"])
+
+    return sha1(json.dumps(d).encode()).hexdigest()
 
 
 def read_playbook_json(playbook_json: Path | str) -> dict[str, dict[str, str]]:

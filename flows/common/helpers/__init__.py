@@ -10,9 +10,13 @@ def pub_and_log(client_id, pubsub: bool = False):
     if pubsub:
         pub = UpdatePublisher(client_id)
 
-    def _pub_and_log(msg, doc_id: str | None = None, level: str = "info", **extra):
+    def _pub_and_log(msg: str, doc_id: str | None = None, level: str = "info", **extra):
         log_method = getattr(logger, level, logger.info)
-        log_method(f"{msg} [doc_id={doc_id}]")
+        if doc_id:
+            msg += f"(doc_id={doc_id})"
+
+        log_method(msg)
+
         if pubsub:
             pub.publish_update(msg, doc_id, **extra)
 

@@ -163,6 +163,42 @@ class ChromaClient:
                 f"❌ Invalid LLM backend: {backend}. Please use one of {LLMBackend}"
             )
 
+    def get_collection_documents(
+        self, collection_name: str, metadata_fields: list[str], batch_size: int = 256
+    ) -> list[dict]:
+        """Fetches all Chroma collection items' in batches to avoid memory issues.
+        Args:
+            collection_name (str): Name of the collection to fetch
+            batch_size (int, optional): Number of items to fetch per batch. Defaults to 256.
+                Note: This is a trade-off between memory usage and performance.
+                A smaller batch size will use less memory but will be slower.
+                A larger batch size will be faster but will use more memory.
+                The default value of 256 is a good balance between memory usage and performance.
+        Returns:
+            list[dict]: List of metadata dictionaries for each document
+        """
+
+        def get_cols(meta):
+            return tuple(meta.get(field) for field in metadata_fields)
+
+        def get_batch_metas(batch_size, offset):
+            return col.get(include=["metadatas"], limit=batch_size, offset=offset)[
+                "metadatas"
+            ]
+
+        col = self.db.get_collection(collection_name)  # type: ignore[union-attr]
+
+        if total_count := col.count():
+            sources = []
+            for offset in tqdm(range(0, total_count, batch_size), desc="Scanning..."):
+                if metas := get_batch_metas(batch_size, offset):
+                    sources.extend(
+                        [get_cols(m) for m in metas if None not in [get_cols(m)]]
+                    )
+
+        docs = sorted(set(sources), key=lambda x: x[0])  # type: ignore
+        return docs
+
     def print_collection_documents(
         self, collection_name: str, metadata_fields: list[str], batch_size: int = 256
     ):
@@ -177,27 +213,11 @@ class ChromaClient:
                 A larger batch size will be faster but will use more memory.
                 The default value of 256 is a good balance between memory usage and performance.
         """
-
-        def get_cols(meta):
-            return tuple(meta.get(field) for field in metadata_fields)
-
-        def get_batch_metas(batch_size, offset):
-            return col.get(include=["metadatas"], limit=batch_size, offset=offset)[
-                "metadatas"
-            ]
-
-        col = self.db.get_collection(collection_name)  # type: ignore[union-attr]
-
-        if total_count := col.count():
-            print(f"Total items in collection '{collection_name}': {total_count} ")
-            sources = []
-            for offset in tqdm(range(0, total_count, batch_size), desc="Scanning..."):
-                if metas := get_batch_metas(batch_size, offset):
-                    sources.extend(
-                        [get_cols(m) for m in metas if None not in [get_cols(m)]]
-                    )
-
-            docs = sorted(set(sources), key=lambda x: x[0])  # type: ignore
+        docs = self.get_collection_documents(
+            collection_name, metadata_fields, batch_size=batch_size
+        )
+        if docs:
+            print(f"Total items in collection '{collection_name}': {len(docs)} ")
             print(
                 tabulate(
                     docs,

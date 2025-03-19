@@ -5,8 +5,10 @@ from llama_index.core.schema import Document
 from loguru import logger
 from prefect import Flow, flow
 
+from flows.common.clients.mongodb import MongoDBClient
 from flows.common.helpers import pub_and_log
 from flows.common.helpers.auto_download import download_if_remote
+from flows.common.types import DOC_STATUS, DocumentInfo
 from flows.settings import settings
 
 
@@ -47,13 +49,26 @@ def index_files(
     pub = pub_and_log(client_id, pubsub)
 
     pub(f"Reading {len(file_paths)} files...")
-    documents = []
-    for i, fpath in enumerate(file_paths):
-        fpath = Path(fpath)
+    file_paths = [Path(fp).resolve() for fp in file_paths]
+    doc_ids = [sha1(fpath.open("rb").read()).hexdigest() for fpath in file_paths]
 
+    # Insert the documents into the MongoDB collection for bookkeeping
+    db_data = [
+        DocumentInfo(
+            client_id=client_id,
+            collection=chroma_collection,
+            name=f.stem,
+            doc_id=doc_id,
+            status=DOC_STATUS.PENDING.value,
+        ).model_dump()
+        for f, doc_id in zip(file_paths, doc_ids)
+    ]
+    MongoDBClient().insert_many(settings.MONGO_DOC_COLLECTION, db_data)
+
+    documents = []
+    for i, (fpath, doc_id) in enumerate(zip(file_paths, doc_ids)):
         try:
-            doc_id = sha1(fpath.open("rb").read()).hexdigest()
-            pub(f"Parsing {fpath.stem}...", doc_id=doc_id)
+            pub("Parsing document...", doc_name=fpath.stem, doc_id=doc_id)
 
             # Read the file (possibly a PDF which will be converted to text)
             if fpath.suffix == ".pdf":
@@ -86,7 +101,7 @@ def index_files(
         embedding_model=embedding_model,
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
-        pub=pub,
+        ctx={"client_id": client_id, "pubsub": pubsub},
     )
 
 

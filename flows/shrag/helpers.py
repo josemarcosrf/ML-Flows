@@ -69,7 +69,6 @@ def parse_answer(res: BaseAnswer) -> dict[str, Any]:
             answer = answer.value
         return {
             "answer": answer,
-            "page_numbers": res.page_numbers,
             "confidence": res.confidence,
             "confidence_explanation": res.confidence_explanation,
         }
@@ -78,17 +77,12 @@ def parse_answer(res: BaseAnswer) -> dict[str, Any]:
         logger.error(f"❌ Error parsing response! {e} (res: {res})")
         return {
             "answer": "ERROR",
-            "page_numbers": [],
             "confidence": 0,
             "confidence_explanation": "Error: {e}",
         }
 
 
 def print_answer(res: BaseAnswer, explain: bool = False) -> None:
-    print(
-        "A: {answer} | [pages={page_numbers}] (confidence={confidence})".format(
-            **parse_answer(res)
-        )
-    )
+    print("A: {answer} (confidence={confidence})".format(**parse_answer(res)))
     if explain:
         print(f"Explanation: {res.confidence_explanation}")

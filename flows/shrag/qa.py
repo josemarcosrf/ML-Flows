@@ -13,8 +13,11 @@ from prefect.runtime import task_run
 from pydantic import BaseModel
 from tqdm.rich import tqdm
 
-from flows.common.helpers import noop
-from flows.shrag.playbook import get_question_prompt, QuestionItem
+from flows.common.clients.mongodb import MongoDBClient
+from flows.common.helpers import noop, pub_and_log
+from flows.settings import settings
+from flows.shrag.helpers import parse_answer
+from flows.shrag.playbook import get_question_prompt, q_library_hash, QuestionItem
 from flows.shrag.schemas.answers import BaseAnswer, SummaryAnswer, YesNoEnum
 from flows.shrag.schemas.questions import QuestionType
 
@@ -113,7 +116,7 @@ class QAgent:
         self,
         q: QuestionItem,
         meta_filters: dict[str, Any] = {},
-        pub: callable = noop,
+        ctx: dict | None = None,
         **kwargs,
     ) -> BaseAnswer | None:
         """Shorthand method for RAG given a 'Question Item'
@@ -127,6 +130,9 @@ class QAgent:
             meta_filters (dict[str, Any]): Metadata Retrieval filter dictionary in the form
                 metadata-key, value pairs
         """
+        # Define a pubsub function
+        pub = pub_and_log(**ctx) if ctx else noop
+
         prompt = get_question_prompt(q)
         try:
             pub(f"🔍 Extracting '{q.key}'")
@@ -140,7 +146,6 @@ class QAgent:
             logger.error(f"❌ Error extracting '{q.key}' [filter={meta_filters}]: {e}")
             return BaseAnswer(
                 response=f"Error answering q={q.key}",
-                page_numbers=[],
                 confidence=0.0,
                 confidence_explanation=str(e),
             )
@@ -150,7 +155,7 @@ class QAgent:
         self,
         questions: list[QuestionItem],
         meta_filters: dict[str, Any] = {},
-        pub: callable = noop,
+        ctx: dict | None = None,
         **kwargs,
     ) -> dict[str, BaseAnswer] | None:
         """Ask a group of questions in sequence. If the first question is affirmative
@@ -166,6 +171,7 @@ class QAgent:
         Returns:
             dict[str, BaseAnswer] | None: A dictionary of the responses
         """
+
         # Check if the first question is of type YES/NO. If not, raise an error
         if questions[0].question_type != QuestionType.YES_NO:
             raise ValueError(
@@ -189,7 +195,7 @@ class QAgent:
         # If the response is affirmative, ask all the other questions
         if res.response.value == YesNoEnum.pos.value:
             for q in questions[1:]:
-                responses[q.key] = self.ask(q, meta_filters, pub=pub, **kwargs)
+                responses[q.key] = self.ask(q, meta_filters, ctx=ctx, **kwargs)
 
         return responses
 
@@ -199,7 +205,7 @@ class QAgent:
         q_collection: dict[str, list[QuestionItem]],
         meta_filters: dict[str, Any],
         pbar: bool = False,
-        pub: callable = noop,
+        ctx: dict | None = None,
         **kwargs,
     ) -> dict[str, QAResponse]:
         """Run the entire Q-collection and return the responses
@@ -223,6 +229,26 @@ class QAgent:
             - The QAResponse objects contain the question, question_type and answer
             - The answer is a BaseAnswer object
         """
+
+        # Define a function to update the document in the MongoDB collection
+        def update_db(udpate):
+            res = db.update_one(
+                settings.MONGO_RESULTS_COLLECTION,
+                filter={"playbook_hash": playbook_hash, "meta_filters": meta_filters},
+                update=udpate,
+                upsert=True,
+            )
+            logger.debug(f"Update results: {res}")
+
+        # Compute the sha1 hash of the playbook
+        playbook_hash = q_library_hash(q_collection)
+
+        # Initialize the MongoDB client
+        db = MongoDBClient()
+
+        # Define a pubsub function
+        pub = pub_and_log(**ctx) if ctx else noop
+
         # Run on the entire Q-collection
         questions_iter = tqdm(q_collection.items()) if pbar else q_collection.items()
         responses = {}
@@ -236,7 +262,7 @@ class QAgent:
             if len(q_list) == 1:
                 # A non-hierarchical question
                 try:
-                    answer = self.ask(q, meta_filters, pub=pub, **kwargs)
+                    answer = self.ask(q, meta_filters, ctx=ctx, **kwargs)
                     responses[q.key] = QAResponse(
                         question=q.question,
                         question_type=q.question_type,
@@ -245,12 +271,15 @@ class QAgent:
                 except Exception as e:
                     logger.error(f"❌ Error asking '{q.key}': {e}")
                     pub(f"❌ Error extracting '{q.key}'", **meta_filters)
+                finally:
+                    # update_db({"answers": {q.key: parse_answer(answer)}})
+                    update_db({f"answers.{q.key}": parse_answer(answer)})
 
             elif len(q_list) > 1:
                 # A hierarchical group of questions
                 try:
                     group_responses = self.ask_group(
-                        q_list, meta_filters, pub=pub, **kwargs
+                        q_list, meta_filters, ctx=ctx, **kwargs
                     )
                     for i, (key, res) in enumerate(group_responses.items()):
                         responses[key] = QAResponse(
@@ -261,5 +290,8 @@ class QAgent:
                 except Exception as e:
                     logger.error(f"❌ Error asking group '{q.key}': {e}")
                     pub(f"❌ Error extracting group '{q.key}'")
+                finally:
+                    for key, ans in group_responses.items():
+                        update_db({"answers": {key: parse_answer(ans)}})
 
         return responses

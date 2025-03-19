@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from pydantic import field_validator, SecretStr
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from tabulate import tabulate
 
 
@@ -37,11 +37,17 @@ class Settings(BaseSettings):
 
     # ChromaDB configuration
     CHROMA_HOST: str = "localhost"
-    CHROMA_PORT: int = 9000
+    CHROMA_PORT: int = 9999
 
     # Redis configuration (pub/sub)
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
+
+    # MongoDB
+    MONGO_URI: str = "localhost:27017"
+    MONGO_DB: str = "deus"
+    MONGO_DOC_COLLECTION: str = "flows_documents"
+    MONGO_RESULTS_COLLECTION: str = "flows_results"
 
     # LLM configuration
     LLM_BACKEND: str = "openai"  # or "ollama"
@@ -71,7 +77,7 @@ class Settings(BaseSettings):
             raise ValueError("OPENAI_API_KEY is required when LLM_BACKEND=openai")
         return value
 
-    model_config = {"env_file": ".env"}
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
 settings = Settings()

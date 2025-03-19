@@ -10,6 +10,7 @@ def chroma_cli(host, port):
     """ChromaDB CLI"""
     from flows.common.clients.chroma import ChromaClient
 
+    print(f"🔌 Connecting to chroma at: {host}:{port}")
     global client
     client = ChromaClient(host, port)
 

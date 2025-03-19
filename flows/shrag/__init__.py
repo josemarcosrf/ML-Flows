@@ -8,7 +8,10 @@ from flows.common.helpers import pub_and_log
 from flows.settings import settings
 
 
-@flow(log_prints=True, flow_run_name="playbook-QA-{chroma_collection}-{llm_model}")
+@flow(
+    log_prints=True,
+    flow_run_name="playbook-QA-{chroma_collection}-{llm_model}-{meta_filters}",
+)
 def playbook_qa(
     client_id: str,
     playbook: dict[str, dict[str, str | list[str]]],
@@ -90,7 +93,7 @@ def playbook_qa(
         similarity_top_k=similarity_top_k,
         similarity_cutoff=similarity_cutoff,
         pbar=False,
-        pub=pub,
+        ctx={"client_id": client_id, "pubsub": pubsub},
     )
 
     return {k: v.model_dump() for k, v in responses.items()}
