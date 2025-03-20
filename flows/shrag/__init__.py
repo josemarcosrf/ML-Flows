@@ -2,7 +2,6 @@ from typing import Any
 
 from loguru import logger
 from prefect import Flow, flow, task
-from prefect.tasks import CachePolicy
 
 from flows.common.clients.mongodb import MongoDBClient
 from flows.common.helpers import pub_and_log
@@ -72,7 +71,7 @@ def playbook_qa(
         }
 
         # The callback task defined in a closure so that it can access the db and query.
-        @task(name="Ans2Mongo", cache_policy=CachePolicy.NO_CACHE)
+        @task(name="Ans2Mongo", cache_policy=None)
         def _callback(update: dict[str, Any]):
             # Define a function to update the document in the MongoDB collection
             db.update_one(
