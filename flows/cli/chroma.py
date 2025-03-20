@@ -40,4 +40,22 @@ def list_collection_documents(
     print("✨ Done!")
 
 
+@chroma_cli.command("rm")
+@click.argument("collection_name")
+def remove_collection(collection_name: str):
+    """Remove a collection from the ChromaDB"""
+    client.db.delete_collection(collection_name)
+    print(f"🗑️ Collection {collection_name} removed!")
+
+
+@chroma_cli.command("rmd")
+@click.argument("collection_name")
+@click.argument("doc_id")
+def remove_document(collection_name: str, doc_id: str):
+    """Remove a document from the ChromaDB"""
+    collection = client.db.get_collection(collection_name)
+    collection.delete(where={"doc_id": doc_id})
+    print(f"🗑️ Document {doc_id} removed from collection {collection_name}!")
+
+
 client = None

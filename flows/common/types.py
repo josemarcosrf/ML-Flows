@@ -1,6 +1,6 @@
 from enum import Enum
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class DOC_STATUS(str, Enum):
@@ -8,6 +8,14 @@ class DOC_STATUS(str, Enum):
     INDEXING = "indexing"
     INDEXED = "indexed"
     FAILED = "failed"
+
+
+class ClientContext(BaseModel):
+    client_id: str = Field(..., description="Client ID")
+    collection: str = Field(..., description="ChromaDB collection")
+    meta_filters: dict = Field({}, description="Metadata filters for retrieval")
+    playbook_id: str = Field(..., description="Playbook ID")
+    pub: bool = Field(False, description="Whether to use Pub/Sub for updates")
 
 
 class DocumentInfo(BaseModel):

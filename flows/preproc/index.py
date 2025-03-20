@@ -1,57 +1,94 @@
+from pathlib import Path
+
 from llama_index.core.ingestion import IngestionPipeline
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.schema import Document
-from loguru import logger
 from prefect import task
 
 from flows.common.clients.chroma import ChromaClient
 from flows.common.clients.llms import get_embedding_model
-from flows.common.clients.mongodb import MongoDBClient
-from flows.common.helpers import noop, pub_and_log
-from flows.common.types import DOC_STATUS
-from flows.settings import settings
+from flows.preproc.convert import pdf_2_md
 
 
-@task
-def index_documents(
-    docs: list[Document],
+def index_file_run_name() -> str:
+    from prefect.runtime import flow_run, task_run
+
+    parameters = flow_run.get_parameters() or task_run.get_parameters()
+    fname = Path(parameters.get("fpath", "")).stem
+    return f"index-file={fname}"
+
+
+@task(log_prints=True, task_run_name=index_file_run_name)
+def index_file(
+    fpath: str,
+    doc_id: str,
     llm_backend: str,
     embedding_model: str,
     chunk_size: int,
     chunk_overlap: int,
     chroma_collection: str,
-    ctx: dict | None = None,
-):
-    """Index a list of documents in ChromaDB
+    metadata: dict = {},
+) -> int:
+    """Index a single file in ChromaDB.
 
     Args:
-        docs (list[Document]): List of documents to index
+        fpath (Path): Path to the file to index
+        doc_id (str): Document ID
         chroma_collection (str): Name of the collection to index the documents to
         llm_backend (str): LLM backend to use. One of openai, ollama
         embedding_model (str): Embedding model to use.
         chunk_size (int): Size of the chunks to split the documents into
         chunk_overlap (int): Overlap between the chunks
-        chroma_host (str): ChromaDB host
-        chroma_port (int): Chroma
-        ctx (dict, optional): Prefect parent Flow context. Defaults to None.
+
+    Returns:
+        int: The Number of nodes inserted
     """
+    if fpath.suffix == ".pdf":
+        text = pdf_2_md.submit(str(fpath)).result()
+    else:
+        with fpath.open("r") as f:
+            text = f.read()
 
-    # Define a function to update the document in the MongoDB collection
-    def update_doc_db(doc, udpate):
-        res = db.update_one(
-            settings.MONGO_DOC_COLLECTION,
-            filter={"id": doc.doc_id},
-            update=udpate,
-            upsert=False,
-        )
-        logger.debug(f"Update results: {res}")
+    doc = Document(
+        doc_id=doc_id,  # Use the SHA1 hash of the PDF file as the ID
+        text=text,
+        extra_info={
+            "name": fpath.stem,
+            **metadata,
+        },
+    )
+    return index_document.submit(
+        doc=doc,
+        chroma_collection=chroma_collection,
+        llm_backend=llm_backend,
+        embedding_model=embedding_model,
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+    ).result()
 
-    # Connect to MongoDB
-    db = MongoDBClient()
 
-    # Define a pubsub function
-    pub = pub_and_log(**ctx) if ctx else noop
+@task
+def index_document(
+    doc: Document,
+    llm_backend: str,
+    embedding_model: str,
+    chunk_size: int,
+    chunk_overlap: int,
+    chroma_collection: str,
+) -> int:
+    """Index a single document in ChromaDB.
 
+    Args:
+        docs (Document): Document object to index
+        chroma_collection (str): Name of the collection to index the documents to
+        llm_backend (str): LLM backend to use. One of openai, ollama
+        embedding_model (str): Embedding model to use.
+        chunk_size (int): Size of the chunks to split the documents into
+        chunk_overlap (int): Overlap between the chunks
+
+    Returns:
+        int: Number of nodes inserted
+    """
     # Connect to ChromaDB and get the embedding function
     vec_db = ChromaClient()
     embed_fn = vec_db.get_embedding_function(embedding_model, llm_backend)
@@ -62,7 +99,6 @@ def index_documents(
         embed_fn=embed_fn,
         create=True,
     )
-    # Get the Vector Index
     embed_model = get_embedding_model(embedding_model, llm_backend)
     index = vec_db.get_index(embed_model, chroma_collection)
 
@@ -73,40 +109,11 @@ def index_documents(
             embed_model,
         ]
     )
-    # TODO: This for loop can be parallelized refactoring into a Prefect task
-    # Pre-process and index one by one so we are able to check if the document
-    # already exists in the index
-    pub(f"📦 Indexing {len(docs)} documents...")
-    total_inserted = 0
-    total_skipped = 0
-    total_errors = 0
-    for doc in docs:
-        doc_name = doc.metadata["name"]
-        doc_id = doc.doc_id
-        update_doc_db(doc, {"status": DOC_STATUS.INDEXING.value})
-        try:
-            existing_nodes = col.get(where={"name": doc_name})
-            if existing_nodes["ids"]:
-                pub(f"✅ Found document '{doc_name}'. Skipping...", doc_id=doc_id)
-                total_skipped += 1
-            else:
-                pub(f"📩 Inserting '{doc_name}'", doc_id=doc_id)
-                nodes = pipeline.run(documents=[doc])  # Run the pre-proc pipeline
-                index.insert_nodes(nodes)
-                total_inserted += 1
-        except Exception as e:
-            msg = f"❌ Error inserting '{doc_name}': {e}"
-            pub(msg, doc_id=doc_id, level="error")
-            update_doc_db(doc, {"status": DOC_STATUS.FAILED.value, "reason": str(e)})
-            total_errors += 1
-        finally:
-            update_doc_db(doc, {"status": DOC_STATUS.INDEXED.value})
+    existing_nodes = col.get(where={"doc_id": doc.doc_id})
+    if existing_nodes["ids"]:
+        return 0
 
-    pub("✅ Indexing complete!")
-    pub(f"Inserted:{total_inserted} | Skipped:{total_skipped} | Errors:{total_errors}")
+    nodes = pipeline.run(documents=[doc])  # Run the pre-proc pipeline
+    index.insert_nodes(nodes)
 
-    return {
-        "inserted": total_inserted,
-        "skipped": total_skipped,
-        "errors": total_errors,
-    }
+    return len(nodes)

@@ -5,6 +5,7 @@ from loguru import logger
 from prefect import Flow, flow
 
 from flows.common.helpers import pub_and_log
+from flows.common.types import ClientContext
 from flows.settings import settings
 
 
@@ -31,8 +32,9 @@ def playbook_qa(
 
     Args:
         client_id (str): Client ID for the Pub/Sub updates
-        playbook (str): Mapping from attribute to question, question type and
-            valid_answers for each attribute.
+        playbook (str): Mapping with 'id','name' and 'defintion' keys.
+            The definition key contains the question library with each item having:
+            'question', 'question_type' and 'valid_answers' for each attribute
         meta_filters (dict[str, Any], optional): Metadata filters for retrieval
             as {key:value} mapping. Leave as an empty dict for no filtering.
         chroma_collection (str): Name of the ChromaDB collection
@@ -61,10 +63,6 @@ def playbook_qa(
 
     # Combine the logger and the publisher
     pub = pub_and_log(client_id, pubsub)
-    pub("📚 Building question library & 🚀 Starting engines!")
-
-    # Build the Question Library
-    q_collection = build_question_library(playbook)
 
     # Get the LLM and embedding model
     llm = get_llm(llm_model=llm_model, llm_backend=llm_backend)
@@ -85,6 +83,17 @@ def playbook_qa(
         llm=llm,
         reranker=reranker_model,
     )
+    # Build a flow context
+    ctx = ClientContext(
+        client_id=client_id,
+        meta_filters=meta_filters,
+        collection=chroma_collection,
+        playbook_id=playbook["id"],
+        pub=True,
+    )
+    # Build the Question Library
+    pub(f"📚 Building question library for playbook {playbook['name']}")
+    q_collection = build_question_library(playbook["definitions"])
 
     # Run the Q-collection and return the responses
     responses = questioner.run_q_collection(
@@ -93,7 +102,7 @@ def playbook_qa(
         similarity_top_k=similarity_top_k,
         similarity_cutoff=similarity_cutoff,
         pbar=False,
-        ctx={"client_id": client_id, "pubsub": pubsub},
+        ctx=ctx,
     )
 
     return {k: v.model_dump() for k, v in responses.items()}

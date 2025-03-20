@@ -2,7 +2,6 @@ from datetime import datetime
 from hashlib import sha1
 from pathlib import Path
 
-from llama_index.core.schema import Document
 from loguru import logger
 from prefect import Flow, flow
 
@@ -39,72 +38,106 @@ def index_files(
         chunk_overlap (int, optional): Overlap between the chunks. Defaults to settings.CHUNK_OVERLAP.
         pubsub (bool, optional): Whether to use Pub/Sub for updates. Defaults to False.
     """
+    from flows.preproc.index import index_file
 
-    from flows.preproc.convert import pdf_2_md
-    from flows.preproc.index import index_documents
+    # Define a function to update the document in the MongoDB collection
+    def update_doc_db(doc_id: str, update: dict, upsert=False):
+        res = db.update_one(
+            settings.MONGO_DOC_COLLECTION,
+            filter={"id": doc_id},
+            update=update,
+            upsert=upsert,
+        )
+        logger.debug(f"DB update results: {res}")
 
     if metadatas and len(metadatas) != len(file_paths):
         raise ValueError("⚠️ Length of metadatas should match the length of file_paths")
 
-    # Combine the logger and the publisher
+    # Define a pubsub function that combine the logger and the publisher
     pub = pub_and_log(client_id, pubsub)
+
+    # Connect to MongoDB
+    db = MongoDBClient()
 
     pub(f"Reading {len(file_paths)} files...")
     file_paths = [Path(fp).resolve() for fp in file_paths]
     doc_ids = [sha1(fpath.open("rb").read()).hexdigest() for fpath in file_paths]
 
-    # Insert the documents into the MongoDB collection for bookkeeping
-    db_data = [
-        DocumentInfo(
-            id=doc_id,
-            name=f.stem,
-            client_id=client_id,
-            collection=chroma_collection,
-            status=DOC_STATUS.PENDING.value,
-            created_at=datetime.now().isoformat(),
-        ).model_dump()
-        for f, doc_id in zip(file_paths, doc_ids)
-    ]
-    MongoDBClient().insert_many(settings.MONGO_DOC_COLLECTION, db_data)
-
-    documents = []
+    pub(f"📚 Gathered {len(file_paths)} documents for indexing.")
+    total_inserted = 0
+    total_skipped = 0
+    total_errors = 0
+    tasks = []
     for i, (fpath, doc_id) in enumerate(zip(file_paths, doc_ids)):
+        # Laucnh the indexing tasks
         try:
-            pub("Parsing document...", doc_name=fpath.stem, doc_id=doc_id)
+            pub("®️ Registering file...", doc_name=fpath.stem, doc_id=doc_id)
+            # Insert the document metadata into the MongoDB collection
+            update_doc_db(
+                doc_id,
+                DocumentInfo(
+                    id=doc_id,
+                    name=fpath.stem,
+                    client_id=client_id,
+                    collection=chroma_collection,
+                    status=DOC_STATUS.PENDING.value,
+                    created_at=datetime.now().isoformat(),
+                ).model_dump(),
+                upsert=True,
+            )
 
             # Read the file (possibly a PDF which will be converted to text)
-            if fpath.suffix == ".pdf":
-                text = pdf_2_md.submit(str(fpath)).result()
-            else:
-                with fpath.open("r") as f:
-                    text = f.read()
-
-            # Create a list documents
-            doc_meta = metadatas[i] if metadatas else {}
-            documents.append(
-                Document(
-                    doc_id=doc_id,  # Use the SHA1 hash of the PDF file as the ID
-                    text=text,
-                    extra_info={
-                        "name": fpath.stem,
-                        **doc_meta,
-                    },
-                )
+            pub("📝 Indexing file...", doc_name=fpath.stem, doc_id=doc_id)
+            future = index_file.submit(
+                fpath=fpath,
+                doc_id=doc_id,
+                llm_backend=llm_backend,
+                embedding_model=embedding_model,
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
+                chroma_collection=chroma_collection,
+                metadata=metadatas[i] if metadatas else {},
             )
+            logger.debug(f"Task {future} submitted for {fpath.name}")
+            tasks.append(future)
         except Exception as e:
-            logger.error(f"💥 Error processing {fpath.name}: {e}")
-            continue
+            pub(f"💥 Error processing '{fpath.name}': {e}", level="error")
+            update_doc_db(doc_id, {"status": DOC_STATUS.FAILED.value})
+            total_errors += 1
 
-    pub(f"📚 Gathered {len(documents)} documents for indexing.")
-    return index_documents(
-        documents,
-        chroma_collection=chroma_collection,
-        llm_backend=llm_backend,
-        embedding_model=embedding_model,
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap,
-        ctx={"client_id": client_id, "pubsub": pubsub},
-    )
+        # Wait for completion of the tasks
+        for task in tasks:
+            try:
+                if inserted_nodes := task.result():
+                    pub(
+                        f"✅ Successfully indexed {inserted_nodes} nodes.",
+                        doc_name=fpath.stem,
+                        doc_id=doc_id,
+                    )
+                    total_inserted += 1
+                else:
+                    pub(
+                        "⏎ Document already indexed, skipping...",
+                        doc_name=fpath.stem,
+                        doc_id=doc_id,
+                    )
+                    total_skipped += 1
+            except Exception as e:
+                pub(f"💥 Error inserting '{fpath.name}': {e}", level="error")
+                update_doc_db(doc_id, {"status": DOC_STATUS.FAILED.value})
+                total_errors += 1
+            else:
+                update_doc_db(doc_id, {"status": DOC_STATUS.INDEXED.value})
+
+    stats = {
+        "inserted": total_inserted,
+        "skipped": total_skipped,
+        "errors": total_errors,
+    }
+    pub("Indexing completed!", **stats)
+
+    if total_errors > 0:
+        raise RuntimeError(f"Errors occurred during indexing: {total_errors}")
 
 
 PUBLIC_FLOWS: dict[str, Flow] = {
