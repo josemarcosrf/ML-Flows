@@ -1,3 +1,4 @@
+from datetime import datetime
 from hashlib import sha1
 from pathlib import Path
 
@@ -55,11 +56,12 @@ def index_files(
     # Insert the documents into the MongoDB collection for bookkeeping
     db_data = [
         DocumentInfo(
+            id=doc_id,
+            name=f.stem,
             client_id=client_id,
             collection=chroma_collection,
-            name=f.stem,
-            doc_id=doc_id,
             status=DOC_STATUS.PENDING.value,
+            created_at=datetime.now().isoformat(),
         ).model_dump()
         for f, doc_id in zip(file_paths, doc_ids)
     ]

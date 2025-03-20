@@ -46,8 +46,8 @@ class Settings(BaseSettings):
     # MongoDB
     MONGO_URI: str = "localhost:27017"
     MONGO_DB: str = "deus"
-    MONGO_DOC_COLLECTION: str = "flows_documents"
-    MONGO_RESULTS_COLLECTION: str = "flows_results"
+    MONGO_DOC_COLLECTION: str = "documents"
+    MONGO_RESULTS_COLLECTION: str = "results"
 
     # LLM configuration
     LLM_BACKEND: str = "openai"  # or "ollama"

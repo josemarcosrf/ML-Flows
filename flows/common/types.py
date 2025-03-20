@@ -11,10 +11,11 @@ class DOC_STATUS(str, Enum):
 
 
 class DocumentInfo(BaseModel):
+    id: str
+    name: str
     client_id: str
     collection: str
-    name: str
-    doc_id: str
+    created_at: str
     status: str
     reason: str | None = None
 

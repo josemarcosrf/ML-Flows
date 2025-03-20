@@ -40,7 +40,7 @@ def index_documents(
     def update_doc_db(doc, udpate):
         res = db.update_one(
             settings.MONGO_DOC_COLLECTION,
-            filter={"doc_id": doc.doc_id},
+            filter={"id": doc.doc_id},
             update=udpate,
             upsert=False,
         )
