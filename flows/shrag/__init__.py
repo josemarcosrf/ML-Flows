@@ -1,11 +1,12 @@
 from typing import Any
 
-from llama_index.core import Settings
 from loguru import logger
-from prefect import Flow, flow
+from prefect import Flow, flow, task
+from prefect.tasks import CachePolicy
 
+from flows.common.clients.mongodb import MongoDBClient
 from flows.common.helpers import pub_and_log
-from flows.common.types import ClientContext
+from flows.common.types import Playbook
 from flows.settings import settings
 
 
@@ -15,7 +16,7 @@ from flows.settings import settings
 )
 def playbook_qa(
     client_id: str,
-    playbook: dict[str, dict[str, str | list[str]]],
+    playbook: Playbook,
     meta_filters: dict[str, Any],
     chroma_collection: str,
     embedding_model: str = settings.EMBEDDING_MODEL,
@@ -61,6 +62,33 @@ def playbook_qa(
     from flows.shrag.playbook import build_question_library
     from flows.shrag.qa import QAgent
 
+    def answer_callback():
+        """Create a callback task to update the answer in MongoDB and publish the progress."""
+        query = {
+            "meta_filters": meta_filters,
+            "client_id": client_id,
+            "collection": chroma_collection,
+            "playbook_id": playbook.id,  # playbook["id"],
+        }
+
+        # The callback task defined in a closure so that it can access the db and query.
+        @task(name="Ans2Mongo", cache_policy=CachePolicy.NO_CACHE)
+        def _callback(update: dict[str, Any]):
+            # Define a function to update the document in the MongoDB collection
+            db.update_one(
+                settings.MONGO_RESULTS_COLLECTION,
+                filter=query,
+                update=update,
+                upsert=True,
+            )
+            attr = list(update.keys())[0].replace("answers.", "")
+            pub(f"📌 Extracted '{attr}'.", **meta_filters)
+
+        return _callback
+
+    # Initialize the MongoDB client and create an empty results item
+    db = MongoDBClient()
+
     # Combine the logger and the publisher
     pub = pub_and_log(client_id, pubsub)
 
@@ -69,8 +97,6 @@ def playbook_qa(
     embed_model = get_embedding_model(
         llm_backend=llm_backend, embedding_model=embedding_model
     )
-    Settings.llm = llm
-    Settings.embed_model = embed_model
 
     # Get the ChromaDB index
     index = ChromaClient().get_index(embed_model, chroma_collection)
@@ -83,17 +109,10 @@ def playbook_qa(
         llm=llm,
         reranker=reranker_model,
     )
-    # Build a flow context
-    ctx = ClientContext(
-        client_id=client_id,
-        meta_filters=meta_filters,
-        collection=chroma_collection,
-        playbook_id=playbook["id"],
-        pub=True,
-    )
+
     # Build the Question Library
-    pub(f"📚 Building question library for playbook {playbook['name']}")
-    q_collection = build_question_library(playbook["definitions"])
+    pub(f"📚 Building question library for playbook {playbook.name}")
+    q_collection = build_question_library(playbook.definition)
 
     # Run the Q-collection and return the responses
     responses = questioner.run_q_collection(
@@ -102,7 +121,7 @@ def playbook_qa(
         similarity_top_k=similarity_top_k,
         similarity_cutoff=similarity_cutoff,
         pbar=False,
-        ctx=ctx,
+        answer_callback_task=answer_callback(),
     )
 
     return {k: v.model_dump() for k, v in responses.items()}

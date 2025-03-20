@@ -10,15 +10,16 @@ from flows.common.clients.llms import get_embedding_model
 from flows.preproc.convert import pdf_2_md
 
 
-def index_file_run_name() -> str:
-    from prefect.runtime import flow_run, task_run
+def custom_task_run_name() -> str:
+    from prefect.runtime import task_run
 
-    parameters = flow_run.get_parameters() or task_run.get_parameters()
+    function_name = task_run.get_task_name()
+    parameters = task_run.get_parameters()
     fname = Path(parameters.get("fpath", "")).stem
-    return f"index-file={fname}"
+    return f"{function_name}={fname}"
 
 
-@task(log_prints=True, task_run_name=index_file_run_name)
+@task(log_prints=True, task_run_name=custom_task_run_name)
 def index_file(
     fpath: str,
     doc_id: str,
@@ -43,12 +44,14 @@ def index_file(
     Returns:
         int: The Number of nodes inserted
     """
+    # Read the file (OCR or otherwise)
     if fpath.suffix == ".pdf":
         text = pdf_2_md.submit(str(fpath)).result()
     else:
         with fpath.open("r") as f:
             text = f.read()
 
+    # Create a document object
     doc = Document(
         doc_id=doc_id,  # Use the SHA1 hash of the PDF file as the ID
         text=text,
@@ -57,6 +60,7 @@ def index_file(
             **metadata,
         },
     )
+    # Index the document
     return index_document.submit(
         doc=doc,
         chroma_collection=chroma_collection,
