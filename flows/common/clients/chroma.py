@@ -113,7 +113,7 @@ class ChromaClient:
         embedding_model: str,
         backend: str | LLMBackend,
         ollama_base_url: str | None = settings.OLLAMA_BASE_URL,
-        openai_api_key: str | None = settings.OPENAI_API_KEY,
+        openai_api_key: str | None = settings.OPENAI_API_KEY.get_secret_value(),
     ) -> Callable:
         """Returns the embedding function for the database
 

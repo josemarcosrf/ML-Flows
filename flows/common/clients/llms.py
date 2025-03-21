@@ -16,7 +16,7 @@ def get_llm(
     llm_model: str,
     llm_backend: LLMBackend | str,
     ollama_base_url: str | None = settings.OLLAMA_BASE_URL,
-    openai_api_key: str | None = settings.OPENAI_API_KEY,
+    openai_api_key: str | None = settings.OPENAI_API_KEY.get_secret_value(),
 ) -> None:
     # Init the LLM and embedding models
     try:
@@ -72,7 +72,7 @@ def get_embedding_model(
     embedding_model: str,
     llm_backend: LLMBackend | str,
     ollama_base_url: str | None = settings.OLLAMA_BASE_URL,
-    openai_api_key: str | None = settings.OPENAI_API_KEY,
+    openai_api_key: str | None = settings.OPENAI_API_KEY.get_secret_value(),
 ):
     """Returns the embedding model and to use
 
