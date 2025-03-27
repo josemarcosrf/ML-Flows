@@ -8,12 +8,12 @@ from marker.output import text_from_rendered
 from ray import serve
 
 # Define a FastAPI app with base route /convert
-app = FastAPI(root_path="/convert")
+app = FastAPI(root_path="/to_markdown")
 
 
 @serve.deployment
 @serve.ingress(app)
-class PDFToMarkdown:
+class PDFToMarkdownConverter:
     def __init__(
         self,
         use_llm: bool = False,
@@ -47,28 +47,27 @@ class PDFToMarkdown:
         )
 
     @app.post("/upload")
-    async def convert_from_upload(self, files: list[UploadFile]) -> dict:
-        """Upload PDF files and convert them to markdown
+    async def convert_from_upload(self, file: UploadFile) -> str:
+        """Upload a PDF file and convert to markdown
 
         Args:
             files (list[UploadFile]): List of PDF files to be converted
         """
-        results = {}
-        for file in files:
-            try:
-                with tempfile.NamedTemporaryFile(delete=True) as tmp_file:
-                    tmp_file.write(await file.read())
-                    tmp_file_path = tmp_file.name
-                    rendered = self.converter(tmp_file_path)
+        try:
+            with tempfile.NamedTemporaryFile(delete=True) as tmp_file:
+                tmp_file.write(await file.read())
+                tmp_file_path = tmp_file.name
+                rendered = self.converter(tmp_file_path)
 
-                text, _, _ = text_from_rendered(rendered)
-                results[file.filename] = text
-            except Exception as e:
-                results[file.filename] = f"💥 Failed to convert: {e}"
+            text, _, _ = text_from_rendered(rendered)
+            return text
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"💥 Failed to convert {file.filename} to markdown: {e}",
+            )
 
-        return results
-
-    @app.get("/from_path")
+    @app.get("/")
     async def convert_from_path(self, pdf_path: str) -> str:
         """Convert a PDF file to text
 
@@ -88,4 +87,4 @@ class PDFToMarkdown:
 
 
 # Deploy (without parameters for now - default values are used)
-converter = PDFToMarkdown.bind()
+converter = PDFToMarkdownConverter.bind()

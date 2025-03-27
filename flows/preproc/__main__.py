@@ -34,7 +34,7 @@ def preproc_cli():
 @preproc_cli.command()
 @click.argument("pdf_or_dir", type=str)
 @click.argument("output_dir", type=click.Path(file_okay=False))
-@click.option("--parser_base_url", type=str, default=settings.PDF_PARSER_BASE_URL)
+@click.option("--parser_base_url", type=str, default=settings.MARKER_PDF_BASE_URL)
 def pdf_to_markdown(pdf_or_dir: str, output_dir: str, parser_base_url: str):
     """
     Convert a PDF file or all PDF files in a directory to markdown
@@ -43,11 +43,11 @@ def pdf_to_markdown(pdf_or_dir: str, output_dir: str, parser_base_url: str):
         pdf_or_dir (str): Path to the PDF file or directory containing PDF files
         output_dir (str): Path to the directory where the markdown files will be saved
     """
-    from flows.preproc.convert import pdf_2_md
+    from flows.preproc.convert import marker_pdf_2_md
 
     for file in gather_paths(pdf_or_dir):
         try:
-            markdown = pdf_2_md(file, parser_base_url)
+            markdown = marker_pdf_2_md(file, parser_base_url)
         except Exception as e:
             print(f"💥 Failed to convert {file} to markdown: {e}")
         else:

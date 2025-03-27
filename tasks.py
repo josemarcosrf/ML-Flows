@@ -60,4 +60,4 @@ def local_worker_pool(
 @task
 def local_marker_ocr(c):
     """Start a local Marker-PDF Converter served by Ray (port 8000 by default)"""
-    c.run(".venv/bin/serve run -r services.ocr:converter")
+    c.run(".venv/bin/serve run -r services.marker:converter")

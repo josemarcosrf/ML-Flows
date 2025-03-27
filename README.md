@@ -35,9 +35,15 @@ Which should output something like:
 
 1. **Create a virtual environment:**
 
+   > [!INFO] You'll need python 3.12 or greater
+
    ```shell
-   # You'll need python 3.12 or greater
-   pdm init
+   # Install pdm
+   curl -sSL https://pdm-project.org/install-pdm.py | python3 -
+   # Optionally install uv and set it as dependency resolver
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   pdm config use_uv true
+   pdm config python.install_root $(uv python dir)
    ```
 
 2. **Install dependencies:**
