@@ -39,19 +39,7 @@ dev = [
     "ruff>=0.9.7",
     "pre-commit>=4.1.0",
 ]
-marker = [
-    "marker-pdf>=1.6.1",
-    "uvicorn>=0.34.0",
-    "fastapi>=0.115.11",
-    "python-multipart>=0.0.20",
-    "ray[serve]>=2.43.0",
-]
-docling = [
-    "docling>=2.28.0",
-    "llama-index-readers-docling>=0.3.2",
-    "llama-index-node-parser-docling>=0.3.1",
-    "openai>=1.69.0",
-]
+
 [tool.pdm]
 distribution = false
 

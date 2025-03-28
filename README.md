@@ -40,6 +40,7 @@ Which should output something like:
    ```shell
    # Install pdm
    curl -sSL https://pdm-project.org/install-pdm.py | python3 -
+
    # Optionally install uv and set it as dependency resolver
    curl -LsSf https://astral.sh/uv/install.sh | sh
    pdm config use_uv true
@@ -63,12 +64,16 @@ Which should output something like:
 
 #### Auxiliary Services
 
+   Local auxiliary services:
+
    ```shell
    inv local-chroma &               # start chroma
    inv local-prefect &              # start prefect
    inv local-worker-pool process &  # start a prefect process worker pool
-   inv local-marker-ocr &           # start Marker-PDF OCR
    ```
+
+   We also make use of Ray Serve deployments for OCR and Document Parsing available
+   via a REST API. Check out [DoPARSE](https://github.com/josemarcosrf/DoPARSE)
 
    Additionally, you might want to configure Prefect to store results when running
    locally:
