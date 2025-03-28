@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import requests
+from loguru import logger
 from prefect import task
 
 from flows.common.helpers.auto_download import download_if_remote
@@ -28,6 +29,7 @@ def docling_convert(file_path: str, export_format: str = ExportFormat.Markdown) 
     from docling.document_converter import DocumentConverter
 
     # Use the default Docling conversion service
+    logger.info(f"Using docling to convert {file_path} ➡️ {export_format}")
     converter = DocumentConverter()
     result = converter.convert(file_path)
     if export_format == ExportFormat.Markdown:
@@ -42,13 +44,15 @@ def smoldocling_convert(
     pdf_path: str, parser_base_url: str = settings.DOCLING_BASE_URL
 ) -> str:
     """Convert a PDF file to text using SmolDocling HTTP conversion service.
-    See services/smolDocling.py for more details.
+    See: https://github.com/josemarcosrf/DoPARSE/blob/main/src/doparse/smoldocling_ocr.py.
 
     Args:
         pdf_path (str): Path to the PDF file
         parser_base_url (str): Base URL of the parser service
     """
-    return requests.get(f"{parser_base_url}/to_markdown?pdf_path={pdf_path}").text
+    # FIXME: Check request path and if should be /upload or /convert
+    logger.info(f"Using 🤗 smoldocling to convert {pdf_path} ➡️ markdown")
+    return requests.get(f"{parser_base_url}/convert?pdf_path={pdf_path}").text
 
 
 @task(log_prints=True, task_run_name=custom_task_run_name)
@@ -62,6 +66,7 @@ def marker_pdf_2_md(
         pdf_path (Path): Path to the PDF file
         parser_base_url (str): Base URL of the parser service
     """
+    # FIXME: Check request path and if should be /upload or /convert
     return requests.get(f"{parser_base_url}/to_markdown?pdf_path={pdf_path}").text
 
 

@@ -7,7 +7,7 @@ from prefect import task
 
 from flows.common.clients.chroma import ChromaClient
 from flows.common.clients.llms import get_embedding_model
-from flows.preproc.convert import marker_pdf_2_md
+from flows.preproc.convert import docling_2_md
 
 
 def custom_task_run_name() -> str:
@@ -46,7 +46,7 @@ def index_file(
     """
     # Read the file (OCR or otherwise)
     if fpath.suffix == ".pdf":
-        text = marker_pdf_2_md.submit(str(fpath)).result()
+        text = docling_2_md.submit(str(fpath)).result()
     else:
         with fpath.open("r") as f:
             text = f.read()

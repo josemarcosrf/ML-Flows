@@ -5,7 +5,7 @@
 groups = ["default", "dev", "ollama", "openai"]
 strategy = []
 lock_version = "4.5.0"
-content_hash = "sha256:a95097cb60b876284b643909c3c1663fac7a3a9f1d859b1ad705248866536df3"
+content_hash = "sha256:d27596c7315e5e2749ed60ec5ea6302ff479ac81dfbe38e759824419306da6b2"
 
 [[metadata.targets]]
 requires_python = "==3.12.*"
@@ -593,6 +593,27 @@ files = [
 ]
 
 [[package]]
+name = "docling-core"
+version = "2.24.1"
+summary = ""
+dependencies = [
+    "jsonref",
+    "jsonschema",
+    "latex2mathml",
+    "pandas",
+    "pillow",
+    "pydantic",
+    "pyyaml",
+    "tabulate",
+    "typer",
+    "typing-extensions",
+]
+files = [
+    {file = "docling_core-2.24.1-py3-none-any.whl", hash = "sha256:fae18cd27953ecb97efa756d00ea1061ce75121e768b447aae5a14ac416b9446"},
+    {file = "docling_core-2.24.1.tar.gz", hash = "sha256:ef2da2a4f4332f3d1fda72a168c049403b6be64e9d32d422533ca454ac515374"},
+]
+
+[[package]]
 name = "durationpy"
 version = "0.9"
 summary = ""
@@ -1058,6 +1079,15 @@ files = [
 ]
 
 [[package]]
+name = "jsonref"
+version = "1.1.0"
+summary = ""
+files = [
+    {file = "jsonref-1.1.0-py3-none-any.whl", hash = "sha256:590dc7773df6c21cbf948b5dac07a72a251db28b0238ceecce0a2abfa8ec30a9"},
+    {file = "jsonref-1.1.0.tar.gz", hash = "sha256:32fe8e1d85af0fdefbebce950af85590b22b60f9e95443176adbde4e1ecea552"},
+]
+
+[[package]]
 name = "jsonschema"
 version = "4.23.0"
 summary = ""
@@ -1104,6 +1134,15 @@ dependencies = [
 files = [
     {file = "kubernetes-32.0.1-py2.py3-none-any.whl", hash = "sha256:35282ab8493b938b08ab5526c7ce66588232df00ef5e1dbe88a419107dc10998"},
     {file = "kubernetes-32.0.1.tar.gz", hash = "sha256:42f43d49abd437ada79a79a16bd48a604d3471a117a8347e87db693f2ba0ba28"},
+]
+
+[[package]]
+name = "latex2mathml"
+version = "3.77.0"
+summary = ""
+files = [
+    {file = "latex2mathml-3.77.0-py3-none-any.whl", hash = "sha256:5531e18a2a9eae7c24e257118b6a444cbba253cd27ff3e81f1bd6c41e88e786e"},
+    {file = "latex2mathml-3.77.0.tar.gz", hash = "sha256:e2f501d1878f2e489c3f6f12786bef74c62f712d2770f7f3c837eb20a55d0a1e"},
 ]
 
 [[package]]
@@ -3071,7 +3110,7 @@ files = [
 
 [[package]]
 name = "typer"
-version = "0.15.2"
+version = "0.12.5"
 summary = ""
 dependencies = [
     "click",
@@ -3080,8 +3119,8 @@ dependencies = [
     "typing-extensions",
 ]
 files = [
-    {file = "typer-0.15.2-py3-none-any.whl", hash = "sha256:46a499c6107d645a9c13f7ee46c5d5096cae6f5fc57dd11eccbbb9ae3e44ddfc"},
-    {file = "typer-0.15.2.tar.gz", hash = "sha256:ab2fab47533a813c49fe1f16b1a370fd5819099c00b119e0633df65f22144ba5"},
+    {file = "typer-0.12.5-py3-none-any.whl", hash = "sha256:62fe4e471711b147e3365034133904df3e235698399bc4de2b36c8579298d52b"},
+    {file = "typer-0.12.5.tar.gz", hash = "sha256:f592f089bedcc8ec1b974125d64851029c3b1af145f04aca64d69410f0c9b722"},
 ]
 
 [[package]]
