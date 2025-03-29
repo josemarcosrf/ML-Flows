@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     PREFECT_STORAGE_PATH: str = str(Path.home() / ".prefect" / "storage")
 
     # PDF => Markdown service (Ray serve service)
-    MARKER_PDF_BASE_URL: str = "http://localhost:8000"
+    MARKER_PDF_BASE_URL: str = "http://localhost:8000/marker"
 
     # PDF => Markdown service (Ray serve service)
     DOCLING_BASE_URL: str | None = None
