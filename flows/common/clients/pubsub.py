@@ -2,6 +2,7 @@ import json
 import threading
 import time
 
+import click
 import redis
 from loguru import logger
 
@@ -15,6 +16,7 @@ class RedisPubSubClient:
         port: int = settings.REDIS_PORT,
         db: int = 0,
         password: str = None,
+        use_ssl: bool = False,
     ):
         """Initialize Redis connection parameters (but don't connect yet).
 
@@ -31,6 +33,7 @@ class RedisPubSubClient:
             "db": db,
             "password": password,
             "decode_responses": True,
+            "ssl": use_ssl,
         }
         # These will be initialized when needed
         self._client = None
@@ -204,3 +207,94 @@ class UpdatePublisher(RedisPubSubClient):
         except Exception as e:
             logger.warning(f"🙇 Error publishing update for channel {channel}: {e}")
             return 0
+
+
+@click.group()
+@click.option(
+    "--host",
+    default=settings.REDIS_HOST,
+    help="Redis server hostname",
+)
+@click.option(
+    "--port",
+    default=settings.REDIS_PORT,
+    type=int,
+    help="Redis server port",
+)
+@click.option(
+    "--db",
+    default=0,
+    type=int,
+    help="Redis database number",
+)
+@click.option(
+    "--password",
+    default=None,
+    help="Redis password if authentication is required",
+)
+@click.option(
+    "--use-ssl",
+    is_flag=True,
+    default=False,
+    help="Use SSL for Redis connection",
+)
+@click.pass_context
+def cli(ctx, host, port, db, password, use_ssl):
+    """CLI for Redis PubSub Client."""
+    ctx.ensure_object(dict)
+    ctx.obj["client"] = RedisPubSubClient(host, port, db, password, use_ssl)
+
+
+@cli.command("pub")
+@click.option(
+    "--channel",
+    required=True,
+    help="Channel to publish to",
+)
+@click.option(
+    "--message",
+    required=True,
+    help="Message to publish (JSON string)",
+)
+@click.pass_context
+def publish(ctx, channel, message):
+    """Publish a message to a channel."""
+    client = ctx.obj["client"]
+    try:
+        message = json.loads(message)
+    except json.JSONDecodeError:
+        pass
+    client.publish(channel, message)
+    logger.info(f"📬 Published message to {channel}: {message}")
+
+
+@cli.command("sub")
+@click.option(
+    "--channel",
+    required=True,
+    help="Channel to subscribe to",
+)
+@click.pass_context
+def subscribe(ctx, channel):
+    """Subscribe to a channel."""
+    client = ctx.obj["client"]
+
+    def callback(message):
+        logger.info(f"📥 Received message on {channel}: {message}")
+
+    client.subscribe(channel, callback)
+    logger.info(f"📬 Subscribed to {channel}. Waiting for messages...")
+
+    try:
+        s = 0
+        while True:
+            print(f"Listening for messages... {s}", end="\r", flush=True)
+            time.sleep(1)
+            s += 1
+    except KeyboardInterrupt:
+        client.unsubscribe(channel)
+        logger.info(f"📭 Unsubscribed from {channel}.")
+
+
+if __name__ == "__main__":
+    cli()
