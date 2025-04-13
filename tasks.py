@@ -55,9 +55,3 @@ def local_worker_pool(
     )
     c.run("prefect work-pool ls")
     c.run(f"prefect worker start --pool {name}")
-
-
-@task
-def local_marker_ocr(c):
-    """Start a local Marker-PDF Converter served by Ray (port 8000 by default)"""
-    c.run(".venv/bin/serve run -r services.ocr:converter")

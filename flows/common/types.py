@@ -3,6 +3,11 @@ from enum import Enum
 from pydantic import BaseModel, field_validator
 
 
+class ExportFormat(str, Enum):
+    Markdown = "md"
+    HTML = "html"
+
+
 class DOC_STATUS(str, Enum):
     PENDING = "pending"
     INDEXING = "indexing"

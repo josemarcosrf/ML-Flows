@@ -15,7 +15,7 @@ class PoolType(str, Enum):
 
 def get_shared_env():
     env = {
-        "PDF_PARSER_BASE_URL": settings.PDF_PARSER_BASE_URL,
+        "DOCLING_BASE_URL": settings.DOCLING_BASE_URL,
         "OLLAMA_BASE_URL": settings.OLLAMA_BASE_URL,
         "CHROMA_HOST": settings.CHROMA_HOST,
         "CHROMA_PORT": str(settings.CHROMA_PORT),

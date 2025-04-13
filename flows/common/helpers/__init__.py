@@ -47,3 +47,41 @@ def pub_and_log(client_id, pubsub: bool = False):
             pub.publish_update(msg, doc_id, **extra)
 
     return _pub_and_log
+
+
+def gather_files(file_or_dir: str, gather_glob: list[str]) -> list[str]:
+    """If a directory is provided, it will recursively search for files
+    matching the given glob patterns.
+    If a single file is provided, it will be returned as a list.
+    If a URL or S3 path is provided, it will be returned as a list.
+
+    Args:
+        file_or_dir (_type_): Single file / URL or directory to gather files form
+        gather_glob (list[str]): List of glob patterns to match files in the directory
+
+    Returns:
+        list[str]: List of file paths
+    """
+    from flows.common.helpers.auto_download import is_url
+    from flows.common.helpers.s3 import is_s3_path
+
+    if is_url(file_or_dir) or is_s3_path(file_or_dir):
+        print("🚀 Will automatically try to download file from URL or S3...")
+        files = [file_or_dir]
+    else:
+        in_path = Path(file_or_dir)
+        if in_path.is_dir():
+            files = []
+            print(f"📁 Gathering all files in dir {in_path}")
+            for glob in gather_glob:
+                print(f"🔍 Searching for {glob}...")
+                files.extend([str(p) for p in in_path.rglob(glob)])
+            if files:
+                print(" - " + "\n - ".join(files) + "\n")
+            else:
+                print(f"🫙 No files found in {in_path} matching {gather_glob}")
+        else:
+            print("📄 Converting a single PDF file to markdown...")
+            files = [file_or_dir]
+
+    return files
