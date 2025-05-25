@@ -2,20 +2,84 @@
 # It is not intended for manual editing.
 
 [metadata]
-groups = ["default", "dev", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "dev", "huggingface", "ollama", "openai"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:d27596c7315e5e2749ed60ec5ea6302ff479ac81dfbe38e759824419306da6b2"
+content_hash = "sha256:cf9818e74ce53576a6c9752b46a65c7391eefb324079ab562395d4b47c20e698"
 
 [[metadata.targets]]
 requires_python = "==3.12.*"
+
+[[package]]
+name = "aioboto3"
+version = "13.4.0"
+requires_python = "<4.0,>=3.8"
+summary = "Async boto3 wrapper"
+groups = ["bedrock"]
+dependencies = [
+    "aiobotocore[boto3]==2.18.0",
+    "aiofiles>=23.2.1",
+]
+files = [
+    {file = "aioboto3-13.4.0-py3-none-any.whl", hash = "sha256:d78f3400ef3a01b4d5515108ef244941894a0bc39c4716321a00e15898d7e002"},
+    {file = "aioboto3-13.4.0.tar.gz", hash = "sha256:3105f9e5618c686c90050e60eb5ebf9e28f7f8c4e0fa162d4481aaa402008aab"},
+]
+
+[[package]]
+name = "aiobotocore"
+version = "2.18.0"
+requires_python = ">=3.8"
+summary = "Async client for aws services using botocore and aiohttp"
+groups = ["bedrock"]
+dependencies = [
+    "aiohttp<4.0.0,>=3.9.2",
+    "aioitertools<1.0.0,>=0.5.1",
+    "botocore<1.36.2,>=1.36.0",
+    "jmespath<2.0.0,>=0.7.1",
+    "multidict<7.0.0,>=6.0.0",
+    "python-dateutil<3.0.0,>=2.1",
+    "urllib3!=2.2.0,<3,>=1.25.4; python_version >= \"3.10\"",
+    "urllib3<1.27,>=1.25.4; python_version < \"3.10\"",
+    "wrapt<2.0.0,>=1.10.10",
+]
+files = [
+    {file = "aiobotocore-2.18.0-py3-none-any.whl", hash = "sha256:89634470946944baf0a72fe2939cdd5f98b61335d400ca55f3032aca92989ec1"},
+    {file = "aiobotocore-2.18.0.tar.gz", hash = "sha256:c54db752c5a742bf1a05c8359a93f508b4bf702b0e6be253a4c9ef1f9c9b6706"},
+]
+
+[[package]]
+name = "aiobotocore"
+version = "2.18.0"
+extras = ["boto3"]
+requires_python = ">=3.8"
+summary = "Async client for aws services using botocore and aiohttp"
+groups = ["bedrock"]
+dependencies = [
+    "aiobotocore==2.18.0",
+    "boto3<1.36.2,>=1.36.0",
+]
+files = [
+    {file = "aiobotocore-2.18.0-py3-none-any.whl", hash = "sha256:89634470946944baf0a72fe2939cdd5f98b61335d400ca55f3032aca92989ec1"},
+    {file = "aiobotocore-2.18.0.tar.gz", hash = "sha256:c54db752c5a742bf1a05c8359a93f508b4bf702b0e6be253a4c9ef1f9c9b6706"},
+]
+
+[[package]]
+name = "aiofiles"
+version = "24.1.0"
+requires_python = ">=3.8"
+summary = "File support for asyncio."
+groups = ["bedrock"]
+files = [
+    {file = "aiofiles-24.1.0-py3-none-any.whl", hash = "sha256:b4ec55f4195e3eb5d7abd1bf7e061763e864dd4954231fb8539a0ef8bb8260e5"},
+    {file = "aiofiles-24.1.0.tar.gz", hash = "sha256:22a075c9e5a3810f0c2e48f3008c94d68c65d763b9b03857924c99e57355166c"},
+]
 
 [[package]]
 name = "aiohappyeyeballs"
 version = "2.6.1"
 requires_python = ">=3.9"
 summary = "Happy Eyeballs for asyncio"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "aiohappyeyeballs-2.6.1-py3-none-any.whl", hash = "sha256:f349ba8f4b75cb25c99c5c2d84e997e485204d2902a9597802b0371f09331fb8"},
     {file = "aiohappyeyeballs-2.6.1.tar.gz", hash = "sha256:c3f9d0113123803ccadfdf3f0faa505bc78e6a72d1cc4806cbd719826e943558"},
@@ -26,7 +90,7 @@ name = "aiohttp"
 version = "3.12.0"
 requires_python = ">=3.9"
 summary = "Async http client/server framework (asyncio)"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "aiohappyeyeballs>=2.5.0",
     "aiosignal>=1.1.2",
@@ -58,11 +122,25 @@ files = [
 ]
 
 [[package]]
+name = "aioitertools"
+version = "0.12.0"
+requires_python = ">=3.8"
+summary = "itertools and builtins for AsyncIO and mixed iterables"
+groups = ["bedrock"]
+dependencies = [
+    "typing-extensions>=4.0; python_version < \"3.10\"",
+]
+files = [
+    {file = "aioitertools-0.12.0-py3-none-any.whl", hash = "sha256:fc1f5fac3d737354de8831cbba3eb04f79dd649d8f3afb4c5b114925e662a796"},
+    {file = "aioitertools-0.12.0.tar.gz", hash = "sha256:c2a9055b4fbb7705f561b9d86053e8af5d10cc845d22c32008c43490b2d8dd6b"},
+]
+
+[[package]]
 name = "aiosignal"
 version = "1.3.2"
 requires_python = ">=3.9"
 summary = "aiosignal: a list of registered asynchronous callbacks"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "frozenlist>=1.1.0",
 ]
@@ -76,7 +154,7 @@ name = "aiosqlite"
 version = "0.21.0"
 requires_python = ">=3.9"
 summary = "asyncio bridge to the standard sqlite3 module"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "typing-extensions>=4.0",
 ]
@@ -107,7 +185,7 @@ name = "annotated-types"
 version = "0.7.0"
 requires_python = ">=3.8"
 summary = "Reusable constraint types to use with typing.Annotated"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "typing-extensions>=4.0.0; python_version < \"3.9\"",
 ]
@@ -121,7 +199,7 @@ name = "anyio"
 version = "4.9.0"
 requires_python = ">=3.9"
 summary = "High level compatibility layer for multiple asynchronous event loop implementations"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "exceptiongroup>=1.0.2; python_version < \"3.11\"",
     "idna>=2.8",
@@ -171,7 +249,7 @@ name = "asgiref"
 version = "3.8.1"
 requires_python = ">=3.8"
 summary = "ASGI specs, helper code, and adapters"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "typing-extensions>=4; python_version < \"3.11\"",
 ]
@@ -206,7 +284,7 @@ name = "attrs"
 version = "25.3.0"
 requires_python = ">=3.8"
 summary = "Classes Without Boilerplate"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "attrs-25.3.0-py3-none-any.whl", hash = "sha256:427318ce031701fea540783410126f03899a97ffc6f61596ad581ac2e40e3bc3"},
     {file = "attrs-25.3.0.tar.gz", hash = "sha256:75d7cefc7fb576747b2c81b4442d4d4a1ce0900973527c011d1030fd3bf4af1b"},
@@ -217,7 +295,7 @@ name = "backoff"
 version = "2.2.1"
 requires_python = ">=3.7,<4.0"
 summary = "Function decoration for backoff and retry"
-groups = ["default"]
+groups = ["chroma"]
 files = [
     {file = "backoff-2.2.1-py3-none-any.whl", hash = "sha256:63579f9a0628e06278f7e47b7d7d5b6ce20dc65c5e96a6f3ca99a6adca0396e8"},
     {file = "backoff-2.2.1.tar.gz", hash = "sha256:03f829f5bb1923180821643f8753b0502c3b682293992485b0eef2807afa5cba"},
@@ -228,7 +306,7 @@ name = "banks"
 version = "2.1.2"
 requires_python = ">=3.9"
 summary = "A prompt programming language"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "deprecated",
     "eval-type-backport; python_version < \"3.10\"",
@@ -247,7 +325,7 @@ name = "bcrypt"
 version = "4.3.0"
 requires_python = ">=3.8"
 summary = "Modern password hashing for your software and your servers"
-groups = ["default"]
+groups = ["chroma"]
 files = [
     {file = "bcrypt-4.3.0-cp38-abi3-macosx_10_12_universal2.whl", hash = "sha256:f81b0ed2639568bf14749112298f9e4e2b28853dab50a8b357e31798686a036d"},
     {file = "bcrypt-4.3.0-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:864f8f19adbe13b7de11ba15d85d4a428c7e2f344bac110f667676a0ff84924b"},
@@ -297,26 +375,26 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.38.23"
-requires_python = ">=3.9"
+version = "1.36.1"
+requires_python = ">=3.8"
 summary = "The AWS SDK for Python"
-groups = ["default"]
+groups = ["default", "bedrock"]
 dependencies = [
-    "botocore<1.39.0,>=1.38.23",
+    "botocore<1.37.0,>=1.36.1",
     "jmespath<2.0.0,>=0.7.1",
-    "s3transfer<0.14.0,>=0.13.0",
+    "s3transfer<0.12.0,>=0.11.0",
 ]
 files = [
-    {file = "boto3-1.38.23-py3-none-any.whl", hash = "sha256:70ab8364f1f6f0a7e0eaf97f62fbdacf9c1e4cc1de330faf1c146ef9ab01e7d0"},
-    {file = "boto3-1.38.23.tar.gz", hash = "sha256:bcf73aca469add09e165b8793be18e7578db8d2604d82505ab13dc2495bad982"},
+    {file = "boto3-1.36.1-py3-none-any.whl", hash = "sha256:eb21380d73fec6645439c0d802210f72a0cdb3295b02953f246ff53f512faa8f"},
+    {file = "boto3-1.36.1.tar.gz", hash = "sha256:258ab77225a81d3cf3029c9afe9920cd9dec317689dfadec6f6f0a23130bb60a"},
 ]
 
 [[package]]
 name = "botocore"
-version = "1.38.23"
-requires_python = ">=3.9"
+version = "1.36.1"
+requires_python = ">=3.8"
 summary = "Low-level, data-driven core of boto 3."
-groups = ["default"]
+groups = ["default", "bedrock"]
 dependencies = [
     "jmespath<2.0.0,>=0.7.1",
     "python-dateutil<3.0.0,>=2.1",
@@ -324,8 +402,8 @@ dependencies = [
     "urllib3<1.27,>=1.25.4; python_version < \"3.10\"",
 ]
 files = [
-    {file = "botocore-1.38.23-py3-none-any.whl", hash = "sha256:a7f818672f10d7a080c2c4558428011c3e0abc1039a047d27ac76ec846158457"},
-    {file = "botocore-1.38.23.tar.gz", hash = "sha256:29685c91050a870c3809238dc5da1ac65a48a3a20b4bca46b6057dcb6b39c72a"},
+    {file = "botocore-1.36.1-py3-none-any.whl", hash = "sha256:dec513b4eb8a847d79bbefdcdd07040ed9d44c20b0001136f0890a03d595705a"},
+    {file = "botocore-1.36.1.tar.gz", hash = "sha256:f789a6f272b5b3d8f8756495019785e33868e5e00dd9662a3ee7959ac939bb12"},
 ]
 
 [[package]]
@@ -333,7 +411,7 @@ name = "build"
 version = "1.2.2.post1"
 requires_python = ">=3.8"
 summary = "A simple, correct Python build frontend"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "colorama; os_name == \"nt\"",
     "importlib-metadata>=4.6; python_full_version < \"3.10.2\"",
@@ -351,7 +429,7 @@ name = "cachetools"
 version = "5.5.2"
 requires_python = ">=3.7"
 summary = "Extensible memoizing collections and decorators"
-groups = ["default"]
+groups = ["default", "chroma"]
 files = [
     {file = "cachetools-5.5.2-py3-none-any.whl", hash = "sha256:d26a22bcc62eb95c3beabd9f1ee5e820d3d2704fe2967cbe350e20c8ffcd3f0a"},
     {file = "cachetools-5.5.2.tar.gz", hash = "sha256:1a661caa9175d26759571b2e19580f9d6393969e5dfca11fdb1f947a23e640d4"},
@@ -362,7 +440,7 @@ name = "certifi"
 version = "2025.4.26"
 requires_python = ">=3.6"
 summary = "Python package for providing Mozilla's CA Bundle."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "certifi-2025.4.26-py3-none-any.whl", hash = "sha256:30350364dfe371162649852c63336a15c70c6510c2ad5015b21c2345311805f3"},
     {file = "certifi-2025.4.26.tar.gz", hash = "sha256:0a816057ea3cdefcef70270d2c515e4506bbc954f417fa5ade2021213bb8f0c6"},
@@ -409,7 +487,7 @@ name = "charset-normalizer"
 version = "3.4.2"
 requires_python = ">=3.7"
 summary = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "charset_normalizer-3.4.2-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:0c29de6a1a95f24b9a1aa7aefd27d2487263f00dfd55a77719b530788f75cff7"},
     {file = "charset_normalizer-3.4.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:cddf7bd982eaa998934a91f69d182aec997c6c468898efe6679af88283b498d3"},
@@ -433,7 +511,7 @@ name = "chromadb"
 version = "1.0.10"
 requires_python = ">=3.9"
 summary = "Chroma."
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "bcrypt>=4.0.1",
     "build>=1.0.3",
@@ -479,7 +557,7 @@ name = "click"
 version = "8.1.8"
 requires_python = ">=3.7"
 summary = "Composable command line interface toolkit"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "colorama; platform_system == \"Windows\"",
     "importlib-metadata; python_version < \"3.8\"",
@@ -505,7 +583,7 @@ name = "colorama"
 version = "0.4.6"
 requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
 summary = "Cross-platform colored terminal text."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
@@ -516,7 +594,7 @@ name = "coloredlogs"
 version = "15.0.1"
 requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 summary = "Colored terminal output for Python's logging module"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "humanfriendly>=9.1",
 ]
@@ -577,7 +655,7 @@ name = "dataclasses-json"
 version = "0.6.7"
 requires_python = "<4.0,>=3.7"
 summary = "Easily serialize dataclasses to and from JSON."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "marshmallow<4.0.0,>=3.18.0",
     "typing-inspect<1,>=0.4.0",
@@ -609,7 +687,7 @@ name = "deprecated"
 version = "1.2.18"
 requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
 summary = "Python @deprecated decorator to deprecate old python classes, functions or methods."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "wrapt<2,>=1.10",
 ]
@@ -622,7 +700,7 @@ files = [
 name = "dirtyjson"
 version = "1.0.8"
 summary = "JSON decoder for Python that can extract data from the muck"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "dirtyjson-1.0.8-py3-none-any.whl", hash = "sha256:125e27248435a58acace26d5c2c4c11a1c0de0a9c5124c5a94ba78e517d74f53"},
     {file = "dirtyjson-1.0.8.tar.gz", hash = "sha256:90ca4a18f3ff30ce849d100dcf4a003953c79d3a2348ef056f1d9c22231a25fd"},
@@ -643,7 +721,7 @@ name = "distro"
 version = "1.9.0"
 requires_python = ">=3.6"
 summary = "Distro - an OS platform information API"
-groups = ["default", "openai"]
+groups = ["default", "chroma", "openai"]
 files = [
     {file = "distro-1.9.0-py3-none-any.whl", hash = "sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2"},
     {file = "distro-1.9.0.tar.gz", hash = "sha256:2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed"},
@@ -703,7 +781,7 @@ files = [
 name = "durationpy"
 version = "0.10"
 summary = "Module for converting between datetime.timedelta and Go's Duration strings."
-groups = ["default"]
+groups = ["chroma"]
 files = [
     {file = "durationpy-0.10-py3-none-any.whl", hash = "sha256:3b41e1b601234296b4fb368338fdcd3e13e0b4fb5b67345948f4f2bf9868b286"},
     {file = "durationpy-0.10.tar.gz", hash = "sha256:1fa6893409a6e739c9c72334fc65cca1f355dbdd93405d30f726deb5bde42fba"},
@@ -728,7 +806,7 @@ name = "fastapi"
 version = "0.115.9"
 requires_python = ">=3.8"
 summary = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
-groups = ["default"]
+groups = ["default", "chroma"]
 dependencies = [
     "pydantic!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0,>=1.7.4",
     "starlette<0.46.0,>=0.40.0",
@@ -744,7 +822,7 @@ name = "filelock"
 version = "3.18.0"
 requires_python = ">=3.9"
 summary = "A platform independent file lock."
-groups = ["default", "dev", "openai"]
+groups = ["chroma", "dev", "huggingface", "openai"]
 files = [
     {file = "filelock-3.18.0-py3-none-any.whl", hash = "sha256:c401f4f8377c4464e6db25fff06205fd89bdd83b65eb0488ed1b160f780e21de"},
     {file = "filelock-3.18.0.tar.gz", hash = "sha256:adbc88eabb99d2fec8c9c1b229b171f18afa655400173ddc653d5d01501fb9f2"},
@@ -754,7 +832,7 @@ files = [
 name = "filetype"
 version = "1.2.0"
 summary = "Infer file type and MIME type of any file/buffer. No external dependencies."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "filetype-1.2.0-py2.py3-none-any.whl", hash = "sha256:7ce71b6880181241cf7ac8697a2f1eb6a8bd9b429f7ad6d27b8db9ba5f1c2d25"},
     {file = "filetype-1.2.0.tar.gz", hash = "sha256:66b56cd6474bf41d8c54660347d37afcc3f7d1970648de365c102ef77548aadb"},
@@ -764,7 +842,7 @@ files = [
 name = "flatbuffers"
 version = "25.2.10"
 summary = "The FlatBuffers serialization format for Python"
-groups = ["default"]
+groups = ["chroma"]
 files = [
     {file = "flatbuffers-25.2.10-py2.py3-none-any.whl", hash = "sha256:ebba5f4d5ea615af3f7fd70fc310636fbb2bbd1f566ac0a23d98dd412de50051"},
     {file = "flatbuffers-25.2.10.tar.gz", hash = "sha256:97e451377a41262f8d9bd4295cc836133415cc03d8cb966410a4af92eb00d26e"},
@@ -775,7 +853,7 @@ name = "frozenlist"
 version = "1.6.0"
 requires_python = ">=3.9"
 summary = "A list-like structure which implements collections.abc.MutableSequence"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "frozenlist-1.6.0-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:c5b9e42ace7d95bf41e19b87cec8f262c41d3510d8ad7514ab3862ea2197bfb1"},
     {file = "frozenlist-1.6.0-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:ca9973735ce9f770d24d5484dcb42f68f135351c2fc81a7a9369e48cf2998a29"},
@@ -803,7 +881,7 @@ name = "fsspec"
 version = "2025.5.1"
 requires_python = ">=3.9"
 summary = "File-system specification"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "fsspec-2025.5.1-py3-none-any.whl", hash = "sha256:24d3a2e663d5fc735ab256263c4075f374a174c3410c0b25e5bd1970bceaa462"},
     {file = "fsspec-2025.5.1.tar.gz", hash = "sha256:2e55e47a540b91843b755e83ded97c6e897fa0942b11490113f09e9c443c2475"},
@@ -814,7 +892,7 @@ name = "google-auth"
 version = "2.40.2"
 requires_python = ">=3.7"
 summary = "Google Authentication Library"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "cachetools<6.0,>=2.0.0",
     "pyasn1-modules>=0.2.1",
@@ -830,7 +908,7 @@ name = "googleapis-common-protos"
 version = "1.70.0"
 requires_python = ">=3.7"
 summary = "Common protobufs used in Google APIs"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "protobuf!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<7.0.0,>=3.20.2",
 ]
@@ -855,7 +933,7 @@ name = "greenlet"
 version = "3.2.2"
 requires_python = ">=3.9"
 summary = "Lightweight in-process concurrent programming"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "greenlet-3.2.2-cp312-cp312-macosx_11_0_universal2.whl", hash = "sha256:df4d1509efd4977e6a844ac96d8be0b9e5aa5d5c77aa27ca9f4d3f92d3fcf330"},
     {file = "greenlet-3.2.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:da956d534a6d1b9841f95ad0f18ace637668f680b1339ca4dcfb2c1837880a0b"},
@@ -874,7 +952,7 @@ name = "griffe"
 version = "1.7.3"
 requires_python = ">=3.9"
 summary = "Signatures for entire Python programs. Extract the structure, the frame, the skeleton of your project, to generate API documentation or find breaking changes in your API."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "colorama>=0.4",
 ]
@@ -888,7 +966,7 @@ name = "grpcio"
 version = "1.71.0"
 requires_python = ">=3.9"
 summary = "HTTP/2-based RPC framework"
-groups = ["default"]
+groups = ["chroma"]
 files = [
     {file = "grpcio-1.71.0-cp312-cp312-linux_armv7l.whl", hash = "sha256:0ff35c8d807c1c7531d3002be03221ff9ae15712b53ab46e2a0b4bb271f38537"},
     {file = "grpcio-1.71.0-cp312-cp312-macosx_10_14_universal2.whl", hash = "sha256:b78a99cd1ece4be92ab7c07765a0b038194ded2e0a26fd654591ee136088d8d7"},
@@ -908,7 +986,7 @@ name = "h11"
 version = "0.16.0"
 requires_python = ">=3.8"
 summary = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86"},
     {file = "h11-0.16.0.tar.gz", hash = "sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1"},
@@ -934,7 +1012,7 @@ name = "hf-xet"
 version = "1.1.2"
 requires_python = ">=3.8"
 summary = "Fast transfer of large files with the Hugging Face Hub."
-groups = ["default", "openai"]
+groups = ["chroma", "huggingface", "openai"]
 marker = "platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"arm64\" or platform_machine == \"aarch64\""
 files = [
     {file = "hf_xet-1.1.2-cp37-abi3-macosx_10_12_x86_64.whl", hash = "sha256:dfd1873fd648488c70735cb60f7728512bca0e459e61fcd107069143cd798469"},
@@ -963,7 +1041,7 @@ name = "httpcore"
 version = "1.0.9"
 requires_python = ">=3.8"
 summary = "A minimal low-level HTTP client."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "certifi",
     "h11>=0.16",
@@ -978,7 +1056,7 @@ name = "httptools"
 version = "0.6.4"
 requires_python = ">=3.8.0"
 summary = "A collection of framework independent HTTP protocol utils."
-groups = ["default"]
+groups = ["chroma"]
 files = [
     {file = "httptools-0.6.4-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:df017d6c780287d5c80601dafa31f17bddb170232d85c066604d8558683711a2"},
     {file = "httptools-0.6.4-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:85071a1e8c2d051b507161f6c3e26155b5c790e4e28d7f236422dbacc2a9cc44"},
@@ -995,7 +1073,7 @@ name = "httpx"
 version = "0.28.1"
 requires_python = ">=3.8"
 summary = "The next generation HTTP client."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "anyio",
     "certifi",
@@ -1028,7 +1106,7 @@ name = "huggingface-hub"
 version = "0.32.0"
 requires_python = ">=3.8.0"
 summary = "Client library to download and publish models, datasets and other repos on the huggingface.co hub"
-groups = ["default", "openai"]
+groups = ["chroma", "huggingface", "openai"]
 dependencies = [
     "filelock",
     "fsspec>=2023.5.0",
@@ -1050,7 +1128,7 @@ version = "0.32.0"
 extras = ["inference"]
 requires_python = ">=3.8.0"
 summary = "Client library to download and publish models, datasets and other repos on the huggingface.co hub"
-groups = ["default"]
+groups = ["huggingface"]
 dependencies = [
     "aiohttp",
     "huggingface-hub==0.32.0",
@@ -1065,7 +1143,7 @@ name = "humanfriendly"
 version = "10.0"
 requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 summary = "Human friendly output for text interfaces using Python"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "monotonic; python_version == \"2.7\"",
     "pyreadline3; sys_platform == \"win32\" and python_version >= \"3.8\"",
@@ -1114,7 +1192,7 @@ name = "idna"
 version = "3.10"
 requires_python = ">=3.6"
 summary = "Internationalized Domain Names in Applications (IDNA)"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "idna-3.10-py3-none-any.whl", hash = "sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3"},
     {file = "idna-3.10.tar.gz", hash = "sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9"},
@@ -1125,7 +1203,7 @@ name = "importlib-metadata"
 version = "8.6.1"
 requires_python = ">=3.9"
 summary = "Read metadata from Python packages"
-groups = ["default"]
+groups = ["default", "chroma"]
 dependencies = [
     "typing-extensions>=3.6.4; python_version < \"3.8\"",
     "zipp>=3.20",
@@ -1140,7 +1218,7 @@ name = "importlib-resources"
 version = "6.5.2"
 requires_python = ">=3.9"
 summary = "Read resources from Python packages"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "zipp>=3.1.0; python_version < \"3.10\"",
 ]
@@ -1176,7 +1254,7 @@ name = "jinja2"
 version = "3.1.6"
 requires_python = ">=3.7"
 summary = "A very fast and expressive template engine."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "MarkupSafe>=2.0",
 ]
@@ -1227,7 +1305,7 @@ name = "jmespath"
 version = "1.0.1"
 requires_python = ">=3.7"
 summary = "JSON Matching Expressions"
-groups = ["default"]
+groups = ["default", "bedrock"]
 files = [
     {file = "jmespath-1.0.1-py3-none-any.whl", hash = "sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980"},
     {file = "jmespath-1.0.1.tar.gz", hash = "sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe"},
@@ -1238,7 +1316,7 @@ name = "joblib"
 version = "1.5.1"
 requires_python = ">=3.9"
 summary = "Lightweight pipelining with Python functions"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "joblib-1.5.1-py3-none-any.whl", hash = "sha256:4719a31f054c7d766948dcd83e9613686b27114f190f717cec7eaa2084f8a74a"},
     {file = "joblib-1.5.1.tar.gz", hash = "sha256:f4f86e351f39fe3d0d32a9f2c3d8af1ee4cec285aafcb27003dda5205576b444"},
@@ -1285,7 +1363,7 @@ name = "jsonschema"
 version = "4.23.0"
 requires_python = ">=3.8"
 summary = "An implementation of JSON Schema validation for Python"
-groups = ["default"]
+groups = ["default", "chroma"]
 dependencies = [
     "attrs>=22.2.0",
     "importlib-resources>=1.4.0; python_version < \"3.9\"",
@@ -1304,7 +1382,7 @@ name = "jsonschema-specifications"
 version = "2025.4.1"
 requires_python = ">=3.9"
 summary = "The JSON Schema meta-schemas and vocabularies, exposed as a Registry"
-groups = ["default"]
+groups = ["default", "chroma"]
 dependencies = [
     "referencing>=0.31.0",
 ]
@@ -1318,7 +1396,7 @@ name = "kubernetes"
 version = "32.0.1"
 requires_python = ">=3.6"
 summary = "Kubernetes python client"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "certifi>=14.05.14",
     "durationpy>=0.7",
@@ -1446,7 +1524,7 @@ name = "llama-index-core"
 version = "0.12.37"
 requires_python = "<4.0,>=3.9"
 summary = "Interface between LLMs and your data"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "aiohttp<4,>=3.8.6",
     "aiosqlite",
@@ -1480,11 +1558,27 @@ files = [
 ]
 
 [[package]]
+name = "llama-index-embeddings-bedrock"
+version = "0.5.0"
+requires_python = "<4.0,>=3.9"
+summary = "llama-index embeddings bedrock integration"
+groups = ["bedrock"]
+dependencies = [
+    "aioboto3<14.0.0,>=13.1.1",
+    "boto3<2.0.0,>=1.34.23",
+    "llama-index-core<0.13.0,>=0.12.0",
+]
+files = [
+    {file = "llama_index_embeddings_bedrock-0.5.0-py3-none-any.whl", hash = "sha256:ceb896f670484e3b703b2322bd24206d74d40e28825915fdf6c3b5963bb78801"},
+    {file = "llama_index_embeddings_bedrock-0.5.0.tar.gz", hash = "sha256:3bb5ab9a03102f45a51e3fdced5b8f9c50a332d7008fe3c609123003f8ef1043"},
+]
+
+[[package]]
 name = "llama-index-embeddings-huggingface"
 version = "0.5.4"
 requires_python = "<4.0,>=3.9"
 summary = "llama-index embeddings huggingface integration"
-groups = ["default"]
+groups = ["huggingface"]
 dependencies = [
     "huggingface-hub[inference]>=0.19.0",
     "llama-index-core<0.13,>=0.12.0",
@@ -1538,6 +1632,22 @@ dependencies = [
 files = [
     {file = "llama_index_indices_managed_llama_cloud-0.6.11-py3-none-any.whl", hash = "sha256:64e82e2ac178cd3721b76c0817edd57e05a3bd877c412b4148d3abbdeea62d59"},
     {file = "llama_index_indices_managed_llama_cloud-0.6.11.tar.gz", hash = "sha256:925532f760cd2ebb2594828da311adac3d54cd2cae3dff2908491eebb2b8bd0f"},
+]
+
+[[package]]
+name = "llama-index-llms-bedrock-converse"
+version = "0.6.0"
+requires_python = "<4.0,>=3.9"
+summary = "llama-index llms bedrock converse integration"
+groups = ["bedrock"]
+dependencies = [
+    "aioboto3<14,>=13.1.1",
+    "boto3<2,>=1.34.122",
+    "llama-index-core<0.13,>=0.12.37",
+]
+files = [
+    {file = "llama_index_llms_bedrock_converse-0.6.0-py3-none-any.whl", hash = "sha256:559e404538b34f9b76aa820c8a1293ed0ebb65ed98c70c884d3a1a59f2b8e06a"},
+    {file = "llama_index_llms_bedrock_converse-0.6.0.tar.gz", hash = "sha256:9808a10aaa3617c0bd596f1eddf2c16c6d5bd44ed3ca6b9d8d68db9566b1b366"},
 ]
 
 [[package]]
@@ -1685,7 +1795,7 @@ name = "llama-index-vector-stores-chroma"
 version = "0.4.1"
 requires_python = "<4.0,>=3.9"
 summary = "llama-index vector_stores chroma integration"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "chromadb>=0.5.17",
     "llama-index-core<0.13.0,>=0.12.0",
@@ -1693,6 +1803,21 @@ dependencies = [
 files = [
     {file = "llama_index_vector_stores_chroma-0.4.1-py3-none-any.whl", hash = "sha256:42200af4fa5c8df820b865825d1b506cecb922c8fbd7421eda8a5609b390c1d5"},
     {file = "llama_index_vector_stores_chroma-0.4.1.tar.gz", hash = "sha256:70ee74ccf304adda04171d014e483759c68a1c92f679ea2ca2e6b6f45b6fef08"},
+]
+
+[[package]]
+name = "llama-index-vector-stores-mongodb"
+version = "0.6.0"
+requires_python = "<4.0,>=3.9"
+summary = "llama-index vector_stores mongodb integration"
+groups = ["default"]
+dependencies = [
+    "llama-index-core<0.13.0,>=0.12.0",
+    "pymongo<5.0.0,>=4.6.1",
+]
+files = [
+    {file = "llama_index_vector_stores_mongodb-0.6.0-py3-none-any.whl", hash = "sha256:d1c998b96b42c4f93a537453d0ed5574dd915dbbce744b8752ca7960dea65fc5"},
+    {file = "llama_index_vector_stores_mongodb-0.6.0.tar.gz", hash = "sha256:b032cd3c7b15053c8e9d8ed1dc31f44afb40686dbe4796a25307ec8e436ca4ec"},
 ]
 
 [[package]]
@@ -1758,7 +1883,7 @@ name = "markdown-it-py"
 version = "3.0.0"
 requires_python = ">=3.8"
 summary = "Python port of markdown-it. Markdown parsing, done right!"
-groups = ["default"]
+groups = ["default", "chroma"]
 dependencies = [
     "mdurl~=0.1",
 ]
@@ -1772,7 +1897,7 @@ name = "markupsafe"
 version = "3.0.2"
 requires_python = ">=3.9"
 summary = "Safely add untrusted strings to HTML/XML markup."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "MarkupSafe-3.0.2-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:9778bd8ab0a994ebf6f84c2b949e65736d5575320a17ae8984a77fab08db94cf"},
     {file = "MarkupSafe-3.0.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:846ade7b71e3536c4e56b386c2a47adf5741d2d8b94ec9dc3e92e5e1ee1e2225"},
@@ -1792,7 +1917,7 @@ name = "marshmallow"
 version = "3.26.1"
 requires_python = ">=3.9"
 summary = "A lightweight library for converting complex datatypes to and from native Python datatypes."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "packaging>=17.0",
 ]
@@ -1806,7 +1931,7 @@ name = "mdurl"
 version = "0.1.2"
 requires_python = ">=3.7"
 summary = "Markdown URL utilities"
-groups = ["default"]
+groups = ["default", "chroma"]
 files = [
     {file = "mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8"},
     {file = "mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba"},
@@ -1817,7 +1942,7 @@ name = "mmh3"
 version = "5.1.0"
 requires_python = ">=3.9"
 summary = "Python extension for MurmurHash (MurmurHash3), a set of fast and robust hash functions."
-groups = ["default"]
+groups = ["chroma"]
 files = [
     {file = "mmh3-5.1.0-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:45712987367cb9235026e3cbf4334670522a97751abfd00b5bc8bfa022c3311d"},
     {file = "mmh3-5.1.0-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:b1020735eb35086ab24affbea59bb9082f7f6a0ad517cb89f0fc14f16cea4dae"},
@@ -1842,7 +1967,7 @@ files = [
 name = "mpmath"
 version = "1.3.0"
 summary = "Python library for arbitrary-precision floating-point arithmetic"
-groups = ["default"]
+groups = ["chroma", "huggingface"]
 files = [
     {file = "mpmath-1.3.0-py3-none-any.whl", hash = "sha256:a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c"},
     {file = "mpmath-1.3.0.tar.gz", hash = "sha256:7a28eb2a9774d00c7bc92411c19a89209d5da7c4c9a9e227be8330a23a25b91f"},
@@ -1853,7 +1978,7 @@ name = "multidict"
 version = "6.4.4"
 requires_python = ">=3.9"
 summary = "multidict implementation"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "typing-extensions>=4.1.0; python_version < \"3.11\"",
 ]
@@ -1884,7 +2009,7 @@ name = "mypy-extensions"
 version = "1.1.0"
 requires_python = ">=3.8"
 summary = "Type system extensions for programs checked with the mypy type checker."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "mypy_extensions-1.1.0-py3-none-any.whl", hash = "sha256:1be4cccdb0f2482337c4743e60421de3a356cd97508abadd57d47403e94f5505"},
     {file = "mypy_extensions-1.1.0.tar.gz", hash = "sha256:52e68efc3284861e772bbcd66823fde5ae21fd2fdb51c62a211403730b916558"},
@@ -1895,7 +2020,7 @@ name = "nest-asyncio"
 version = "1.6.0"
 requires_python = ">=3.5"
 summary = "Patch asyncio to allow nested event loops"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "nest_asyncio-1.6.0-py3-none-any.whl", hash = "sha256:87af6efd6b5e897c81050477ef65c62e2b2f35d51703cae01aff2905b1852e1c"},
     {file = "nest_asyncio-1.6.0.tar.gz", hash = "sha256:6f172d5449aca15afd6c646851f4e31e02c598d553a667e38cafa997cfec55fe"},
@@ -1906,7 +2031,7 @@ name = "networkx"
 version = "3.4.2"
 requires_python = ">=3.10"
 summary = "Python package for creating and manipulating graphs and networks"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "networkx-3.4.2-py3-none-any.whl", hash = "sha256:df5d4365b724cf81b8c6a7312509d0c22386097011ad1abe274afd5e9d3bbc5f"},
     {file = "networkx-3.4.2.tar.gz", hash = "sha256:307c3669428c5362aab27c8a1260aa8f47c4e91d3891f48be0141738d8d053e1"},
@@ -1917,7 +2042,7 @@ name = "nltk"
 version = "3.9.1"
 requires_python = ">=3.8"
 summary = "Natural Language Toolkit"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "click",
     "joblib",
@@ -1945,7 +2070,7 @@ name = "numpy"
 version = "2.2.6"
 requires_python = ">=3.10"
 summary = "Fundamental package for array computing in Python"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "numpy-2.2.6-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:41c5a21f4a04fa86436124d388f6ed60a9343a6f767fced1a8a71c3fbca038ff"},
     {file = "numpy-2.2.6-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:de749064336d37e340f640b05f24e9e3dd678c57318c7289d222a8a2f543e90c"},
@@ -1965,7 +2090,7 @@ name = "nvidia-cublas-cu12"
 version = "12.6.4.1"
 requires_python = ">=3"
 summary = "CUBLAS native runtime libraries"
-groups = ["default"]
+groups = ["huggingface"]
 marker = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cublas_cu12-12.6.4.1-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:08ed2686e9875d01b58e3cb379c6896df8e76c75e0d4a7f7dace3d7b6d9ef8eb"},
@@ -1978,7 +2103,7 @@ name = "nvidia-cuda-cupti-cu12"
 version = "12.6.80"
 requires_python = ">=3"
 summary = "CUDA profiling tools runtime libs."
-groups = ["default"]
+groups = ["huggingface"]
 marker = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cuda_cupti_cu12-12.6.80-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:166ee35a3ff1587f2490364f90eeeb8da06cd867bd5b701bf7f9a02b78bc63fc"},
@@ -1993,7 +2118,7 @@ name = "nvidia-cuda-nvrtc-cu12"
 version = "12.6.77"
 requires_python = ">=3"
 summary = "NVRTC native runtime libraries"
-groups = ["default"]
+groups = ["huggingface"]
 marker = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cuda_nvrtc_cu12-12.6.77-py3-none-manylinux2014_aarch64.whl", hash = "sha256:5847f1d6e5b757f1d2b3991a01082a44aad6f10ab3c5c0213fa3e25bddc25a13"},
@@ -2006,7 +2131,7 @@ name = "nvidia-cuda-runtime-cu12"
 version = "12.6.77"
 requires_python = ">=3"
 summary = "CUDA Runtime native Libraries"
-groups = ["default"]
+groups = ["huggingface"]
 marker = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cuda_runtime_cu12-12.6.77-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:6116fad3e049e04791c0256a9778c16237837c08b27ed8c8401e2e45de8d60cd"},
@@ -2021,7 +2146,7 @@ name = "nvidia-cudnn-cu12"
 version = "9.5.1.17"
 requires_python = ">=3"
 summary = "cuDNN runtime libraries"
-groups = ["default"]
+groups = ["huggingface"]
 marker = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 dependencies = [
     "nvidia-cublas-cu12",
@@ -2037,7 +2162,7 @@ name = "nvidia-cufft-cu12"
 version = "11.3.0.4"
 requires_python = ">=3"
 summary = "CUFFT native runtime libraries"
-groups = ["default"]
+groups = ["huggingface"]
 marker = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 dependencies = [
     "nvidia-nvjitlink-cu12",
@@ -2055,7 +2180,7 @@ name = "nvidia-cufile-cu12"
 version = "1.11.1.6"
 requires_python = ">=3"
 summary = "cuFile GPUDirect libraries"
-groups = ["default"]
+groups = ["huggingface"]
 marker = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cufile_cu12-1.11.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:cc23469d1c7e52ce6c1d55253273d32c565dd22068647f3aa59b3c6b005bf159"},
@@ -2067,7 +2192,7 @@ name = "nvidia-curand-cu12"
 version = "10.3.7.77"
 requires_python = ">=3"
 summary = "CURAND native runtime libraries"
-groups = ["default"]
+groups = ["huggingface"]
 marker = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_curand_cu12-10.3.7.77-py3-none-manylinux2014_aarch64.whl", hash = "sha256:6e82df077060ea28e37f48a3ec442a8f47690c7499bff392a5938614b56c98d8"},
@@ -2082,7 +2207,7 @@ name = "nvidia-cusolver-cu12"
 version = "11.7.1.2"
 requires_python = ">=3"
 summary = "CUDA solver native runtime libraries"
-groups = ["default"]
+groups = ["huggingface"]
 marker = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 dependencies = [
     "nvidia-cublas-cu12",
@@ -2102,7 +2227,7 @@ name = "nvidia-cusparse-cu12"
 version = "12.5.4.2"
 requires_python = ">=3"
 summary = "CUSPARSE native runtime libraries"
-groups = ["default"]
+groups = ["huggingface"]
 marker = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 dependencies = [
     "nvidia-nvjitlink-cu12",
@@ -2119,7 +2244,7 @@ files = [
 name = "nvidia-cusparselt-cu12"
 version = "0.6.3"
 summary = "NVIDIA cuSPARSELt"
-groups = ["default"]
+groups = ["huggingface"]
 marker = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_cusparselt_cu12-0.6.3-py3-none-manylinux2014_aarch64.whl", hash = "sha256:8371549623ba601a06322af2133c4a44350575f5a3108fb75f3ef20b822ad5f1"},
@@ -2132,7 +2257,7 @@ name = "nvidia-nccl-cu12"
 version = "2.26.2"
 requires_python = ">=3"
 summary = "NVIDIA Collective Communication Library (NCCL) Runtime"
-groups = ["default"]
+groups = ["huggingface"]
 marker = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_nccl_cu12-2.26.2-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:5c196e95e832ad30fbbb50381eb3cbd1fadd5675e587a548563993609af19522"},
@@ -2144,7 +2269,7 @@ name = "nvidia-nvjitlink-cu12"
 version = "12.6.85"
 requires_python = ">=3"
 summary = "Nvidia JIT LTO Library"
-groups = ["default"]
+groups = ["huggingface"]
 marker = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_nvjitlink_cu12-12.6.85-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl", hash = "sha256:eedc36df9e88b682efe4309aa16b5b4e78c2407eac59e8c10a6a47535164369a"},
@@ -2157,7 +2282,7 @@ name = "nvidia-nvtx-cu12"
 version = "12.6.77"
 requires_python = ">=3"
 summary = "NVIDIA Tools Extension"
-groups = ["default"]
+groups = ["huggingface"]
 marker = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 files = [
     {file = "nvidia_nvtx_cu12-12.6.77-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:f44f8d86bb7d5629988d61c8d3ae61dddb2015dee142740536bc7481b022fe4b"},
@@ -2172,7 +2297,7 @@ name = "oauthlib"
 version = "3.2.2"
 requires_python = ">=3.6"
 summary = "A generic, spec-compliant, thorough implementation of the OAuth request-signing logic"
-groups = ["default"]
+groups = ["default", "chroma"]
 files = [
     {file = "oauthlib-3.2.2-py3-none-any.whl", hash = "sha256:8139f29aac13e25d502680e9e19963e83f16838d48a0d71c287fe40e7067fbca"},
     {file = "oauthlib-3.2.2.tar.gz", hash = "sha256:9859c40929662bec5d64f34d01c99e093149682a3f38915dc0655d5a633dd918"},
@@ -2198,7 +2323,7 @@ name = "onnxruntime"
 version = "1.22.0"
 requires_python = ">=3.10"
 summary = "ONNX Runtime is a runtime accelerator for Machine Learning models"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "coloredlogs",
     "flatbuffers",
@@ -2240,7 +2365,7 @@ name = "opentelemetry-api"
 version = "1.33.1"
 requires_python = ">=3.8"
 summary = "OpenTelemetry Python API"
-groups = ["default"]
+groups = ["default", "chroma"]
 dependencies = [
     "deprecated>=1.2.6",
     "importlib-metadata<8.7.0,>=6.0",
@@ -2255,7 +2380,7 @@ name = "opentelemetry-exporter-otlp-proto-common"
 version = "1.33.1"
 requires_python = ">=3.8"
 summary = "OpenTelemetry Protobuf encoding"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "opentelemetry-proto==1.33.1",
 ]
@@ -2269,7 +2394,7 @@ name = "opentelemetry-exporter-otlp-proto-grpc"
 version = "1.33.1"
 requires_python = ">=3.8"
 summary = "OpenTelemetry Collector Protobuf over gRPC Exporter"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "deprecated>=1.2.6",
     "googleapis-common-protos~=1.52",
@@ -2290,7 +2415,7 @@ name = "opentelemetry-instrumentation"
 version = "0.54b1"
 requires_python = ">=3.8"
 summary = "Instrumentation Tools & Auto Instrumentation for OpenTelemetry Python"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "opentelemetry-api~=1.4",
     "opentelemetry-semantic-conventions==0.54b1",
@@ -2307,7 +2432,7 @@ name = "opentelemetry-instrumentation-asgi"
 version = "0.54b1"
 requires_python = ">=3.8"
 summary = "ASGI instrumentation for OpenTelemetry"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "asgiref~=3.0",
     "opentelemetry-api~=1.12",
@@ -2325,7 +2450,7 @@ name = "opentelemetry-instrumentation-fastapi"
 version = "0.54b1"
 requires_python = ">=3.8"
 summary = "OpenTelemetry FastAPI Instrumentation"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "opentelemetry-api~=1.12",
     "opentelemetry-instrumentation-asgi==0.54b1",
@@ -2343,7 +2468,7 @@ name = "opentelemetry-proto"
 version = "1.33.1"
 requires_python = ">=3.8"
 summary = "OpenTelemetry Python Proto"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "protobuf<6.0,>=5.0",
 ]
@@ -2357,7 +2482,7 @@ name = "opentelemetry-sdk"
 version = "1.33.1"
 requires_python = ">=3.8"
 summary = "OpenTelemetry Python SDK"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "opentelemetry-api==1.33.1",
     "opentelemetry-semantic-conventions==0.54b1",
@@ -2373,7 +2498,7 @@ name = "opentelemetry-semantic-conventions"
 version = "0.54b1"
 requires_python = ">=3.8"
 summary = "OpenTelemetry Semantic Conventions"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "deprecated>=1.2.6",
     "opentelemetry-api==1.33.1",
@@ -2388,7 +2513,7 @@ name = "opentelemetry-util-http"
 version = "0.54b1"
 requires_python = ">=3.8"
 summary = "Web util for OpenTelemetry"
-groups = ["default"]
+groups = ["chroma"]
 files = [
     {file = "opentelemetry_util_http-0.54b1-py3-none-any.whl", hash = "sha256:b1c91883f980344a1c3c486cffd47ae5c9c1dd7323f9cbe9fdb7cadb401c87c9"},
     {file = "opentelemetry_util_http-0.54b1.tar.gz", hash = "sha256:f0b66868c19fbaf9c9d4e11f4a7599fa15d5ea50b884967a26ccd9d72c7c9d15"},
@@ -2399,7 +2524,7 @@ name = "orjson"
 version = "3.10.18"
 requires_python = ">=3.9"
 summary = "Fast, correct Python JSON library supporting dataclasses, datetimes, and numpy"
-groups = ["default"]
+groups = ["default", "chroma"]
 files = [
     {file = "orjson-3.10.18-cp312-cp312-macosx_10_15_x86_64.macosx_11_0_arm64.macosx_10_15_universal2.whl", hash = "sha256:50c15557afb7f6d63bc6d6348e0337a880a04eaa9cd7c9d569bcb4e760a24753"},
     {file = "orjson-3.10.18-cp312-cp312-macosx_15_0_arm64.whl", hash = "sha256:356b076f1662c9813d5fa56db7d63ccceef4c271b1fb3dd522aca291375fcf17"},
@@ -2424,7 +2549,7 @@ name = "overrides"
 version = "7.7.0"
 requires_python = ">=3.6"
 summary = "A decorator to automatically detect mismatch when overriding a method."
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "typing; python_version < \"3.5\"",
 ]
@@ -2438,7 +2563,7 @@ name = "packaging"
 version = "25.0"
 requires_python = ">=3.8"
 summary = "Core utilities for Python packages"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "packaging-25.0-py3-none-any.whl", hash = "sha256:29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484"},
     {file = "packaging-25.0.tar.gz", hash = "sha256:d443872c98d677bf60f6a1f2f8c1cb748e8fe762d2bf9d3148b5599295b0fc4f"},
@@ -2511,7 +2636,7 @@ name = "pillow"
 version = "11.2.1"
 requires_python = ">=3.9"
 summary = "Python Imaging Library (Fork)"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "pillow-11.2.1-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:78afba22027b4accef10dbd5eed84425930ba41b3ea0a86fa8d20baaf19d807f"},
     {file = "pillow-11.2.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:78092232a4ab376a35d68c4e6d5e00dfd73454bd12b230420025fbe178ee3b0b"},
@@ -2532,7 +2657,7 @@ name = "platformdirs"
 version = "4.3.8"
 requires_python = ">=3.9"
 summary = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
-groups = ["default", "dev", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "dev", "huggingface", "ollama", "openai"]
 files = [
     {file = "platformdirs-4.3.8-py3-none-any.whl", hash = "sha256:ff7059bb7eb1179e2685604f4aaf157cfd9535242bd23742eadc3c13542139b4"},
     {file = "platformdirs-4.3.8.tar.gz", hash = "sha256:3d512d96e16bcb959a814c9f348431070822a6496326a4be0911c40b5a74c2bc"},
@@ -2542,7 +2667,7 @@ files = [
 name = "posthog"
 version = "4.2.0"
 summary = "Integrate PostHog into any python application."
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "backoff>=1.10.0",
     "distro>=1.5.0",
@@ -2657,7 +2782,7 @@ name = "propcache"
 version = "0.3.1"
 requires_python = ">=3.9"
 summary = "Accelerated property cache"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "propcache-0.3.1-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:f78eb8422acc93d7b69964012ad7048764bb45a54ba7a39bb9e146c72ea29723"},
     {file = "propcache-0.3.1-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:89498dd49c2f9a026ee057965cdf8192e5ae070ce7d7a7bd4b66a8e257d0c976"},
@@ -2684,7 +2809,7 @@ name = "protobuf"
 version = "5.29.4"
 requires_python = ">=3.8"
 summary = ""
-groups = ["default"]
+groups = ["chroma"]
 files = [
     {file = "protobuf-5.29.4-cp310-abi3-win32.whl", hash = "sha256:13eb236f8eb9ec34e63fc8b1d6efd2777d062fa6aaa68268fb67cf77f6839ad7"},
     {file = "protobuf-5.29.4-cp310-abi3-win_amd64.whl", hash = "sha256:bcefcdf3976233f8a502d265eb65ea740c989bacc6c30a58290ed0e519eb4b8d"},
@@ -2700,7 +2825,7 @@ name = "pyasn1"
 version = "0.6.1"
 requires_python = ">=3.8"
 summary = "Pure-Python implementation of ASN.1 types and DER/BER/CER codecs (X.208)"
-groups = ["default"]
+groups = ["chroma"]
 files = [
     {file = "pyasn1-0.6.1-py3-none-any.whl", hash = "sha256:0d632f46f2ba09143da3a8afe9e33fb6f92fa2320ab7e886e2d0f7672af84629"},
     {file = "pyasn1-0.6.1.tar.gz", hash = "sha256:6f580d2bdd84365380830acf45550f2511469f673cb4a5ae3857a3170128b034"},
@@ -2711,7 +2836,7 @@ name = "pyasn1-modules"
 version = "0.4.2"
 requires_python = ">=3.8"
 summary = "A collection of ASN.1-based protocols modules"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "pyasn1<0.7.0,>=0.6.1",
 ]
@@ -2737,7 +2862,7 @@ name = "pydantic"
 version = "2.11.5"
 requires_python = ">=3.9"
 summary = "Data validation using Python type hints"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "annotated-types>=0.6.0",
     "pydantic-core==2.33.2",
@@ -2754,7 +2879,7 @@ name = "pydantic-core"
 version = "2.33.2"
 requires_python = ">=3.9"
 summary = "Core functionality for Pydantic validation and serialization"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "typing-extensions!=4.7.0,>=4.6.0",
 ]
@@ -2812,7 +2937,7 @@ name = "pygments"
 version = "2.19.1"
 requires_python = ">=3.8"
 summary = "Pygments is a syntax highlighting package written in Python."
-groups = ["default"]
+groups = ["default", "chroma"]
 files = [
     {file = "pygments-2.19.1-py3-none-any.whl", hash = "sha256:9ea1544ad55cecf4b8242fab6dd35a93bbce657034b0611ee383099054ab6d8c"},
     {file = "pygments-2.19.1.tar.gz", hash = "sha256:61c16d2a8576dc0649d9f39e089b5f02bcd27fba10d8fb4dcc28173f7a45151f"},
@@ -2875,7 +3000,7 @@ files = [
 name = "pypika"
 version = "0.48.9"
 summary = "A SQL query builder API for Python"
-groups = ["default"]
+groups = ["chroma"]
 files = [
     {file = "PyPika-0.48.9.tar.gz", hash = "sha256:838836a61747e7c8380cd1b7ff638694b7a7335345d0f559b04b2cd832ad5378"},
 ]
@@ -2885,7 +3010,7 @@ name = "pyproject-hooks"
 version = "1.2.0"
 requires_python = ">=3.7"
 summary = "Wrappers to call pyproject.toml-based build backend hooks."
-groups = ["default"]
+groups = ["chroma"]
 files = [
     {file = "pyproject_hooks-1.2.0-py3-none-any.whl", hash = "sha256:9e5c6bfa8dcc30091c74b0cf803c81fdd29d94f01992a7707bc97babb1141913"},
     {file = "pyproject_hooks-1.2.0.tar.gz", hash = "sha256:1e859bd5c40fae9448642dd871adf459e5e2084186e8d2c2a79a824c970da1f8"},
@@ -2896,7 +3021,7 @@ name = "pyreadline3"
 version = "3.5.4"
 requires_python = ">=3.8"
 summary = "A python implementation of GNU readline."
-groups = ["default"]
+groups = ["chroma"]
 marker = "sys_platform == \"win32\" and python_version >= \"3.8\""
 files = [
     {file = "pyreadline3-3.5.4-py3-none-any.whl", hash = "sha256:eaf8e6cc3c49bcccf145fc6067ba8643d1df34d604a1ec0eccbf7a18e6d3fae6"},
@@ -2908,7 +3033,7 @@ name = "python-dateutil"
 version = "2.9.0.post0"
 requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 summary = "Extensions to the standard Python datetime module"
-groups = ["default"]
+groups = ["default", "bedrock", "chroma"]
 dependencies = [
     "six>=1.5",
 ]
@@ -2922,7 +3047,7 @@ name = "python-dotenv"
 version = "1.1.0"
 requires_python = ">=3.9"
 summary = "Read key-value pairs from a .env file and set them as environment variables"
-groups = ["default"]
+groups = ["default", "chroma"]
 files = [
     {file = "python_dotenv-1.1.0-py3-none-any.whl", hash = "sha256:d7c01d9e2293916c18baf562d95698754b0dbbb5e74d457c45d4f6561fb9d55d"},
     {file = "python_dotenv-1.1.0.tar.gz", hash = "sha256:41f90bc6f5f177fb41f53e87666db362025010eb28f60a01c9143bfa33a2b2d5"},
@@ -2996,7 +3121,7 @@ name = "pyyaml"
 version = "6.0.2"
 requires_python = ">=3.8"
 summary = "YAML parser and emitter for Python"
-groups = ["default", "dev", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "dev", "huggingface", "ollama", "openai"]
 files = [
     {file = "PyYAML-6.0.2-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:c70c95198c015b85feafc136515252a261a84561b7b1d51e3384e0655ddf25ab"},
     {file = "PyYAML-6.0.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:ce826d6ef20b1bc864f0a68340c8b3287705cae2f8b4b1d932177dcc76721725"},
@@ -3040,7 +3165,7 @@ name = "referencing"
 version = "0.36.2"
 requires_python = ">=3.9"
 summary = "JSON Referencing + Python"
-groups = ["default"]
+groups = ["default", "chroma"]
 dependencies = [
     "attrs>=22.2.0",
     "rpds-py>=0.7.0",
@@ -3056,7 +3181,7 @@ name = "regex"
 version = "2024.11.6"
 requires_python = ">=3.8"
 summary = "Alternative regular expression module, to replace re."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "regex-2024.11.6-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:52fb28f528778f184f870b7cf8f225f5eef0a8f6e3778529bdd40c7b3920796a"},
     {file = "regex-2024.11.6-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:fdd6028445d2460f33136c55eeb1f601ab06d74cb3347132e1c24250187500d9"},
@@ -3081,7 +3206,7 @@ name = "requests"
 version = "2.32.3"
 requires_python = ">=3.8"
 summary = "Python HTTP for Humans."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "certifi>=2017.4.17",
     "charset-normalizer<4,>=2",
@@ -3098,7 +3223,7 @@ name = "requests-oauthlib"
 version = "2.0.0"
 requires_python = ">=3.4"
 summary = "OAuthlib authentication support for Requests."
-groups = ["default"]
+groups = ["default", "chroma"]
 dependencies = [
     "oauthlib>=3.0.0",
     "requests>=2.0.0",
@@ -3127,7 +3252,7 @@ name = "rich"
 version = "14.0.0"
 requires_python = ">=3.8.0"
 summary = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
-groups = ["default"]
+groups = ["default", "chroma"]
 dependencies = [
     "markdown-it-py>=2.2.0",
     "pygments<3.0.0,>=2.13.0",
@@ -3143,7 +3268,7 @@ name = "rpds-py"
 version = "0.25.1"
 requires_python = ">=3.9"
 summary = "Python bindings to Rust's persistent data structures (rpds)"
-groups = ["default"]
+groups = ["default", "chroma"]
 files = [
     {file = "rpds_py-0.25.1-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:b5ffe453cde61f73fea9430223c81d29e2fbf412a6073951102146c84e19e34c"},
     {file = "rpds_py-0.25.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:115874ae5e2fdcfc16b2aedc95b5eef4aebe91b28e7e21951eda8a5dc0d3461b"},
@@ -3167,7 +3292,7 @@ name = "rsa"
 version = "4.9.1"
 requires_python = "<4,>=3.6"
 summary = "Pure-Python RSA implementation"
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "pyasn1>=0.1.3",
 ]
@@ -3239,16 +3364,16 @@ files = [
 
 [[package]]
 name = "s3transfer"
-version = "0.13.0"
-requires_python = ">=3.9"
+version = "0.11.3"
+requires_python = ">=3.8"
 summary = "An Amazon S3 Transfer Manager"
-groups = ["default"]
+groups = ["default", "bedrock"]
 dependencies = [
-    "botocore<2.0a.0,>=1.37.4",
+    "botocore<2.0a.0,>=1.36.0",
 ]
 files = [
-    {file = "s3transfer-0.13.0-py3-none-any.whl", hash = "sha256:0148ef34d6dd964d0d8cf4311b2b21c474693e57c2e069ec708ce043d2b527be"},
-    {file = "s3transfer-0.13.0.tar.gz", hash = "sha256:f5e6db74eb7776a37208001113ea7aa97695368242b364d73e91c981ac522177"},
+    {file = "s3transfer-0.11.3-py3-none-any.whl", hash = "sha256:ca855bdeb885174b5ffa95b9913622459d4ad8e331fc98eb01e6d5eb6a30655d"},
+    {file = "s3transfer-0.11.3.tar.gz", hash = "sha256:edae4977e3a122445660c7c114bba949f9d191bae3b34a096f18a1c8c354527a"},
 ]
 
 [[package]]
@@ -3256,7 +3381,7 @@ name = "safetensors"
 version = "0.5.3"
 requires_python = ">=3.7"
 summary = ""
-groups = ["default", "openai"]
+groups = ["huggingface", "openai"]
 files = [
     {file = "safetensors-0.5.3-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:bd20eb133db8ed15b40110b7c00c6df51655a2998132193de2f75f72d99c7073"},
     {file = "safetensors-0.5.3-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:21d01c14ff6c415c485616b8b0bf961c46b3b343ca59110d38d744e577f9cce7"},
@@ -3280,7 +3405,7 @@ name = "scikit-learn"
 version = "1.6.1"
 requires_python = ">=3.9"
 summary = "A set of python modules for machine learning and data mining"
-groups = ["default"]
+groups = ["huggingface"]
 dependencies = [
     "joblib>=1.2.0",
     "numpy>=1.19.5",
@@ -3301,7 +3426,7 @@ name = "scipy"
 version = "1.15.3"
 requires_python = ">=3.10"
 summary = "Fundamental algorithms for scientific computing in Python"
-groups = ["default"]
+groups = ["huggingface"]
 dependencies = [
     "numpy<2.5,>=1.23.5",
 ]
@@ -3323,7 +3448,7 @@ name = "sentence-transformers"
 version = "4.1.0"
 requires_python = ">=3.9"
 summary = "Embeddings, Retrieval, and Reranking"
-groups = ["default"]
+groups = ["huggingface"]
 dependencies = [
     "Pillow",
     "huggingface-hub>=0.20.0",
@@ -3344,7 +3469,7 @@ name = "setuptools"
 version = "80.8.0"
 requires_python = ">=3.9"
 summary = "Easily download, build, install, upgrade, and uninstall Python packages"
-groups = ["default"]
+groups = ["huggingface"]
 marker = "platform_system == \"Linux\" and platform_machine == \"x86_64\" or python_version >= \"3.12\""
 files = [
     {file = "setuptools-80.8.0-py3-none-any.whl", hash = "sha256:95a60484590d24103af13b686121328cc2736bee85de8936383111e421b9edc0"},
@@ -3356,7 +3481,7 @@ name = "shellingham"
 version = "1.5.4"
 requires_python = ">=3.7"
 summary = "Tool to Detect Surrounding Shell"
-groups = ["default"]
+groups = ["default", "chroma"]
 files = [
     {file = "shellingham-1.5.4-py2.py3-none-any.whl", hash = "sha256:7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686"},
     {file = "shellingham-1.5.4.tar.gz", hash = "sha256:8dbca0739d487e5bd35ab3ca4b36e11c4078f3a234bfce294b0a0291363404de"},
@@ -3367,7 +3492,7 @@ name = "six"
 version = "1.17.0"
 requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 summary = "Python 2 and 3 compatibility utilities"
-groups = ["default"]
+groups = ["default", "bedrock", "chroma"]
 files = [
     {file = "six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274"},
     {file = "six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81"},
@@ -3378,7 +3503,7 @@ name = "sniffio"
 version = "1.3.1"
 requires_python = ">=3.7"
 summary = "Sniff out which async library your code is running under"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "sniffio-1.3.1-py3-none-any.whl", hash = "sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2"},
     {file = "sniffio-1.3.1.tar.gz", hash = "sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc"},
@@ -3400,7 +3525,7 @@ name = "sqlalchemy"
 version = "2.0.41"
 requires_python = ">=3.7"
 summary = "Database Abstraction Library"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "greenlet>=1; (platform_machine == \"win32\" or platform_machine == \"WIN32\" or platform_machine == \"AMD64\" or platform_machine == \"amd64\" or platform_machine == \"x86_64\" or platform_machine == \"ppc64le\" or platform_machine == \"aarch64\") and python_version < \"3.14\"",
     "importlib-metadata; python_version < \"3.8\"",
@@ -3425,7 +3550,7 @@ version = "2.0.41"
 extras = ["asyncio"]
 requires_python = ">=3.7"
 summary = "Database Abstraction Library"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "greenlet>=1",
     "sqlalchemy==2.0.41",
@@ -3448,7 +3573,7 @@ name = "starlette"
 version = "0.45.3"
 requires_python = ">=3.9"
 summary = "The little ASGI library that shines."
-groups = ["default"]
+groups = ["default", "chroma"]
 dependencies = [
     "anyio<5,>=3.6.2",
     "typing-extensions>=3.10.0; python_version < \"3.10\"",
@@ -3473,7 +3598,7 @@ name = "sympy"
 version = "1.14.0"
 requires_python = ">=3.9"
 summary = "Computer algebra system (CAS) in Python"
-groups = ["default"]
+groups = ["chroma", "huggingface"]
 dependencies = [
     "mpmath<1.4,>=1.1.0",
 ]
@@ -3498,7 +3623,7 @@ name = "tenacity"
 version = "9.1.2"
 requires_python = ">=3.9"
 summary = "Retry code until it succeeds"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "tenacity-9.1.2-py3-none-any.whl", hash = "sha256:f77bf36710d8b73a50b2dd155c97b870017ad21afe6ab300326b0371b3b05138"},
     {file = "tenacity-9.1.2.tar.gz", hash = "sha256:1169d376c297e7de388d18b4481760d478b0e99a777cad3a9c86e556f4b697cb"},
@@ -3519,7 +3644,7 @@ name = "threadpoolctl"
 version = "3.6.0"
 requires_python = ">=3.9"
 summary = "threadpoolctl"
-groups = ["default"]
+groups = ["huggingface"]
 files = [
     {file = "threadpoolctl-3.6.0-py3-none-any.whl", hash = "sha256:43a0b8fd5a2928500110039e43a5eed8480b918967083ea48dc3ab9f13c4a7fb"},
     {file = "threadpoolctl-3.6.0.tar.gz", hash = "sha256:8ab8b4aa3491d812b623328249fab5302a68d2d71745c8a4c719a2fcaba9f44e"},
@@ -3530,7 +3655,7 @@ name = "tiktoken"
 version = "0.9.0"
 requires_python = ">=3.9"
 summary = "tiktoken is a fast BPE tokeniser for use with OpenAI's models"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "regex>=2022.1.18",
     "requests>=2.26.0",
@@ -3550,7 +3675,7 @@ name = "tokenizers"
 version = "0.21.1"
 requires_python = ">=3.9"
 summary = ""
-groups = ["default", "openai"]
+groups = ["chroma", "huggingface", "openai"]
 dependencies = [
     "huggingface-hub<1.0,>=0.16.4",
 ]
@@ -3588,7 +3713,7 @@ name = "torch"
 version = "2.7.0"
 requires_python = ">=3.9.0"
 summary = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
-groups = ["default"]
+groups = ["huggingface"]
 dependencies = [
     "filelock",
     "fsspec",
@@ -3625,7 +3750,7 @@ name = "tqdm"
 version = "4.67.1"
 requires_python = ">=3.7"
 summary = "Fast, Extensible Progress Meter"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "colorama; platform_system == \"Windows\"",
 ]
@@ -3639,7 +3764,7 @@ name = "transformers"
 version = "4.52.3"
 requires_python = ">=3.9.0"
 summary = "State-of-the-art Machine Learning for JAX, PyTorch and TensorFlow"
-groups = ["default", "openai"]
+groups = ["huggingface", "openai"]
 dependencies = [
     "filelock",
     "huggingface-hub<1.0,>=0.30.0",
@@ -3661,7 +3786,7 @@ files = [
 name = "triton"
 version = "3.3.0"
 summary = "A language and compiler for custom Deep Learning operations"
-groups = ["default"]
+groups = ["huggingface"]
 marker = "platform_system == \"Linux\" and platform_machine == \"x86_64\""
 dependencies = [
     "setuptools>=40.8.0",
@@ -3675,7 +3800,7 @@ name = "typer"
 version = "0.15.4"
 requires_python = ">=3.7"
 summary = "Typer, build great CLIs. Easy to code. Based on Python type hints."
-groups = ["default"]
+groups = ["default", "chroma"]
 dependencies = [
     "click<8.2,>=8.0.0",
     "rich>=10.11.0",
@@ -3692,7 +3817,7 @@ name = "typing-extensions"
 version = "4.13.2"
 requires_python = ">=3.8"
 summary = "Backported and Experimental Type Hints for Python 3.8+"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "typing_extensions-4.13.2-py3-none-any.whl", hash = "sha256:a439e7c04b49fec3e5d3e2beaa21755cadbbdc391694e28ccdd36ca4a1408f8c"},
     {file = "typing_extensions-4.13.2.tar.gz", hash = "sha256:e6c81219bd689f51865d9e372991c540bda33a0379d5573cddb9a3a23f7caaef"},
@@ -3702,7 +3827,7 @@ files = [
 name = "typing-inspect"
 version = "0.9.0"
 summary = "Runtime inspection utilities for typing module."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "mypy-extensions>=0.3.0",
     "typing-extensions>=3.7.4",
@@ -3718,7 +3843,7 @@ name = "typing-inspection"
 version = "0.4.1"
 requires_python = ">=3.9"
 summary = "Runtime typing introspection tools"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "typing-extensions>=4.12.0",
 ]
@@ -3777,7 +3902,7 @@ name = "urllib3"
 version = "2.4.0"
 requires_python = ">=3.9"
 summary = "HTTP library with thread-safe connection pooling, file post, and more."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "urllib3-2.4.0-py3-none-any.whl", hash = "sha256:4e16665048960a0900c702d4a66415956a584919c03361cac9f1df5c5dd7e813"},
     {file = "urllib3-2.4.0.tar.gz", hash = "sha256:414bc6535b787febd7567804cc015fee39daab8ad86268f1310a9250697de466"},
@@ -3815,7 +3940,7 @@ name = "uvicorn"
 version = "0.34.2"
 requires_python = ">=3.9"
 summary = "The lightning-fast ASGI server."
-groups = ["default"]
+groups = ["default", "chroma"]
 dependencies = [
     "click>=7.0",
     "h11>=0.8",
@@ -3832,7 +3957,7 @@ version = "0.34.2"
 extras = ["standard"]
 requires_python = ">=3.9"
 summary = "The lightning-fast ASGI server."
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "colorama>=0.4; sys_platform == \"win32\"",
     "httptools>=0.6.3",
@@ -3853,7 +3978,7 @@ name = "uvloop"
 version = "0.21.0"
 requires_python = ">=3.8.0"
 summary = "Fast implementation of asyncio event loop on top of libuv"
-groups = ["default"]
+groups = ["chroma"]
 marker = "(sys_platform != \"cygwin\" and sys_platform != \"win32\") and platform_python_implementation != \"PyPy\""
 files = [
     {file = "uvloop-0.21.0-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:359ec2c888397b9e592a889c4d72ba3d6befba8b2bb01743f72fffbde663b59c"},
@@ -3887,7 +4012,7 @@ name = "watchfiles"
 version = "1.0.5"
 requires_python = ">=3.9"
 summary = "Simple, modern and high performance file watching and code reload in python."
-groups = ["default"]
+groups = ["chroma"]
 dependencies = [
     "anyio>=3.0.0",
 ]
@@ -3913,7 +4038,7 @@ name = "websocket-client"
 version = "1.8.0"
 requires_python = ">=3.8"
 summary = "WebSocket client for Python with low level API options"
-groups = ["default"]
+groups = ["chroma"]
 files = [
     {file = "websocket_client-1.8.0-py3-none-any.whl", hash = "sha256:17b44cc997f5c498e809b22cdf2d9c7a9e71c02c8cc2b6c56e7c2d1239bfa526"},
     {file = "websocket_client-1.8.0.tar.gz", hash = "sha256:3239df9f44da632f96012472805d40a23281a991027ce11d2f45a6f24ac4c3da"},
@@ -3924,7 +4049,7 @@ name = "websockets"
 version = "15.0.1"
 requires_python = ">=3.9"
 summary = "An implementation of the WebSocket Protocol (RFC 6455 & 7692)"
-groups = ["default"]
+groups = ["default", "chroma"]
 files = [
     {file = "websockets-15.0.1-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:3e90baa811a5d73f3ca0bcbf32064d663ed81318ab225ee4f427ad4e26e5aff3"},
     {file = "websockets-15.0.1-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:592f1a9fe869c778694f0aa806ba0374e97648ab57936f092fd9d87f8bc03665"},
@@ -3958,7 +4083,7 @@ name = "wrapt"
 version = "1.17.2"
 requires_python = ">=3.8"
 summary = "Module for decorators, wrappers and monkey patching."
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 files = [
     {file = "wrapt-1.17.2-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:d5e2439eecc762cd85e7bd37161d4714aa03a33c5ba884e26c81559817ca0925"},
     {file = "wrapt-1.17.2-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:3fc7cb4c1c744f8c05cd5f9438a3caa6ab94ce8344e952d7c45a8ed59dd88392"},
@@ -3980,7 +4105,7 @@ name = "yarl"
 version = "1.20.0"
 requires_python = ">=3.9"
 summary = "Yet another URL library"
-groups = ["default", "ollama", "openai"]
+groups = ["default", "bedrock", "chroma", "huggingface", "ollama", "openai"]
 dependencies = [
     "idna>=2.0",
     "multidict>=4.0",
@@ -4013,7 +4138,7 @@ name = "zipp"
 version = "3.21.0"
 requires_python = ">=3.9"
 summary = "Backport of pathlib-compatible object wrapper for zip files"
-groups = ["default"]
+groups = ["default", "chroma"]
 files = [
     {file = "zipp-3.21.0-py3-none-any.whl", hash = "sha256:ac1bbe05fd2991f160ebce24ffbac5f6d11d83dc90891255885223d42b3cd931"},
     {file = "zipp-3.21.0.tar.gz", hash = "sha256:2c9958f6430a2040341a52eb608ed6dd93ef4392e02ffe219417c1b28b5dd1f4"},

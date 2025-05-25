@@ -73,12 +73,34 @@ class Settings(BaseSettings):
     # AWS credentials
     AWS_ACCESS_KEY_ID: SecretStr | None = None
     AWS_SECRET_ACCESS_KEY: SecretStr | None = None
+    AWS_REGION: str | None = None
 
     @field_validator("OPENAI_API_KEY")
     @classmethod
     def check_openai_api_key(cls, value, values):
         if values.data.get("LLM_BACKEND") == "openai" and not value:
             raise ValueError("OPENAI_API_KEY is required when LLM_BACKEND=openai")
+        return value
+
+    @field_validator("AWS_ACCESS_KEY_ID")
+    @classmethod
+    def check_aws_credentials(cls, value, values):
+        if values.data.get("LLM_BACKEND") == "aws" and not value:
+            raise ValueError("AWS_ACCESS_KEY_ID is required when LLM_BACKEND=aws")
+        return value
+
+    @field_validator("AWS_SECRET_ACCESS_KEY")
+    @classmethod
+    def check_aws_secret_key(cls, value, values):
+        if values.data.get("LLM_BACKEND") == "aws" and not value:
+            raise ValueError("AWS_SECRET_ACCESS_KEY is required when LLM_BACKEND=aws")
+        return value
+
+    @field_validator("AWS_REGION")
+    @classmethod
+    def check_aws_region(cls, value, values):
+        if values.data.get("LLM_BACKEND") == "aws" and not value:
+            raise ValueError("AWS_REGION is required when LLM_BACKEND=aws")
         return value
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
