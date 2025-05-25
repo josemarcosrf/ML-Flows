@@ -62,6 +62,13 @@ shell = """
 """
 help = "Reformat the code using isort and ruff."
 
+[tool.pdm.scripts.reqs]
+shell = """
+    PDM_USE_UV=0 pdm lock --strategy=inherit_metadata
+    pdm export -G :all --format=requirements --without-hashes -o requirements.txt
+"""
+help = "Export all dependencies to requirements.txt file"
+
 [tool.ruff]
 line-length = 88
 output-format = "grouped"

@@ -1,7 +1,9 @@
 from enum import Enum
+from typing import Any
 
 from loguru import logger
 from prefect import task
+from pydantic import SecretStr
 
 from flows.settings import settings
 
@@ -16,8 +18,8 @@ def get_llm(
     llm_model: str,
     llm_backend: LLMBackend | str,
     ollama_base_url: str | None = settings.OLLAMA_BASE_URL,
-    openai_api_key: str | None = settings.OPENAI_API_KEY.get_secret_value(),
-) -> None:
+    openai_api_key: str | SecretStr | None = settings.OPENAI_API_KEY,
+) -> None | Any:
     # Init the LLM and embedding models
     try:
         llm_backend = LLMBackend(llm_backend)  # type: ignore
@@ -37,11 +39,16 @@ def get_llm(
                 "or set the OPENAI_API_KEY environment variable."
             )
 
+        api_key = (
+            openai_api_key.get_secret_value()
+            if isinstance(openai_api_key, SecretStr)
+            else openai_api_key
+        )
         return OpenAI(
             model=llm_model,
             temperature=0,
             seed=42,
-            api_key=openai_api_key,
+            api_key=api_key,
         )
 
     if llm_backend == LLMBackend.OLLAMA:
@@ -72,7 +79,7 @@ def get_embedding_model(
     embedding_model: str,
     llm_backend: LLMBackend | str,
     ollama_base_url: str | None = settings.OLLAMA_BASE_URL,
-    openai_api_key: str | None = settings.OPENAI_API_KEY.get_secret_value(),
+    openai_api_key: str | SecretStr | None = settings.OPENAI_API_KEY,
 ):
     """Returns the embedding model and to use
 
@@ -98,8 +105,12 @@ def get_embedding_model(
                 "❌ Missing OpenAI API key. Please pass it as an argument "
                 "or set the OPENAI_API_KEY environment variable."
             )
-
-        return OpenAIEmbedding(api_key=openai_api_key, model=embedding_model)
+        api_key = (
+            openai_api_key.get_secret_value()
+            if isinstance(openai_api_key, SecretStr)
+            else openai_api_key
+        )
+        return OpenAIEmbedding(api_key=api_key, model=embedding_model)
 
     elif llm_backend == LLMBackend.OLLAMA:
         from llama_index.embeddings.ollama import OllamaEmbedding

@@ -1,5 +1,6 @@
 from enum import Enum
 from pathlib import Path
+from typing import Callable
 
 from prefect import Flow
 
@@ -41,7 +42,7 @@ def get_shared_env():
     return env
 
 
-def unwrap_flow(flow: Flow) -> callable:
+def unwrap_flow(flow: Flow) -> Callable:
     """Unwraps a flow to get the original function and its code file path
 
     Args:
