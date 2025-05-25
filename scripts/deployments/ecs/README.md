@@ -1,6 +1,7 @@
 # 🌉 Deploying Prefect 3 Flows on AWS ECS Fargate
 
-This guide outlines the steps to deploy Prefect 3 flows on AWS ECS Fargate. It covers building and pushing Docker images, setting up AWS infrastructure, and configuring Prefect work pools.
+
+This guide outlines the steps to deploy [Prefect 3 flows on AWS ECS Fargate](https://prefecthq.github.io/prefect-aws/ecs_guide/). It covers building and pushing Docker images, setting up AWS infrastructure, and configuring Prefect work pools.
 
 ## Prerequisites
 
@@ -18,7 +19,7 @@ docker build -t dummy-prefect-flow .
 
 This command builds a Docker image named `dummy-prefect-flow` using the Dockerfile in the current directory.
 
-### b. Create an ECR Repository
+### b. [Create an ECR Repository](https://prefecthq.github.io/prefect-aws/ecs_guide/#2-create-an-ecr-repository)
 
 ```bash
 aws ecr create-repository --repository-name dummy-prefect-flow
@@ -45,7 +46,7 @@ Tags your local image with the ECR repository URI and pushes it to ECR.
 
 ## 2. Set Up AWS Infrastructure
 
-### a. Create an ECS Task Execution Role
+### a. [Create an IAM ECS Task Execution Role](https://prefecthq.github.io/prefect-aws/ecs_guide/#2-create-the-iam-roles)
 
 ```bash
 aws iam create-role \
@@ -69,7 +70,7 @@ EOF
 
 Creates an IAM role named `ecsTaskExecutionRole` that allows ECS tasks to assume the role.
 
-### b. Attach Policies to the Role
+### b. [Attach Policies to the Role](https://prefecthq.github.io/prefect-aws/ecs_guide/#3-attach-the-policy-to-the-role)
 
 ```bash
 aws iam attach-role-policy \
@@ -196,9 +197,9 @@ aws ec2 authorize-security-group-egress \
 
 Configures the security group to allow outbound HTTPS traffic and optionally all outbound traffic.
 
-## 3. Update Prefect Work Pool
+## 3. Prefect Work Pool
 
-### a. Create a Prefect ECS work pool
+### a. [Create a Prefect ECS work pool](https://prefecthq.github.io/prefect-aws/ecs_guide/#step-1-set-up-an-ecs-work-pool)
 
 ```bash
 prefect work-pool create --type ecs my-ecs-pool
