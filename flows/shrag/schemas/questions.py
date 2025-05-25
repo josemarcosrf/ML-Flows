@@ -7,6 +7,7 @@ from flows.shrag.schemas.answers import (
     CustomerInformation,
     DateAnswer,
     ExtractiveAnswer,
+    RiskAssesmentAnswer,
     SummaryAnswer,
     YesNoAnswer,
 )
@@ -21,6 +22,7 @@ class QuestionType(str, Enum):
     CATEGORICAL = "categorical"
     DATETIME = "datetime"
     EXTRACTIVE = "extractive"
+    RISK = "risk"
     SUMMARISATION = "summarisation"
     YES_NO = "yes/no"
 
@@ -62,10 +64,11 @@ QUESTION_FORMATS: dict[str, QuestionFormat] = {
         ),
         "schema": CustomerInformation,
     },
+    "risk": {"message": "...", "schema": RiskAssesmentAnswer},
     "categorical": {
         "message": (
-            "Tips: Make sure to answer with one the provided categories. If the answer "
-            "doesn't fall into one of the provided categories return None "
+            "Tips: Make sure that the answer category falls into one of the provided "
+            "categories. If the answer doesn't fall into one of them return None "
         ),
         "schema": None,  # This Answer model is defined @ question type
     },

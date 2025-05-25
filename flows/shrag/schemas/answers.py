@@ -19,9 +19,6 @@ class BaseAnswer(BaseModel):
         ...,
         description="Confidence value between 0-1 of the correctness of the result.",
     )
-    confidence_explanation: str = Field(
-        ..., description="Explanation for the confidence score"
-    )
 
     @field_validator("response")
     def convert_enum_to_str(cls, v):
@@ -59,6 +56,12 @@ class YesNoAnswer(BaseAnswer):
         ..., description="An Affirmative or Negative answer"
     )
 
+    def model_dump(self, *args, **kwargs):
+        data = super().model_dump(*args, **kwargs)
+        if isinstance(data.get("response"), Enum):
+            data["response"] = data["response"].value
+        return data
+
 
 class SummaryAnswer(BaseAnswer):
     # NOTE: Renamed from 'summary' to have a uniform output schema
@@ -66,10 +69,9 @@ class SummaryAnswer(BaseAnswer):
 
 
 class DateAnswer(BaseAnswer):
-    # NOTE: Renamed from 'date' to have a uniform output schema
-    response: str = Field(..., description="An extracted, well formatted date")
+    date: str = Field(..., description="An extracted, well formatted date")
 
-    @field_validator("response")
+    @field_validator("date")
     @classmethod
     def check_date_format(cls, value) -> str | None:
         try:
@@ -78,7 +80,20 @@ class DateAnswer(BaseAnswer):
             parser.parse(value)
             return value
         except (ValueError, TypeError):
-            logger.error(
+            logger.warning(
                 f"Error validating Date. '{value}' is not in a recognized date format"
             )
             return None
+
+
+class RiskAssesmentAnswer(BaseAnswer):
+    answer_category: str = Field(
+        ...,
+        description=(
+            "Category based on the given answer categories. "
+            "This category is to be matched based on the response and the provided categories"
+        ),
+    )
+    assigned_risk: int = Field(
+        ..., description="Risk assignation based on the answer category. From 0 to 100"
+    )

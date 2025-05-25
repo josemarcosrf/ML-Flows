@@ -7,6 +7,7 @@ from loguru import logger
 from prefect import task
 from pydantic import BaseModel
 
+from flows.shrag.schemas.answers import RiskAssesmentAnswer
 from flows.shrag.schemas.dynamic import create_categorical_schema
 from flows.shrag.schemas.questions import QUESTION_FORMATS, QuestionType
 
@@ -69,32 +70,51 @@ def build_question_library(
     """
     # Add the Answer Schema based on the extracted values
     q_collection = defaultdict(list)
-    for attr, qitem in playbook.items():
-        group = qitem["Group"]
-        q_type = qitem["QuestionType"].strip().lower()
-
-        if group:
-            group = group.strip()
-        if attr:
-            attr = attr.strip()
+    for i, (attr, p_item) in enumerate(playbook.items()):
+        attr = attr.strip()
+        group = p_item["group"]
+        question = p_item["question"]
+        q_type = p_item["question_type"].strip().lower()
+        categories = p_item.get("valid_answers", [])
+        risk_weights = p_item.get("risk_weights", [])
 
         if q_type == QuestionType.CATEGORICAL:
             # For Categorical questions we use a dynamic schema based on the valid answers
             answer_schema = create_categorical_schema(
-                qitem["ValidAnswers"],
+                categories,
                 attr,  # use attribute name as description
             )
+        elif q_type == QuestionType.RISK:
+            # NOTE: This is a bit hacky. We are altering the original question to embed
+            # the risk mapping directly as part of it
+            cls_to_risk_msg = "\n".join(
+                [
+                    f"category:{a} -> risk:{r}"
+                    for a, r in zip(categories, risk_weights, strict=True)
+                ]
+            )
+            question = (
+                f"{question}\n"
+                f"These are the valid answer categories and their associated risk:\n"
+                f"{cls_to_risk_msg}\n"
+            )
+            answer_schema = RiskAssesmentAnswer
         else:
             # For everything else we use a fixed Schema
             answer_schema = QUESTION_FORMATS[q_type]["schema"]
 
-        logger.debug(f"group: {group} | attr: {attr}")
+        summary = f"{i:03d}. G: {group} | A: {attr} | T: {q_type}"
+        if q_type == QuestionType.RISK:
+            summary += " | ✳️"
 
-        # NOTE: Non-hierarchical Qs live in their own 'group' which equals their 'attr'
+        logger.info(summary)
+
+        # Non-hierarchical Qs live in their own group which equals their attr
+        # NOTE: To understand `group`, `attr` and `key` see the 'Banneker_Playbook_v1.csv'
         q_collection[group or attr].append(
             QuestionItem(
-                key=attr or f"{group} - Yes/No",
-                question=qitem["Question"],
+                key=attr,
+                question=question,
                 question_type=q_type,
                 answer_schema=answer_schema,
             )

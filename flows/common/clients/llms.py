@@ -13,6 +13,32 @@ class LLMBackend(str, Enum):
     OLLAMA = "ollama"
 
 
+def embedding_model_info(embed_model: str) -> tuple[int, str]:
+    """
+    Get the model and embedding dimension and similarity function based on the
+    embedding model.
+    Args:
+        embed_model[str]: The embedding model to get information from.
+    Returns:
+        tuple: A tuple containing the embedding dimension and similarity function.
+    """
+    model_name = embed_model.model_name
+
+    if model_name == "text-embedding-3-small":
+        embedding_dim = 1536
+        similarity_function = "cosine"
+    elif model_name == "text-embedding-3":
+        embedding_dim = 1536
+        similarity_function = "cosine"
+    elif model_name == "cohere.embed-multilingual-v3":
+        embedding_dim = 1024
+        similarity_function = "cosine"
+    else:
+        raise ValueError(f"Unknown embedding model: {model_name}")
+
+    return embedding_dim, similarity_function
+
+
 @task(task_run_name="get_llm:[{llm_backend}]-{llm_model}")
 def get_llm(
     llm_model: str,
