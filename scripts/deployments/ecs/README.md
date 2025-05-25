@@ -210,7 +210,7 @@ prefect work-pool create --type ecs my-ecs-pool
 
 ```bash
 prefect work-pool update my-ecs-pool \
-    --base-job-template @ecs-job-template.json
+    --base-job-template ecs-pool-job-template.json
 ```
 
 Updates the Prefect work pool named `my-ecs-pool` with the specified base job template, configuring it to use the ECS cluster, task definition, and network settings you've set up.
