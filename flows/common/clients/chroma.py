@@ -4,6 +4,7 @@ import chromadb
 from llama_index.core import VectorStoreIndex
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from loguru import logger
+from pydantic import SecretStr
 from tabulate import tabulate
 from tqdm.rich import tqdm
 
@@ -113,7 +114,7 @@ class ChromaClient:
         embedding_model: str,
         backend: str | LLMBackend,
         ollama_base_url: str | None = settings.OLLAMA_BASE_URL,
-        openai_api_key: str | None = settings.OPENAI_API_KEY.get_secret_value(),
+        openai_api_key: str | SecretStr | None = settings.OPENAI_API_KEY,
     ) -> Callable:
         """Returns the embedding function for the database
 
@@ -154,8 +155,13 @@ class ChromaClient:
                     "or set the OPENAI_API_KEY environment variable."
                 )
 
+            api_key = (
+                openai_api_key.get_secret_value()
+                if isinstance(openai_api_key, SecretStr)
+                else openai_api_key
+            )
             return OpenAIEmbeddingFunction(
-                api_key=openai_api_key,
+                api_key=api_key,
                 model_name=embedding_model,
             )
         else:
