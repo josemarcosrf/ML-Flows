@@ -205,8 +205,21 @@ Configures the security group to allow outbound HTTPS traffic and optionally all
 prefect work-pool create --type ecs my-ecs-pool
 ```
 
-### b. Update the pool
-> To compose the ecs-job-template you can first check: `prefect work-pool inspect my-ecs-pool`
+### b. Update the pool configuration
+
+Here we modify, with respect the defaults, the values for:
+
+- `cpu`
+- `memory`
+- `name`
+- `vpc_id`
+- `cluster`
+- `task_definition_arn`
+
+> ⚠️ We provide the `task_definition_arn` to the **pool template**. This will apply to
+> each new task. Alternatively the deployment could specify the definition or a set of parameters
+
+> 💡 To compose the ecs-job-template you can first check: `prefect work-pool inspect my-ecs-pool`
 
 ```bash
 prefect work-pool update my-ecs-pool \

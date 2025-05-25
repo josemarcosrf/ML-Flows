@@ -42,7 +42,8 @@ deployments:
   work_pool:
     name: my-ecs-pool
     work_queue_name: null
-    job_variables:
-      task_definition_arn: "arn:aws:ecs:eu-central-1:677276117552:task-definition/prefect-fargate-task"
-      env:
-        AWS_DEFAULT_REGION: eu-central-1
+    job_variables: {}
+      # NOTE: If we don't specify a task definition, Prefect will use the Pool one
+      # task_definition_arn: "arn:aws:ecs:eu-central-1:677276117552:task-definition/prefect-fargate-task"
+      # env:
+      #   AWS_DEFAULT_REGION: eu-central-1

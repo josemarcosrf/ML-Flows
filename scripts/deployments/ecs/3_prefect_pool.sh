@@ -26,7 +26,6 @@ else
     # with your ECS settings
     echo "🔄 Updating Prefect work pool with ECS configuration..."
     prefect work-pool update ${POOL_NAME} \
-        --description "ECS Fargate Pool for Prefect" \
         --base-job-template scripts/deployments/ecs/ecs-pool-job-template.json
 fi
 
