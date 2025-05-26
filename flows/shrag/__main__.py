@@ -9,7 +9,7 @@ from flows.common.clients.vector_stores import VectorStoreBackend
 from flows.common.types import Playbook
 from flows.settings import settings
 from flows.shrag import playbook_qa
-from flows.shrag.playbook import build_question_library, read_playbook_json
+from flows.shrag.playbook import read_playbook_json
 
 
 def common_rag_options(func):
@@ -89,7 +89,7 @@ def run_playbook_qa_from_directory(
             playbook = Playbook(
                 id=Path(playbook_json).stem,
                 name=Path(playbook_json).stem,
-                definition=build_question_library(read_playbook_json(playbook_json)),
+                definition=read_playbook_json(playbook_json),
             )
 
             # Run the RAG dataflow
@@ -164,7 +164,7 @@ def run_playbook_qa(
     playbook = Playbook(
         id=Path(playbook_json).stem,
         name=Path(playbook_json).stem,
-        definition=build_question_library(read_playbook_json(playbook_json)),
+        definition=read_playbook_json(playbook_json),
     )
 
     # Run the RAG dataflow
@@ -182,6 +182,6 @@ def run_playbook_qa(
         vector_store_backend=vector_store_backend,
     )
     # Write the results to a file; concatenate the filters to the file name
-    filters = "_".join(f"{k}={v}" for k, v in meta_filters.items())
-    with open(f"{filters}_qa_results.json", "w") as f:
+    filters_str = "_".join(f"{k}={v}" for k, v in filters.items())
+    with open(f"{filters_str}_qa_results.json", "w") as f:
         f.write(json.dumps(res, indent=2))

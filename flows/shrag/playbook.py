@@ -72,11 +72,11 @@ def build_question_library(
     q_collection = defaultdict(list)
     for i, (attr, p_item) in enumerate(playbook.items()):
         attr = attr.strip()
-        group = p_item["group"]
-        question = p_item["question"]
-        q_type = p_item["question_type"].strip().lower()
-        categories = p_item.get("valid_answers", [])
-        risk_weights = p_item.get("risk_weights", [])
+        group = p_item["Group"]
+        question = p_item["Question"]
+        q_type = p_item["QuestionType"].strip().lower()
+        categories = p_item.get("ValidAnswers", [])
+        risk_weights = p_item.get("RiskWeights", [])
 
         if q_type == QuestionType.CATEGORICAL:
             # For Categorical questions we use a dynamic schema based on the valid answers

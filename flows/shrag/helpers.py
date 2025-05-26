@@ -70,7 +70,6 @@ def parse_answer(res: BaseAnswer) -> dict[str, Any]:
         return {
             "answer": answer,
             "confidence": res.confidence,
-            "confidence_explanation": res.confidence_explanation,
         }
     except Exception as e:
         # Otherwise send an empty but structure respecting response
@@ -78,11 +77,8 @@ def parse_answer(res: BaseAnswer) -> dict[str, Any]:
         return {
             "answer": "ERROR",
             "confidence": 0,
-            "confidence_explanation": "Error: {e}",
         }
 
 
 def print_answer(res: BaseAnswer, explain: bool = False) -> None:
     print("A: {answer} (confidence={confidence})".format(**parse_answer(res)))
-    if explain:
-        print(f"Explanation: {res.confidence_explanation}")

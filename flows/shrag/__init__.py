@@ -72,7 +72,7 @@ def playbook_qa(
         }
 
         # The callback task defined in a closure so that it can access the db and query.
-        @task(name="result_to_mongo", cache_policy=None)
+        @task(name="result_to_mongo")
         def _callback(update: dict[str, Any]):
             # Define a function to update the document in the MongoDB collection
             db.update_one(

@@ -20,7 +20,10 @@ def custom_task_run_name() -> str:
     return f"{function_name}={fname}"
 
 
-@task(log_prints=True, task_run_name=custom_task_run_name)
+@task(
+    log_prints=True,
+    task_run_name=custom_task_run_name,
+)
 def index_file(
     fpath: Path,
     doc_id: str,

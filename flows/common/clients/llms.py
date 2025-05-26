@@ -55,6 +55,7 @@ def get_llm(
         )
 
     logger.info(f"🔮 Getting ready {llm_backend.value} LLM ({llm_model})")
+
     if llm_backend == LLMBackend.OPENAI:
         from llama_index.llms.openai import OpenAI
 
@@ -90,6 +91,11 @@ def get_llm(
     if llm_backend == LLMBackend.AWS:
         from llama_index.llms.bedrock_converse import BedrockConverse
 
+        if not settings.AWS_ACCESS_KEY_ID or not settings.AWS_SECRET_ACCESS_KEY:
+            raise ValueError(
+                "❌ Missing AWS credentials. Please set the AWS_ACCESS_KEY_ID and "
+                "AWS_SECRET_ACCESS_KEY environment variables."
+            )
         if not settings.AWS_REGION:
             raise ValueError(
                 "❌ Missing AWS region. Please set the AWS_REGION environment variable."
@@ -97,8 +103,8 @@ def get_llm(
 
         return BedrockConverse(
             model=llm_model,
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID.get_secret_value(),
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY.get_secret_value(),
             region_name=settings.AWS_REGION,
             max_tokens=32768,
             timeout=120,
