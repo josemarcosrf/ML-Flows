@@ -60,8 +60,6 @@ def index_docfiles(
 
     paths = gather_files(file_or_dir, gather_glob)
     index_files(
-        client_id,
+        client_id=client_id,
         file_paths=paths,
-        # collection_name=collection_name
-        # or f"{client_id}-{settings.LLM_BACKEND}-{settings.EMBEDDING_MODEL}",
     )

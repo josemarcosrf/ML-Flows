@@ -56,6 +56,7 @@ class Settings(BaseSettings):
     MONGO_DB: str | None = None
     MONGO_DOC_COLLECTION: str = "documents"
     MONGO_RESULTS_COLLECTION: str = "results"
+    MONGO_VECTOR_COLLECTION: str = "embeddings"
     MONGO_VECTOR_INDEX_NAME: str = "vector_index"
 
     # LLM configuration

@@ -1,11 +1,27 @@
 import inspect
 from pathlib import Path
+from urllib.parse import urlparse, urlunparse
 
 from loguru import logger
 
 
 def noop(*args, **kwargs):
     pass
+
+
+def sanitize_uri(uri: str) -> str:
+    # Strip password from URI before logging
+    parsed = urlparse(uri)
+    if parsed.password:
+        # Remove password from netloc
+        netloc = parsed.netloc.replace(f":{parsed.password}", "<PWD>")
+        if parsed.username:
+            netloc = netloc.replace(f"{parsed.username}@", f"{parsed.username}@")
+        sanitized_uri = urlunparse(parsed._replace(netloc=netloc))
+    else:
+        sanitized_uri = uri
+
+    return sanitized_uri
 
 
 def pub_and_log(client_id, pubsub: bool = False):

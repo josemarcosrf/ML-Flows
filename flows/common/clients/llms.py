@@ -171,7 +171,7 @@ def get_embedding_model(
                 "❌ Missing AWS region. Please set the AWS_REGION environment variable."
             )
         return BedrockEmbedding(
-            model=embedding_model,
+            model_name=embedding_model,
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID.get_secret_value(),
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY.get_secret_value(),
             region_name=settings.AWS_REGION,

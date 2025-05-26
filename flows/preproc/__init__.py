@@ -21,33 +21,27 @@ from flows.settings import settings
 def index_files(
     client_id: str,
     file_paths: list[str],
-    metadatas: list[dict] = [],
-    vector_store_backend: str = settings.VECTOR_STORE_BACKEND,
-    llm_backend: str = settings.LLM_BACKEND,
-    embedding_model: str = settings.EMBEDDING_MODEL,
+    embedding_model_name: str = settings.EMBEDDING_MODEL,
     chunk_size: int = settings.CHUNK_SIZE,
     chunk_overlap: int = settings.CHUNK_OVERLAP,
+    llm_backend: str = settings.LLM_BACKEND,
+    vector_store_backend: str = settings.VECTOR_STORE_BACKEND,
     pubsub: bool = False,
+    metadatas: list[dict] = [],
 ):
     """Index all the files in the data directory
 
     Args:
         client_id (str): Client ID
         file_paths (list[str]): List of file paths to index
-        vector_store_backend (str, optional): Vector store backend to use.
-            Defaults to settings.VECTOR_STORE_BACKEND.
-        metadatas (list[dict], optional): List of metadata dictionaries for each file.
-            Defaults to [].
-        llm_backend (str, optional): LLM backend to use.
-            Defaults to settings.LLM_BACKEND.
-        embedding_model (str, optional): Embedding model to use.
-            Defaults to settings.EMBEDDING_MODEL.
+        embedding_model_name (str, optional): Embedding model to use.
         chunk_size (int, optional): Size of the chunks to split the documents into.
-            Defaults to settings.CHUNK_SIZE.
         chunk_overlap (int, optional): Overlap between the chunks.
-            Defaults to settings.CHUNK_OVERLAP.
+        llm_backend (str, optional): LLM backend to use.
+        vector_store_backend (str, optional): Vector store backend to use.
         pubsub (bool, optional): Whether to use Pub/Sub for updates.
             Defaults to False.
+        metadatas (list[dict], optional): List of metadata dictionaries for each file.
     """
     from flows.preproc.index import index_file
 
@@ -81,14 +75,18 @@ def index_files(
     tasks = []
 
     if vector_store_backend == VectorStoreBackend.MONGO:
-        collection_name = settings.MONGO_DOC_COLLECTION
+        collection_name = settings.MONGO_VECTOR_COLLECTION
     else:
-        collection_name = f"{client_id}-{vector_store_backend}-{embedding_model}"
+        collection_name = f"{client_id}-{llm_backend}-{embedding_model_name}"
 
     for i, (fpath, doc_id) in enumerate(zip(full_paths, doc_ids)):
         # Launch the indexing tasks
         try:
-            pub("®️ Registering file...", doc_name=fpath.stem, doc_id=doc_id)
+            pub(
+                "®️ Registering file in the database...",
+                doc_name=fpath.stem,
+                doc_id=doc_id,
+            )
             # Insert the document metadata into the MongoDB collection
             update_doc_db(
                 doc_id,
@@ -108,9 +106,10 @@ def index_files(
             future = index_file.submit(
                 fpath=fpath,
                 doc_id=doc_id,
+                collection_name=collection_name,
                 vector_store_backend=vector_store_backend,
                 llm_backend=llm_backend,
-                embedding_model=embedding_model,
+                embedding_model_name=embedding_model_name,
                 chunk_size=chunk_size,
                 chunk_overlap=chunk_overlap,
                 metadata=metadatas[i] if metadatas else {},

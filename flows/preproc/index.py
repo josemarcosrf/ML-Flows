@@ -24,11 +24,12 @@ def custom_task_run_name() -> str:
 def index_file(
     fpath: Path,
     doc_id: str,
-    vector_store_backend: str,
-    llm_backend: str,
-    embedding_model: str,
+    collection_name: str,
+    embedding_model_name: str,
     chunk_size: int,
     chunk_overlap: int,
+    llm_backend: str,
+    vector_store_backend: str,
     metadata: dict = {},
 ) -> int:
     """Index a single file in ChromaDB.
@@ -58,35 +59,43 @@ def index_file(
         text=text,
         extra_info={
             "name": fpath.stem,
+            "llm_backend": llm_backend,
+            "vector_store_backend": vector_store_backend,
+            "embedding_model": embedding_model_name,
+            "chunk_size": chunk_size,
+            "chunk_overlap": chunk_overlap,
             **metadata,
         },
     )
     # Index the document
     return index_document.submit(
         doc=doc,
-        vector_store_backend=vector_store_backend,
-        llm_backend=llm_backend,
-        embedding_model=embedding_model,
+        collection_name=collection_name,
+        embedding_model_name=embedding_model_name,
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
+        llm_backend=llm_backend,
+        vector_store_backend=vector_store_backend,
     ).result()
 
 
 @task
 def index_document(
     doc: Document,
-    vector_store_backend: str,
-    llm_backend: str,
-    embedding_model: str,
+    collection_name: str,
+    embedding_model_name: str,
     chunk_size: int,
     chunk_overlap: int,
+    llm_backend: str,
+    vector_store_backend: str,
 ) -> int:
-    """Index a single document in ChromaDB. This task is responsible for splitting the
-    document into chunks, embedding the chunks, and inserting them into the
-    ChromaDB collection.
+    """Index a single document.
+    This task is responsible for splitting the document into chunks,
+    embedding the chunks, and inserting them into the vector store.
 
     Args:
         docs (Document): Document object to index
+        collection_name (str): Name of the collection to insert the document into
         vector_store_backend (str): Vector store backend to use. One of chroma, mongo
         llm_backend (str): LLM backend to use. One of openai, ollama
         embedding_model (str): Embedding model to use.
@@ -97,9 +106,16 @@ def index_document(
         int: Number of nodes inserted
     """
 
+    logger.info(f"Indexing document {doc.doc_id} with {len(doc.text)} characters.")
+    logger.info(
+        f"Using collection '{collection_name}' "
+        f"with vector store backend '{vector_store_backend}' "
+        f"and LLM backend '{llm_backend}' (model={embedding_model_name})."
+    )
+
     # Get the embedding model and connect to the VectorStore
-    embed_model = get_embedding_model(embedding_model, llm_backend)
-    store = get_vector_store(vector_store_backend, embed_model)
+    embed_model = get_embedding_model(embedding_model_name, llm_backend)
+    vec_store = get_vector_store(vector_store_backend, embed_model)
 
     # Insertion pipeline
     pipeline = IngestionPipeline(
@@ -110,12 +126,9 @@ def index_document(
     )
 
     # Get the index from the vector store
-    if not store.index_exists():
-        index = store.create_index()
-    else:
-        index = store.get_index()
+    index = vec_store.get_index(collection_name, create_if_not_exists=True)
 
-    if existing_nodes := store.get_doc(doc.doc_id):
+    if existing_nodes := vec_store.get_doc(doc.doc_id, collection_name=collection_name):
         logger.info(
             f"Found {len(existing_nodes)} for document {doc.doc_id}. Skipping indexing."
         )
