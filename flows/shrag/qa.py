@@ -147,7 +147,6 @@ class QAgent:
             return BaseAnswer(
                 response=f"Error answering q={q.key}",
                 confidence=0.0,
-                confidence_explanation=str(e),
             )
 
     @task(task_run_name=generate_ask_run_name)

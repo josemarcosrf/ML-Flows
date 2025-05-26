@@ -41,10 +41,9 @@ class VectorStore:
     def get_doc(self, doc_id: str, collection_name: str, **kwargs) -> list | None:
         raise NotImplementedError
 
-    def get_index(self, collection_name: str, **kwargs):
-        raise NotImplementedError
-
-    def create_index(self, collection_name: str, **kwargs):
+    def get_index(
+        self, collection_name: str, create_if_not_exists: bool = False, **kwargs
+    ):
         raise NotImplementedError
 
     def print_collection(
