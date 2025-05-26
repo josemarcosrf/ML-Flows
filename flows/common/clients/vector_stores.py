@@ -24,14 +24,10 @@ class VectorStoreIndexNotFoundError(Exception):
     """Exception raised when a vector store index is not found."""
 
     def __init__(self, collection_name: str, index_name: str):
-        if index_name:
-            msg = (
-                f"💥 Vector store index '{index_name}' not found in "
-                f"collection '{collection_name}'"
-            )
-        else:
-            msg = f"💥 Vector store index not found in collection '{collection_name}'"
-        super().__init__(msg)
+        super().__init__(
+            f"💥 Vector store index '{index_name}' not found in "
+            f"collection '{collection_name}'"
+        )
         self.collection_name = collection_name
         self.index_name = index_name
 
@@ -275,9 +271,20 @@ class ChromaVectorStore(VectorStore):
         from llama_index.vector_stores.chroma import ChromaVectorStore as CVS
 
         self.embed_model = embed_model
-        self.db = chromadb.HttpClient(host, port)
+        self.db = chromadb.HttpClient(host, int(port))
         logger.info(f"🔌 Connected to ChromaDB at {host}:{port}")
         self._CVS = CVS
+
+    def _collection_exists(self, collection_name: str) -> bool:
+        """Check if a collection exists in the ChromaDB database.
+
+        Args:
+            collection_name (str): Name of the collection to check.
+
+        Returns:
+            bool: True if the collection exists, False otherwise.
+        """
+        return collection_name in self.db.list_collections()
 
     def _create_collection(
         self,
@@ -291,7 +298,7 @@ class ChromaVectorStore(VectorStore):
             embed_fn (Callable): Embedding function to use for the collection
         """
         # Check if the collection already exists
-        if collection_name in self.db.list_collections():
+        if self._collection_exists(collection_name):
             raise ValueError(f"💥 Collection {collection_name} already exists!")
 
         # Get the embedding function based on the embed model
@@ -362,8 +369,7 @@ class ChromaVectorStore(VectorStore):
         Returns:
             bool: True if the index exists, False otherwise.
         """
-        col = self.db.get_collection(collection_name)
-        return col.count() > 0
+        return self._collection_exists(collection_name)
 
     def _create_index(self, collection_name: str, **kwargs):
         """Creating a vector index in ChromaDB is really just creating a collection.
@@ -380,14 +386,12 @@ class ChromaVectorStore(VectorStore):
         if not self._index_exists(collection_name):
             if create_if_not_exists:
                 logger.info(
-                    f"💥 Collection {collection_name} does not exist! "
+                    f"✨ Collection {collection_name} does not exist! "
                     "Creating a new collection."
                 )
                 self._create_collection(collection_name=collection_name)
             else:
-                raise VectorStoreIndexNotFoundError(
-                    collection_name=collection_name, index_name=""
-                )
+                raise CollectionNotFoundError(collection_name=collection_name)
 
         vector_store = self._get_vector_store(collection_name)
         return VectorStoreIndex.from_vector_store(

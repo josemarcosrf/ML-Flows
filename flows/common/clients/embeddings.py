@@ -37,7 +37,8 @@ def get_embedding_function(
     elif backend == LLMBackend.AWS:
         import boto3
         from botocore.client import Config
-        from chromadb.utils.embedding_functions import BedrockEmbeddingFunction
+
+        from flows.common.clients.chroma import BedrockEmbeddingFunction
 
         if not settings.AWS_REGION:
             raise RuntimeError(

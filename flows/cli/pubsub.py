@@ -18,15 +18,18 @@ def handle_message(*args):
 @click.group("pubsub")
 @click.option("--host", default=settings.REDIS_HOST)
 @click.option("--port", default=settings.REDIS_PORT)
-def pubsub_cli(host, port):
+@click.pass_context
+def pubsub_cli(ctx, host, port):
     """Redis PubSub CLI"""
-    global client
-    client = RedisPubSubClient(host, port)
+    ctx.ensure_object(dict)
+    ctx.obj["client"] = RedisPubSubClient(host, port)
 
 
 @pubsub_cli.command()
 @click.argument("channel", type=str)
-def sub(channel):
+@click.pass_context
+def sub(ctx, channel):
+    client = ctx.obj["client"]
     client.subscribe(channel, handle_message)
 
     # Keep the program running to receive messages
@@ -41,10 +44,9 @@ def sub(channel):
 @pubsub_cli.command()
 @click.argument("channel", type=str)
 @click.argument("message", type=str)
-def pub(channel, message):
+@click.pass_context
+def pub(ctx, channel, message):
+    client = ctx.obj["client"]
     client.publish(channel, message)
     # Publish a message
     print(f"📤 Published message to channel {channel}: {message}")
-
-
-client = None

@@ -76,6 +76,8 @@ def index_files(
 
     if vector_store_backend == VectorStoreBackend.MONGO:
         collection_name = settings.MONGO_VECTOR_COLLECTION
+    elif vector_store_backend == VectorStoreBackend.CHROMA:
+        collection_name = settings.CHROMA_COLLECTION
     else:
         collection_name = f"{client_id}-{llm_backend}-{embedding_model_name}"
 
