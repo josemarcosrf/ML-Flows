@@ -81,7 +81,7 @@ def gather_files(file_or_dir: str, gather_glob: list[str]) -> list[str]:
             else:
                 print(f"🫙 No files found in {in_path} matching {gather_glob}")
         else:
-            print("📄 Converting a single PDF file to markdown...")
+            print("📄 Gathered a single file...")
             files = [file_or_dir]
 
     return files

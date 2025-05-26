@@ -159,10 +159,21 @@ def get_embedding_model(
     elif llm_backend == LLMBackend.AWS:
         from llama_index.embeddings.bedrock import BedrockEmbedding
 
+        # When LLM_Backend == "aws", we know that the AWS credentials are set
+        # but let's check them anyways
+        if not settings.AWS_ACCESS_KEY_ID or not settings.AWS_SECRET_ACCESS_KEY:
+            raise ValueError(
+                "❌ Missing AWS credentials. Please set the AWS_ACCESS_KEY_ID and "
+                "AWS_SECRET_ACCESS_KEY environment variables."
+            )
+        if not settings.AWS_REGION:
+            raise ValueError(
+                "❌ Missing AWS region. Please set the AWS_REGION environment variable."
+            )
         return BedrockEmbedding(
             model=embedding_model,
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID.get_secret_value(),
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY.get_secret_value(),
             region_name=settings.AWS_REGION,
         )
 

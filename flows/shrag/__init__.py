@@ -3,7 +3,7 @@ from typing import Any
 from loguru import logger
 from prefect import Flow, flow, task
 
-from flows.common.clients.mongodb import MongoDBClient
+from flows.common.clients.mongo import MongoDBClient
 from flows.common.helpers import pub_and_log
 from flows.common.types import Playbook
 from flows.settings import settings
