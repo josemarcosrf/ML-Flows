@@ -12,8 +12,12 @@ class YesNoEnum(Enum):
 
 
 class BaseAnswer(BaseModel):
-    response: str | Enum = Field(
-        ..., description="Field to be overriden by the sub-class"
+    response: str = Field(
+        ...,
+        description=(
+            "A concise, yet complete response to the user query. "
+            "This is the response that a human would want."
+        ),
     )
     confidence: float = Field(
         ...,
@@ -63,9 +67,9 @@ class YesNoAnswer(BaseAnswer):
         return data
 
 
-class SummaryAnswer(BaseAnswer):
-    # NOTE: Renamed from 'summary' to have a uniform output schema
-    response: str = Field(..., description="A concise yet complete summary")
+class SummaryAnswer(
+    BaseAnswer
+): ...  # No additional fields, inherits from BaseAnswer. Mostly as a placeholder for old playbooks.
 
 
 class DateAnswer(BaseAnswer):

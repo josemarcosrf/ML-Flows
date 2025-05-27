@@ -9,7 +9,6 @@ from flows.common.clients.vector_stores import VectorStoreBackend
 from flows.common.types import Playbook
 from flows.settings import settings
 from flows.shrag import playbook_qa
-from flows.shrag.playbook import read_playbook_json
 
 
 def common_rag_options(func):
@@ -86,11 +85,7 @@ def run_playbook_qa_from_directory(
             print(f"⚙️ Processing {fname}")
 
             # Read the playbook JSON file
-            playbook = Playbook(
-                id=Path(playbook_json).stem,
-                name=Path(playbook_json).stem,
-                definition=read_playbook_json(playbook_json),
-            )
+            playbook = Playbook.from_json_file(playbook_json)
 
             # Run the RAG dataflow
             meta_filters = {"name": fname}
@@ -161,11 +156,7 @@ def run_playbook_qa(
     filters = dict(param.split(":") for param in meta_filters) if meta_filters else {}
 
     # Read the playbook JSON file
-    playbook = Playbook(
-        id=Path(playbook_json).stem,
-        name=Path(playbook_json).stem,
-        definition=read_playbook_json(playbook_json),
-    )
+    playbook = Playbook.from_json_file(playbook_json)
 
     # Run the RAG dataflow
     res = playbook_qa(

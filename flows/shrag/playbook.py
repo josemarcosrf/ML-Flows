@@ -1,7 +1,6 @@
 import json
 from collections import defaultdict
 from hashlib import sha1
-from pathlib import Path
 
 from loguru import logger
 from prefect import task
@@ -30,17 +29,6 @@ def q_library_hash(q_library) -> str:
                 d[k][i]["answer_schema"] = str(q["answer_schema"])
 
     return sha1(json.dumps(d).encode()).hexdigest()
-
-
-def read_playbook_json(playbook_json: Path | str) -> dict[str, dict[str, str]]:
-    """Reads the playbook JSON file and returns the contents as a dictionary.
-
-    Args:
-        playbook_json (str): Path to the playbook JSON file
-    Returns:
-        dict[str, dict[str, str]]: Playbook JSON contents
-    """
-    return json.load(Path(playbook_json).open())
 
 
 @task

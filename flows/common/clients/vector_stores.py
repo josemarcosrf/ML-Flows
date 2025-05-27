@@ -56,6 +56,8 @@ class VectorStore:
 
 
 class MongoVectorStore(VectorStore):
+    DEFAULT_INDEX_FIELDS = ["metadata.doc_id", "metadata.name"]
+
     def __init__(
         self,
         embed_model,
@@ -147,7 +149,7 @@ class MongoVectorStore(VectorStore):
         self,
         collection_name: str,
         vector_index_name: str,
-        index_filters: list[str] = ["name", "subdir"],
+        index_filters: list[str] = DEFAULT_INDEX_FIELDS,
     ) -> VectorStoreIndex:
         """Create a vector index for the specified collection.
         This method checks if the index already exists, and if not, creates it
@@ -201,7 +203,11 @@ class MongoVectorStore(VectorStore):
             logger.warning("🗂️  Non existing / Empty Index!")
             if create_if_not_exists:
                 return self._create_index(
-                    collection_name=collection_name, vector_index_name=vector_index_name
+                    collection_name=collection_name,
+                    vector_index_name=vector_index_name,
+                    index_filters=kwargs.get(
+                        "index_filters", self.DEFAULT_INDEX_FIELDS
+                    ),
                 )
             else:
                 raise VectorStoreIndexNotFoundError(

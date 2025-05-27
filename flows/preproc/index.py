@@ -108,14 +108,12 @@ def index_document(
     Returns:
         int: Number of nodes inserted
     """
-
     logger.info(f"Indexing document {doc.doc_id} with {len(doc.text)} characters.")
     logger.info(
         f"Using collection '{collection_name}' "
         f"with vector store backend '{vector_store_backend}' "
         f"and LLM backend '{llm_backend}' (model={embedding_model_name})."
     )
-
     # Get the embedding model and connect to the VectorStore
     embed_model = get_embedding_model(embedding_model_name, llm_backend)
     vec_store = get_vector_store(vector_store_backend, embed_model)
@@ -129,7 +127,11 @@ def index_document(
     )
 
     # Get the index from the vector store
-    index = vec_store.get_index(collection_name, create_if_not_exists=True)
+    index = vec_store.get_index(
+        collection_name,
+        create_if_not_exists=True,
+        index_filters=[f"metadata.{field}" for field in doc.metadata.keys()],
+    )
 
     if existing_nodes := vec_store.get_doc(doc.doc_id, collection_name=collection_name):
         logger.info(
