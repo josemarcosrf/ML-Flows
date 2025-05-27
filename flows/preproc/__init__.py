@@ -55,8 +55,16 @@ def index_files(
         )
         logger.debug(f"DB update results: {res}")
 
-    if metadatas and len(metadatas) != len(file_paths):
-        raise ValueError("⚠️ Length of metadatas should match the length of file_paths")
+    if metadatas:
+        if len(metadatas) != len(file_paths):
+            raise ValueError(
+                "⚠️ Length of metadatas should match the length of file_paths"
+            )
+
+        for i in range(len(metadatas)):
+            metadatas[i].update({"client_id": client_id})
+    else:
+        metadatas = [{"client_id": client_id} for _ in file_paths]
 
     # Define a pubsub function that combine the logger and the publisher
     pub = pub_and_log(client_id, pubsub)

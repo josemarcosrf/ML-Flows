@@ -56,7 +56,7 @@ class VectorStore:
 
 
 class MongoVectorStore(VectorStore):
-    DEFAULT_INDEX_FIELDS = ["metadata.doc_id", "metadata.name"]
+    DEFAULT_INDEX_FIELDS = ["metadata.client_id", "metadata.doc_id", "metadata.name"]
 
     def __init__(
         self,
