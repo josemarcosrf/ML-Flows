@@ -31,14 +31,19 @@ pull:
 
 # the deployments section allows you to provide configuration for deploying flows
 deployments:
-- name: fargate-dummy
+- # base metadata
+  name: fargate-dummy
   version: "0.1.0"
   tags: ["fargate", "dummy", "test"]
   description: "Dummy flow for testing Fargate deployments"
   schedule: {}
   flow_name: hello
+
+  # Flow parameters
   entrypoint: /app/flows/examples/hello_flow.py:hello
   parameters: {}
+
+  # infra-specific fields
   work_pool:
     name: my-ecs-pool
     work_queue_name: null
@@ -47,3 +52,69 @@ deployments:
       # task_definition_arn: "arn:aws:ecs:eu-central-1:677276117552:task-definition/prefect-fargate-task"
       # env:
       #   AWS_DEFAULT_REGION: eu-central-1
+
+- # base metadata
+  name: preproc.deus.dev
+  version: "0.1.0"
+  tags: ["fargate", "deus", "dev"]
+  description: "Document ingestion & indexing flow for Deus API"
+  schedule: {}
+  flow_name: index
+
+  # Flow parameters
+  entrypoint: /app/flows/preproc/__init__.py:index_files
+  parameters: {}
+
+  # infra-specific fields
+  work_pool:
+    name: my-ecs-pool
+    work_queue_name: null
+    job_variables:
+      env:
+        # AWS configuration
+        AWS_DEFAULT_REGION: eu-central-1 # For Fargate
+        AWS_REGION: us-east-1 # For Bedrock
+        AWS_ACCESS_KEY_ID: '{{ secrets.AWS_ACCESS_KEY_ID }}'
+        AWS_SECRET_ACCESS_KEY: '{{ secrets.AWS_SECRET_ACCESS_KEY }}'
+        # Backends configuration
+        VECTOR_STORE_BACKEND: "{{ $VECTOR_STORE_BACKEND }}"
+        LLM_BACKEND: "{{ $LLM_BACKEND }}"
+        # MongoDB connection details
+        MONGO_URI: "{{ $MONGO_URI }}"
+        MONGO_DB: "{{ $MONGO_DB }}"
+        # Models
+        EMBEDDING_MODEL: "{{ $EMBEDDING_MODEL }}"
+        LLM_MODEL: "{{ $LLM_MODEL }}"
+
+- # base metadata
+  name: shrag.deus.dev
+  version: "0.1.0"
+  tags: ["fargate", "deus", "dev"]
+  description: "Document RAG QA Deus API"
+  schedule: {}
+  flow_name: playbook_qa
+
+  # Flow parameters
+  entrypoint: /app/flows/shrag/__init__.py:playbook_qa
+  parameters: {}
+
+  # infra-specific fields
+  work_pool:
+    name: my-ecs-pool
+    work_queue_name: null
+    job_variables:
+      env:
+        # AWS configuration
+        AWS_DEFAULT_REGION: eu-central-1 # For Fargate
+        AWS_REGION: us-east-1 # For Bedrock
+        AWS_ACCESS_KEY_ID: "{{ $AWS_ACCESS_KEY_ID }}"
+        AWS_SECRET_ACCESS_KEY: "{{  $AWS_SECRET_ACCESS_KEY }}"
+        # Backends configuration
+        VECTOR_STORE_BACKEND: "{{ $VECTOR_STORE_BACKEND }}"
+        LLM_BACKEND: "{{ $LLM_BACKEND }}"
+        # MongoDB connection details
+        MONGO_URI: "{{ $MONGO_URI }}"
+        MONGO_DB: "{{ $MONGO_DB }}"
+        # Models
+        EMBEDDING_MODEL: "{{ $EMBEDDING_MODEL }}"
+        LLM_MODEL: "{{ $LLM_MODEL }}"

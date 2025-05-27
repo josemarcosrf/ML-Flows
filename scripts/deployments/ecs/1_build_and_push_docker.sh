@@ -6,10 +6,12 @@
 
 set -e
 
+# 👇 ================ Configuration - Update these values =================👇
 # Configuration - Update these values
 AWS_REGION="eu-central-1"
 AWS_ACCOUNT_ID="677276117552"
 ECR_REPO_NAME="dummy-prefect-flow"
+# 👆 ================ Configuration - Update these values =================👆
 
 echo "🚀 Starting Docker creation, tagging and push..."
 
