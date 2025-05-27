@@ -248,7 +248,7 @@ class QAgent:
                     )
                 except Exception as e:
                     logger.error(f"❌ Error asking '{q.key}': {e}")
-                finally:
+                else:
                     # Update the answer in MongoDB and publish the progress
                     answer_callback_task({f"answers.{q.key}": parse_answer(answer)})
 
@@ -264,7 +264,7 @@ class QAgent:
                         )
                 except Exception as e:
                     logger.error(f"❌ Error asking group '{q.key}': {e}")
-                finally:
+                else:
                     for key, ans in group_responses.items():
                         answer_callback_task(
                             update={f"answers.{key}": parse_answer(ans)}

@@ -19,6 +19,8 @@ dependencies = [
     "rich>=13.9.4",
     "tabulate>=0.9.0",
     "docling-core>=2.24.1",
+    "docling>=2.34.0",
+    "tokenizers<0.20,>=0.19",
 ]
 requires-python = "==3.12.*"
 readme = "README.md"

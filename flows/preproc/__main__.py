@@ -32,8 +32,8 @@ def docfile_to_markdown(
     """
     from flows.preproc.convert import docling_2_md
 
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
     for file in gather_files(file_or_dir, gather_glob):
         try:
             markdown = docling_2_md(file, parser_base_url)
@@ -41,7 +41,7 @@ def docfile_to_markdown(
             print(f"💥 Failed to convert {file} to markdown: {e}")
         else:
             file_name = file.split("/")[-1].replace(".pdf", "")
-            out_path = output_dir / (file_name + ".md")
+            out_path = out_dir / (file_name + ".md")
             with out_path.open("w") as outfile:
                 outfile.write(markdown + "\n")
 
@@ -49,7 +49,7 @@ def docfile_to_markdown(
 @preproc_cli.command()
 @click.argument("client_id", type=str)
 @click.argument("file_or_dir", type=str)
-@click.option("-g", "--gather-glob", type=str, multiple=True, default=["*.pdf"])
+@click.option("-g", "--gather-glob", type=str, multiple=True, default=["*.*"])
 def index_docfiles(
     client_id: str,
     file_or_dir: str,
