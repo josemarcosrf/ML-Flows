@@ -60,6 +60,8 @@ def pub_and_log(client_id, pubsub: bool = False):
         _logger(msg)
 
         if pubsub:
+            nonlocal pub
+            # Publish the update using the UpdatePublisher
             pub.publish_update(msg, doc_id, **extra)
 
     return _pub_and_log

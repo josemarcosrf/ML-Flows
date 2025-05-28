@@ -15,7 +15,7 @@ class RedisPubSubClient:
         host: str = settings.REDIS_HOST,
         port: int = settings.REDIS_PORT,
         db: int = 0,
-        password: str = None,
+        password: str | None = None,
         use_ssl: bool = False,
     ):
         """Initialize Redis connection parameters (but don't connect yet).
@@ -187,9 +187,13 @@ class UpdatePublisher(RedisPubSubClient):
         host: str = settings.REDIS_HOST,
         port: int = settings.REDIS_PORT,
         db: int = 0,
-        password: str = None,
+        password: str | None = None,
     ):
         """Initialize the UpdatePublisher."""
+        password = password or (
+            settings.REDIS_PWD.get_secret_value() if settings.REDIS_PWD else None
+        )
+
         super().__init__(host, port, db, password)
         self.client_id = client_id
 

@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     # Redis configuration (pub/sub)
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
+    REDIS_PWD: SecretStr | None = None
 
     # Vector store configuration
     VECTOR_STORE_BACKEND: str = "mongo"  # Options: "mongo", "chroma"
