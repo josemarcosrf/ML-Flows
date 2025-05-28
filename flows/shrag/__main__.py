@@ -5,16 +5,24 @@ from pathlib import Path
 import click
 
 from flows.common.clients.llms import LLMBackend
+from flows.common.clients.vector_stores import VectorStoreBackend
+from flows.common.types import Playbook
 from flows.settings import settings
 from flows.shrag import playbook_qa
 
 
 def common_rag_options(func):
-    @click.argument("chroma_collection")
-    @click.option("--chroma-host", default=settings.CHROMA_HOST)
-    @click.option("--chroma-port", type=int, default=settings.CHROMA_PORT)
+    @click.argument("client_id")
+    @click.argument("playbook_json")
     @click.option(
-        "--llm-backend", default=settings.LLM_BACKEND, type=click.Choice(LLMBackend)
+        "--vector-store-backend",
+        default=settings.VECTOR_STORE_BACKEND,
+        type=click.Choice([e.value for e in VectorStoreBackend]),
+    )
+    @click.option(
+        "--llm-backend",
+        default=settings.LLM_BACKEND,
+        type=click.Choice([e.value for e in LLMBackend]),
     )
     @click.option("--llm-model", default=settings.LLM_MODEL)
     @click.option("--embedding-model", default=settings.EMBEDDING_MODEL)
@@ -28,7 +36,7 @@ def common_rag_options(func):
     return wrapper
 
 
-@click.group()
+@click.group("rag")
 def shrag_cli():
     """Structured RAG CLI"""
 
@@ -36,16 +44,14 @@ def shrag_cli():
 @shrag_cli.command()
 @click.argument("input-directory")
 @click.argument("output-directory")
-@click.argument("playbook_json")
 @common_rag_options
-@click.option("-fg", "--file-glob", default="*.canonical.pdf", help="File glob pattern")
+@click.option("-fg", "--file-glob", default="*.pdf", help="File glob pattern")
 def run_playbook_qa_from_directory(
+    client_id: str,
     input_directory: str,
     output_directory: str,
     playbook_json: str,
-    chroma_collection: str,
-    chroma_host: str,
-    chroma_port: int,
+    vector_store_backend: str,
     llm_backend: str,
     llm_model: str,
     embedding_model: str,
@@ -59,9 +65,7 @@ def run_playbook_qa_from_directory(
 
     Args:
         directory (str): Path to the directory containing playbook JSON files.
-        chroma_collection (str): Name of the collection to use.
-        chroma_host (str, optional): ChromaDB host. Defaults to "localhost".
-        chroma_port (int, optional): ChromaDB port. Defaults to 8000.
+        collection (str): Name of the embedding collection to use.
         llm_backend (str, optional): LLM backend to use. Defaults to "openai".
         llm_model (str, optional): LLM model to use. Defaults to "gpt-4o".
         embedding_model (str, optional): Embedding model to use. Defaults to "text-embedding-3-small".
@@ -70,7 +74,6 @@ def run_playbook_qa_from_directory(
         similarity_cutoff (float, optional): Similarity cutoff for retrieval. Defaults to 0.3.
         file_glob (str, optional): File glob pattern. Defaults to "*.canonical.pdf".
     """
-    from flows.shrag.playbook import build_question_library, read_playbook_json
 
     # Iterate over all Document files in the directory
     for filename in Path(input_directory).rglob(file_glob):
@@ -80,37 +83,35 @@ def run_playbook_qa_from_directory(
             print(f"⚙️ Processing {fname}")
 
             # Read the playbook JSON file
-            playbook = build_question_library(read_playbook_json(playbook_json))
+            playbook = Playbook.from_json_file(playbook_json)
 
             # Run the RAG dataflow
             meta_filters = {"name": fname}
             res = playbook_qa(
+                client_id=client_id,
                 playbook=playbook,
                 meta_filters=meta_filters,
-                chroma_collection=chroma_collection,
-                chroma_host=chroma_host,
-                chroma_port=chroma_port,
                 llm_backend=llm_backend,
                 llm_model=llm_model,
                 embedding_model=embedding_model,
                 reranker_model=reranker_model,
                 similarity_top_k=similarity_top_k,
                 similarity_cutoff=similarity_cutoff,
+                vector_store_backend=vector_store_backend,
             )
             # Write the results to a file; concatenate the filters to the file name
             filters = "_".join(f"{k}={v}" for k, v in meta_filters.items())
             result_filename = f"{filters}_qa_results.json"
 
-            output_directory = Path(output_directory)
-            if not output_directory.exists():
-                output_directory.mkdir(parents=True)
+            out_dir = Path(output_directory)
+            if not out_dir.exists():
+                out_dir.mkdir(parents=True)
 
-            with (output_directory / result_filename).open("w") as f:
+            with (out_dir / result_filename).open("w") as f:
                 f.write(json.dumps(res, indent=2))
 
 
 @shrag_cli.command()
-@click.argument("playbook_json")
 @common_rag_options
 @click.option(
     "-m",
@@ -120,11 +121,10 @@ def run_playbook_qa_from_directory(
     help="Additional key:value pairs to be parsed as metadata filters",
 )
 def run_playbook_qa(
+    client_id: str,
     playbook_json: str,
     meta_filters: str,
-    chroma_collection: str,
-    chroma_host: str,
-    chroma_port: int,
+    vector_store_backend: str,
     llm_backend: str,
     llm_model: str,
     embedding_model: str,
@@ -132,14 +132,14 @@ def run_playbook_qa(
     similarity_top_k: int,
     similarity_cutoff: float,
 ):
-    """Runs the RAG dataflow on the specified question library and proto questions
-    and writes the results to a JSON file.
+    """Runs the RAG dataflow on the specified question library and documents as
+    returned by the metadata filters and writes the results to a JSON file.
 
     Args:
+        client_id (str): Client ID for the Pub/Sub updates.
         playbook_json (str): Path to the playbook JSON file.
-        chroma_collection (str): Name of the collection to use.
-        chroma_host (str, optional): ChromaDB host. Defaults to "localhost".
-        chroma_port (int, optional): ChromaDB port. Defaults to 8000.
+        collection (str): Name of the embedding collection to use.
+        vector_store_backend (str): Vector store backend to use.
         llm_backend (str, optional): LLM backend to use. Defaults to "openai".
         llm_model (str, optional): LLM model to use. Defaults to "gpt-4o".
         embedding_model (str, optional): Embedding model to use. Defaults to "text-embedding-3-small".
@@ -149,24 +149,25 @@ def run_playbook_qa(
         meta_filters (str): Metadata filters to apply to the questions.
     """
     # Parse additional_params into a dictionary
-    meta_filters = (
-        dict(param.split(":") for param in meta_filters) if meta_filters else {}
-    )
+    filters = dict(param.split(":") for param in meta_filters) if meta_filters else {}
+
+    # Read the playbook JSON file
+    playbook = Playbook.from_json_file(playbook_json)
+
     # Run the RAG dataflow
     res = playbook_qa(
-        playbook_json=playbook_json,
-        meta_filters=meta_filters,
-        chroma_collection=chroma_collection,
-        chroma_host=chroma_host,
-        chroma_port=chroma_port,
+        client_id=client_id,
+        playbook=playbook,
+        meta_filters=filters,
         llm_backend=llm_backend,
         llm_model=llm_model,
         embedding_model=embedding_model,
         reranker_model=reranker_model,
         similarity_top_k=similarity_top_k,
         similarity_cutoff=similarity_cutoff,
+        vector_store_backend=vector_store_backend,
     )
     # Write the results to a file; concatenate the filters to the file name
-    filters = "_".join(f"{k}={v}" for k, v in meta_filters.items())
-    with open(f"{filters}_qa_results.json", "w") as f:
+    filters_str = "_".join(f"{k}={v}" for k, v in filters.items())
+    with open(f"{filters_str}_qa_results.json", "w") as f:
         f.write(json.dumps(res, indent=2))

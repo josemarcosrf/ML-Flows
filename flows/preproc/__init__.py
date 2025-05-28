@@ -5,38 +5,43 @@ from pathlib import Path
 from loguru import logger
 from prefect import Flow, flow
 
-from flows.common.clients.mongodb import MongoDBClient
+from flows.common.clients.mongo import MongoDBClient
+from flows.common.clients.vector_stores import get_default_vector_collection_name
 from flows.common.helpers import pub_and_log
 from flows.common.helpers.auto_download import download_if_remote
 from flows.common.types import DOC_STATUS, DocumentInfo
 from flows.settings import settings
 
 
-@flow(log_prints=True, flow_run_name="Index Files={chroma_collection}")
+@flow(
+    log_prints=True,
+    flow_run_name="Index Files for {client_id} using {vector_store_backend}",
+)
 @download_if_remote(include=["file_paths"])
 def index_files(
     client_id: str,
     file_paths: list[str],
-    chroma_collection: str,
-    metadatas: list[dict] = [],
-    llm_backend: str = settings.LLM_BACKEND,
     embedding_model: str = settings.EMBEDDING_MODEL,
     chunk_size: int = settings.CHUNK_SIZE,
     chunk_overlap: int = settings.CHUNK_OVERLAP,
+    llm_backend: str = settings.LLM_BACKEND,
+    vector_store_backend: str = settings.VECTOR_STORE_BACKEND,
     pubsub: bool = False,
+    metadatas: list[dict] = [],
 ):
     """Index all the files in the data directory
 
     Args:
         client_id (str): Client ID
         file_paths (list[str]): List of file paths to index
-        chroma_collection (str): Name of the collection to index the documents to
-        metadatas (list[dict], optional): List of metadata dictionaries for each file. Defaults to [].
-        llm_backend (str, optional): LLM backend to use. Defaults to settings.LLM_BACKEND.
-        embedding_model (str, optional): Embedding model to use. Defaults to settings.EMBEDDING_MODEL.
-        chunk_size (int, optional): Size of the chunks to split the documents into. Defaults to settings.CHUNK_SIZE.
-        chunk_overlap (int, optional): Overlap between the chunks. Defaults to settings.CHUNK_OVERLAP.
-        pubsub (bool, optional): Whether to use Pub/Sub for updates. Defaults to False.
+        embedding_model (str, optional): Embedding model to use.
+        chunk_size (int, optional): Size of the chunks to split the documents into.
+        chunk_overlap (int, optional): Overlap between the chunks.
+        llm_backend (str, optional): LLM backend to use.
+        vector_store_backend (str, optional): Vector store backend to use.
+        pubsub (bool, optional): Whether to use Pub/Sub for updates.
+            Defaults to False.
+        metadatas (list[dict], optional): List of metadata dictionaries for each file.
     """
     from flows.preproc.index import index_file
 
@@ -50,8 +55,16 @@ def index_files(
         )
         logger.debug(f"DB update results: {res}")
 
-    if metadatas and len(metadatas) != len(file_paths):
-        raise ValueError("⚠️ Length of metadatas should match the length of file_paths")
+    if metadatas:
+        if len(metadatas) != len(file_paths):
+            raise ValueError(
+                "⚠️ Length of metadatas should match the length of file_paths"
+            )
+
+        for i in range(len(metadatas)):
+            metadatas[i].update({"client_id": client_id})
+    else:
+        metadatas = [{"client_id": client_id} for _ in file_paths]
 
     # Define a pubsub function that combine the logger and the publisher
     pub = pub_and_log(client_id, pubsub)
@@ -60,18 +73,30 @@ def index_files(
     db = MongoDBClient()
 
     pub(f"Reading {len(file_paths)} files...")
-    file_paths = [Path(fp).resolve() for fp in file_paths]
-    doc_ids = [sha1(fpath.open("rb").read()).hexdigest() for fpath in file_paths]
+    full_paths = [Path(fp).resolve() for fp in file_paths]
+    doc_ids = [sha1(fpath.open("rb").read()).hexdigest() for fpath in full_paths]
 
     pub(f"📚 Gathered {len(file_paths)} documents for indexing.")
     total_inserted = 0
     total_skipped = 0
     total_errors = 0
     tasks = []
-    for i, (fpath, doc_id) in enumerate(zip(file_paths, doc_ids)):
-        # Laucnh the indexing tasks
+
+    collection_name = get_default_vector_collection_name(
+        vector_store_backend=vector_store_backend,
+        client_id=client_id,
+        llm_backend=llm_backend,
+        embedding_model=embedding_model,
+    )
+
+    for i, (fpath, doc_id) in enumerate(zip(full_paths, doc_ids)):
+        # Launch the indexing tasks
         try:
-            pub("®️ Registering file...", doc_name=fpath.stem, doc_id=doc_id)
+            pub(
+                "®️ Registering file in the database...",
+                doc_name=fpath.stem,
+                doc_id=doc_id,
+            )
             # Insert the document metadata into the MongoDB collection
             update_doc_db(
                 doc_id,
@@ -79,7 +104,7 @@ def index_files(
                     id=doc_id,
                     name=fpath.stem,
                     client_id=client_id,
-                    collection=chroma_collection,
+                    collection=collection_name,
                     status=DOC_STATUS.PENDING.value,
                     created_at=datetime.now().isoformat(),
                 ).model_dump(),
@@ -91,11 +116,12 @@ def index_files(
             future = index_file.submit(
                 fpath=fpath,
                 doc_id=doc_id,
+                collection_name=collection_name,
+                vector_store_backend=vector_store_backend,
                 llm_backend=llm_backend,
                 embedding_model=embedding_model,
                 chunk_size=chunk_size,
                 chunk_overlap=chunk_overlap,
-                chroma_collection=chroma_collection,
                 metadata=metadatas[i] if metadatas else {},
             )
             logger.debug(f"Task {future} submitted for {fpath.name}")
@@ -134,7 +160,7 @@ def index_files(
         "skipped": total_skipped,
         "errors": total_errors,
     }
-    pub("Indexing completed!", **stats)
+    pub("Indexing completed!", extra=stats)
 
     if total_errors > 0:
         raise RuntimeError(f"Errors occurred during indexing: {total_errors}")

@@ -62,27 +62,34 @@ def print_sources(retrieved_nodes, print_text: bool = False):
         print("---")
 
 
-def parse_answer(res: BaseAnswer) -> dict[str, Any]:
+def parse_answer(base_answer: BaseAnswer) -> dict[str, Any]:
+    # TODO: Ideally this logic should be included in the Answer Schemas
+    # so we can simply use .dump_json() method
     try:
-        answer = res.response  # This is the BaseAnswer field
+        answer = base_answer.response  # This is the BaseAnswer field
         if hasattr(answer, "value"):
             answer = answer.value
-        return {
-            "answer": answer,
-            "confidence": res.confidence,
-            "confidence_explanation": res.confidence_explanation,
-        }
+
+        parsed = {"answer": answer, "confidence": base_answer.confidence}
+        if hasattr(base_answer, "date"):
+            parsed["date"] = base_answer.date
+        if hasattr(base_answer, "answer_category"):
+            if hasattr(base_answer.answer_category, "value"):
+                parsed["answer_category"] = base_answer.answer_category.value
+            else:
+                parsed["answer_category"] = base_answer.answer_category
+        if hasattr(base_answer, "assigned_risk"):
+            parsed["assigned_risk"] = base_answer.assigned_risk
+
+        return parsed
     except Exception as e:
         # Otherwise send an empty but structure respecting response
-        logger.error(f"❌ Error parsing response! {e} (res: {res})")
+        logger.error(f"❌ Error parsing response! {e} (res: {base_answer})")
         return {
             "answer": "ERROR",
             "confidence": 0,
-            "confidence_explanation": "Error: {e}",
         }
 
 
-def print_answer(res: BaseAnswer, explain: bool = False) -> None:
-    print("A: {answer} (confidence={confidence})".format(**parse_answer(res)))
-    if explain:
-        print(f"Explanation: {res.confidence_explanation}")
+def print_answer(base_answer: BaseAnswer, explain: bool = False) -> None:
+    print("A: {answer} (confidence={confidence})".format(**parse_answer(base_answer)))

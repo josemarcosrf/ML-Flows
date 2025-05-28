@@ -1,11 +1,27 @@
 import inspect
 from pathlib import Path
+from urllib.parse import urlparse, urlunparse
 
 from loguru import logger
 
 
 def noop(*args, **kwargs):
     pass
+
+
+def sanitize_uri(uri: str) -> str:
+    # Strip password from URI before logging
+    parsed = urlparse(uri)
+    if parsed.password:
+        # Remove password from netloc
+        netloc = parsed.netloc.replace(f":{parsed.password}", "<PWD>")
+        if parsed.username:
+            netloc = netloc.replace(f"{parsed.username}@", f"{parsed.username}@")
+        sanitized_uri = urlunparse(parsed._replace(netloc=netloc))
+    else:
+        sanitized_uri = uri
+
+    return sanitized_uri
 
 
 def pub_and_log(client_id, pubsub: bool = False):
@@ -44,6 +60,8 @@ def pub_and_log(client_id, pubsub: bool = False):
         _logger(msg)
 
         if pubsub:
+            nonlocal pub
+            # Publish the update using the UpdatePublisher
             pub.publish_update(msg, doc_id, **extra)
 
     return _pub_and_log
@@ -81,7 +99,7 @@ def gather_files(file_or_dir: str, gather_glob: list[str]) -> list[str]:
             else:
                 print(f"🫙 No files found in {in_path} matching {gather_glob}")
         else:
-            print("📄 Converting a single PDF file to markdown...")
+            print("📄 Gathered a single file...")
             files = [file_or_dir]
 
     return files

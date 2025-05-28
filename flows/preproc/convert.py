@@ -8,7 +8,7 @@ from flows.common.types import ExportFormat
 from flows.settings import settings
 
 
-def custom_task_run_name() -> str:
+def convert_task_run_name() -> str:
     from prefect.runtime import task_run
 
     func_name = task_run.get_task_name()
@@ -40,7 +40,7 @@ def docling_convert(file_path: str, export_format: str = ExportFormat.Markdown) 
 
 
 def smoldocling_convert(
-    pdf_path: str, parser_base_url: str = settings.DOCLING_BASE_URL
+    pdf_path: Path | str, parser_base_url: str = settings.DOCLING_BASE_URL
 ) -> str:
     """Convert a PDF file to text using SmolDocling HTTP conversion service.
     See: https://github.com/josemarcosrf/DoPARSE/blob/main/src/doparse/smoldocling_ocr.py.
@@ -51,16 +51,16 @@ def smoldocling_convert(
     """
     pdf_path = Path(pdf_path).resolve()
     logger.info(f"Using 🤗 smoldocling to convert {pdf_path.name} ➡️ markdown")
-    with open(pdf_path, "rb") as pdf_file:
-        files = {"file": (pdf_path.name, pdf_file, "application/pdf")}
+    with pdf_path.open("rb") as f:
+        files = {"file": (pdf_path.name, f, "application/pdf")}
         response = requests.post(f"{parser_base_url}/upload", files=files)
         response.raise_for_status()
         return response.text
 
 
-@task(log_prints=True, task_run_name=custom_task_run_name)
+@task(log_prints=True, task_run_name=convert_task_run_name)
 def marker_pdf_2_md(
-    pdf_path: str, parser_base_url: str = settings.MARKER_PDF_BASE_URL
+    pdf_path: Path | str, parser_base_url: str = settings.MARKER_PDF_BASE_URL
 ) -> str:
     """Convert a PDF file to text using the Marker PDF to Markdown HTTP parser service.
     See: https://github.com/josemarcosrf/DoPARSE/blob/main/src/doparse/marker_ocr.py.
@@ -71,16 +71,16 @@ def marker_pdf_2_md(
     """
     pdf_path = Path(pdf_path).resolve()
     logger.info(f"Using 🖍️ marker to convert {pdf_path.name} ➡️ markdown")
-    with open(pdf_path, "rb") as pdf_file:
-        files = {"file": (pdf_path.name, pdf_file, "application/pdf")}
+    with pdf_path.open("rb") as f:
+        files = {"file": (pdf_path.name, f, "application/pdf")}
         response = requests.post(f"{parser_base_url}/upload", files=files)
         response.raise_for_status()
         return response.text
 
 
-@task(log_prints=True, task_run_name=custom_task_run_name)
+@task(log_prints=True, task_run_name=convert_task_run_name)
 def docling_2_md(
-    file_path: str, parser_base_url: str = settings.DOCLING_BASE_URL
+    file_path: str, parser_base_url: str | None = settings.DOCLING_BASE_URL
 ) -> str:
     """Convert a PDF file to text using the Docling. If a vLLM URL is provided,
     it uses the SmolDocling model. Otherwise, it uses the default Docling conversion.

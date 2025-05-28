@@ -1,4 +1,6 @@
+import json
 from enum import Enum
+from pathlib import Path
 
 from pydantic import BaseModel, field_validator
 
@@ -19,6 +21,13 @@ class Playbook(BaseModel):
     id: str
     name: str
     definition: dict[str, dict[str, str | list[str]]]
+
+    @classmethod
+    def from_json_file(cls, file_path: Path | str):
+        fpath = Path(file_path)
+        with fpath.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        return cls(**data)
 
 
 class DocumentInfo(BaseModel):

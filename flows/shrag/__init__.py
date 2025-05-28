@@ -3,27 +3,39 @@ from typing import Any
 from loguru import logger
 from prefect import Flow, flow, task
 
-from flows.common.clients.mongodb import MongoDBClient
+from flows.common.clients.mongo import MongoDBClient
+from flows.common.clients.vector_stores import get_default_vector_collection_name
 from flows.common.helpers import pub_and_log
 from flows.common.types import Playbook
 from flows.settings import settings
 
 
+def playbook_qa_flow_run_name() -> str:
+    from prefect.runtime import flow_run
+
+    func_name = flow_run.get_flow_name()
+    parameters = flow_run.get_parameters()
+    playbook_name = parameters["playbook"].name
+    llm_name = parameters["llm_model"]
+    meta_filters = parameters.get("meta_filters", {})
+    return f"{func_name}-{playbook_name}-{llm_name}-{meta_filters}"
+
+
 @flow(
     log_prints=True,
-    flow_run_name="playbook-QA-{chroma_collection}-{llm_model}-{meta_filters}",
+    flow_run_name=playbook_qa_flow_run_name,
 )
 def playbook_qa(
     client_id: str,
     playbook: Playbook,
     meta_filters: dict[str, Any],
-    chroma_collection: str,
+    llm_backend: str = settings.LLM_BACKEND,
+    llm_model: str = settings.LLM_MODEL,
     embedding_model: str = settings.EMBEDDING_MODEL,
     reranker_model: str | None = None,
     similarity_top_k: int = settings.SIMILARITY_TOP_K,
     similarity_cutoff: float = settings.SIMILARITY_CUTOFF,
-    llm_backend: str = settings.LLM_BACKEND,
-    llm_model: str = settings.LLM_MODEL,
+    vector_store_backend: str = settings.VECTOR_STORE_BACKEND,
     pubsub: bool = False,
 ):
     """Perform Structured RAG-QA on a set of textual chunks retrieved from a vector DB
@@ -37,7 +49,6 @@ def playbook_qa(
             'question', 'question_type' and 'valid_answers' for each attribute
         meta_filters (dict[str, Any], optional): Metadata filters for retrieval
             as {key:value} mapping. Leave as an empty dict for no filtering.
-        chroma_collection (str): Name of the ChromaDB collection
         embedding_model (str, optional): Embedding model to use.
             Defaults to EMBEDDING_MODEL_DEFAULT.
         reranker_model (str | None, optional): Reranker model to use.
@@ -56,8 +67,8 @@ def playbook_qa(
         responses (list[QAResponse]): List of QAResponse objects containing the question, question type and answer
         for each question in the question library.
     """
-    from flows.common.clients.chroma import ChromaClient
     from flows.common.clients.llms import get_embedding_model, get_llm
+    from flows.common.clients.vector_stores import get_vector_store
     from flows.shrag.playbook import build_question_library
     from flows.shrag.qa import QAgent
 
@@ -66,12 +77,12 @@ def playbook_qa(
         query = {
             "meta_filters": meta_filters,
             "client_id": client_id,
-            "collection": chroma_collection,
+            "collection": collection_name,
             "playbook_id": playbook.id,  # playbook["id"],
         }
 
         # The callback task defined in a closure so that it can access the db and query.
-        @task(name="Ans2Mongo", cache_policy=None)
+        @task(name="result_to_mongo")
         def _callback(update: dict[str, Any]):
             # Define a function to update the document in the MongoDB collection
             db.update_one(
@@ -98,7 +109,16 @@ def playbook_qa(
     )
 
     # Get the ChromaDB index
-    index = ChromaClient().get_index(embed_model, chroma_collection)
+    collection_name = get_default_vector_collection_name(
+        vector_store_backend=vector_store_backend,
+        client_id=client_id,
+        llm_backend=llm_backend,
+        embedding_model=embedding_model,
+    )
+    vec_store = get_vector_store(
+        store_backend=vector_store_backend, embed_model=embed_model
+    )
+    index = vec_store.get_index(collection_name=collection_name)
     logger.info("🔍 Index loaded successfully!")
 
     # Init the QAgent

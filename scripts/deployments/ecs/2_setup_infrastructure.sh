@@ -5,13 +5,13 @@
 
 set -e
 
-# Configuration - Update these values
+# 👇 ================ Configuration - Update these values =================👇
 AWS_REGION="eu-central-1"
 AWS_ACCOUNT_ID="677276117552"
-ECR_REPO_NAME="dummy-prefect-flow"
 CLUSTER_NAME="prefect-fargate-cluster"
 SERVICE_NAME="prefect-worker-service"
 TASK_DEFINITION_NAME="prefect-worker-service"
+# 👆 ================ Configuration - Update these values =================👆
 
 echo "🚀 Starting Set Up for AWS Infrastructure..."
 

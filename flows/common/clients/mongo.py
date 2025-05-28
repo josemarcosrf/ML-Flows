@@ -7,6 +7,11 @@ from flows.settings import settings
 
 
 class MongoDBClient:
+    """
+    A client for MongoDB operations, including insertions and updates.
+    This client is designed to work with MongoDB Atlas and supports basic CRUD operations.
+    """
+
     def __init__(self, uri: str = settings.MONGO_URI, db_name: str = settings.MONGO_DB):
         logger.info(f"🔌 Initializing MongoDB connection {uri} | DB:{db_name}")
         self.client = MongoClient(uri)
