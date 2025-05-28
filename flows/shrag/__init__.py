@@ -4,6 +4,7 @@ from loguru import logger
 from prefect import Flow, flow, task
 
 from flows.common.clients.mongo import MongoDBClient
+from flows.common.clients.vector_stores import get_default_vector_collection_name
 from flows.common.helpers import pub_and_log
 from flows.common.types import Playbook
 from flows.settings import settings
@@ -15,7 +16,6 @@ from flows.settings import settings
 )
 def playbook_qa(
     client_id: str,
-    collection: str,
     playbook: Playbook,
     meta_filters: dict[str, Any],
     llm_backend: str = settings.LLM_BACKEND,
@@ -33,7 +33,6 @@ def playbook_qa(
 
     Args:
         client_id (str): Client ID for the Pub/Sub updates
-        collection (str): Name of the Document embedding collection
         playbook (str): Mapping with 'id','name' and 'defintion' keys.
             The definition key contains the question library with each item having:
             'question', 'question_type' and 'valid_answers' for each attribute
@@ -67,7 +66,7 @@ def playbook_qa(
         query = {
             "meta_filters": meta_filters,
             "client_id": client_id,
-            "collection": collection,
+            "collection": collection_name,
             "playbook_id": playbook.id,  # playbook["id"],
         }
 
@@ -99,10 +98,16 @@ def playbook_qa(
     )
 
     # Get the ChromaDB index
+    collection_name = get_default_vector_collection_name(
+        vector_store_backend=vector_store_backend,
+        client_id=client_id,
+        llm_backend=llm_backend,
+        embedding_model=embedding_model,
+    )
     vec_store = get_vector_store(
         store_backend=vector_store_backend, embed_model=embed_model
     )
-    index = vec_store.get_index(collection_name=collection)
+    index = vec_store.get_index(collection_name=collection_name)
     logger.info("🔍 Index loaded successfully!")
 
     # Init the QAgent

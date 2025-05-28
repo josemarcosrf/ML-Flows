@@ -28,7 +28,7 @@ def index_file(
     fpath: Path,
     doc_id: str,
     collection_name: str,
-    embedding_model_name: str,
+    embedding_model: str,
     chunk_size: int,
     chunk_overlap: int,
     llm_backend: str,
@@ -42,7 +42,7 @@ def index_file(
         doc_id (str): Document ID
         vector_store_backend (str): Vector store backend to use. One of chroma, mongo
         llm_backend (str): LLM backend to use. One of openai, ollama
-        embedding_model (str): Embedding model to use.
+        embedding_model (str): Name of the embedding model to use.
         chunk_size (int): Size of the chunks to split the documents into
         chunk_overlap (int): Overlap between the chunks
 
@@ -64,7 +64,7 @@ def index_file(
             "name": fpath.stem,
             "llm_backend": llm_backend,
             "vector_store_backend": vector_store_backend,
-            "embedding_model": embedding_model_name,
+            "embedding_model": embedding_model,
             "chunk_size": chunk_size,
             "chunk_overlap": chunk_overlap,
             **metadata,
@@ -74,7 +74,7 @@ def index_file(
     return index_document.submit(
         doc=doc,
         collection_name=collection_name,
-        embedding_model_name=embedding_model_name,
+        embedding_model=embedding_model,
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
         llm_backend=llm_backend,
@@ -86,7 +86,7 @@ def index_file(
 def index_document(
     doc: Document,
     collection_name: str,
-    embedding_model_name: str,
+    embedding_model: str,
     chunk_size: int,
     chunk_overlap: int,
     llm_backend: str,
@@ -112,10 +112,10 @@ def index_document(
     logger.info(
         f"Using collection '{collection_name}' "
         f"with vector store backend '{vector_store_backend}' "
-        f"and LLM backend '{llm_backend}' (model={embedding_model_name})."
+        f"and LLM backend '{llm_backend}' (model={embedding_model})."
     )
     # Get the embedding model and connect to the VectorStore
-    embed_model = get_embedding_model(embedding_model_name, llm_backend)
+    embed_model = get_embedding_model(embedding_model, llm_backend)
     vec_store = get_vector_store(vector_store_backend, embed_model)
 
     # Insertion pipeline

@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     REDIS_PORT: int = 6379
 
     # Vector store configuration
-    VECTOR_STORE_BACKEND: str = "mongo"  # Options: "mongo"
+    VECTOR_STORE_BACKEND: str = "mongo"  # Options: "mongo", "chroma"
 
     # ChromaDB configuration
     CHROMA_HOST: str | None = None

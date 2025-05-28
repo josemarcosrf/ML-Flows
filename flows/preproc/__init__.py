@@ -6,7 +6,7 @@ from loguru import logger
 from prefect import Flow, flow
 
 from flows.common.clients.mongo import MongoDBClient
-from flows.common.clients.vector_stores import VectorStoreBackend
+from flows.common.clients.vector_stores import get_default_vector_collection_name
 from flows.common.helpers import pub_and_log
 from flows.common.helpers.auto_download import download_if_remote
 from flows.common.types import DOC_STATUS, DocumentInfo
@@ -21,7 +21,7 @@ from flows.settings import settings
 def index_files(
     client_id: str,
     file_paths: list[str],
-    embedding_model_name: str = settings.EMBEDDING_MODEL,
+    embedding_model: str = settings.EMBEDDING_MODEL,
     chunk_size: int = settings.CHUNK_SIZE,
     chunk_overlap: int = settings.CHUNK_OVERLAP,
     llm_backend: str = settings.LLM_BACKEND,
@@ -34,7 +34,7 @@ def index_files(
     Args:
         client_id (str): Client ID
         file_paths (list[str]): List of file paths to index
-        embedding_model_name (str, optional): Embedding model to use.
+        embedding_model (str, optional): Embedding model to use.
         chunk_size (int, optional): Size of the chunks to split the documents into.
         chunk_overlap (int, optional): Overlap between the chunks.
         llm_backend (str, optional): LLM backend to use.
@@ -82,12 +82,12 @@ def index_files(
     total_errors = 0
     tasks = []
 
-    if vector_store_backend == VectorStoreBackend.MONGO:
-        collection_name = settings.MONGO_VECTOR_COLLECTION
-    elif vector_store_backend == VectorStoreBackend.CHROMA:
-        collection_name = settings.CHROMA_COLLECTION
-    else:
-        collection_name = f"{client_id}-{llm_backend}-{embedding_model_name}"
+    collection_name = get_default_vector_collection_name(
+        vector_store_backend=vector_store_backend,
+        client_id=client_id,
+        llm_backend=llm_backend,
+        embedding_model=embedding_model,
+    )
 
     for i, (fpath, doc_id) in enumerate(zip(full_paths, doc_ids)):
         # Launch the indexing tasks
@@ -119,7 +119,7 @@ def index_files(
                 collection_name=collection_name,
                 vector_store_backend=vector_store_backend,
                 llm_backend=llm_backend,
-                embedding_model_name=embedding_model_name,
+                embedding_model=embedding_model,
                 chunk_size=chunk_size,
                 chunk_overlap=chunk_overlap,
                 metadata=metadatas[i] if metadatas else {},

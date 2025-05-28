@@ -479,3 +479,33 @@ def get_vector_store(store_backend: str, embed_model, **kwargs) -> VectorStore:
         return ChromaVectorStore(embed_model, **kwargs)
     else:
         raise ValueError(f"Unknown vector store backend: {store_backend}")
+
+
+def get_default_vector_collection_name(
+    vector_store_backend: str,
+    client_id: str | None = None,
+    llm_backend: str | None = None,
+    embedding_model: str | None = None,
+) -> str:
+    """Returns the default vector collection name based on the environment.
+    In MongoDB, we use a single collection for all clients, while in ChromaDB
+    we use a collection per client and LLM backend.
+    The collection name is determined by the VECTOR_STORE_BACKEND setting.
+    """
+    if vector_store_backend == VectorStoreBackend.MONGO:
+        return settings.MONGO_VECTOR_COLLECTION
+    elif vector_store_backend == VectorStoreBackend.CHROMA:
+        if settings.CHROMA_COLLECTION:
+            return settings.CHROMA_COLLECTION
+        else:
+            if not client_id or not llm_backend or not embedding_model:
+                raise ValueError(
+                    "💥 For ChromaDB, client_id, llm_backend, and embedding_model "
+                    "must be provided if the CHROMA_COLLECTION setting is not set."
+                )
+            return f"{client_id}-{llm_backend}-{embedding_model}"
+    else:
+        raise ValueError(
+            f"💥 Unsupported vector store backend: {vector_store_backend}. "
+            "Supported backends are 'mongo' and 'chroma'."
+        )
