@@ -8,7 +8,7 @@ from flows.common.types import ExportFormat
 from flows.settings import settings
 
 
-def custom_task_run_name() -> str:
+def convert_task_run_name() -> str:
     from prefect.runtime import task_run
 
     func_name = task_run.get_task_name()
@@ -58,7 +58,7 @@ def smoldocling_convert(
         return response.text
 
 
-@task(log_prints=True, task_run_name=custom_task_run_name)
+@task(log_prints=True, task_run_name=convert_task_run_name)
 def marker_pdf_2_md(
     pdf_path: Path | str, parser_base_url: str = settings.MARKER_PDF_BASE_URL
 ) -> str:
@@ -78,7 +78,7 @@ def marker_pdf_2_md(
         return response.text
 
 
-@task(log_prints=True, task_run_name=custom_task_run_name)
+@task(log_prints=True, task_run_name=convert_task_run_name)
 def docling_2_md(
     file_path: str, parser_base_url: str | None = settings.DOCLING_BASE_URL
 ) -> str:

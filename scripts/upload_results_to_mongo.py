@@ -32,16 +32,27 @@ def main(data_dir, client_id, playbook_id):
         with open(json_file, "r", encoding="utf-8") as f:
             answers = json.load(f)
 
+        parsed_answers = {}
+        for k, v in answers.items():
+            ans = v.pop("answer")
+            parsed_answers[k] = {
+                "answer": ans["response"],
+                "confidence": ans["confidence"],
+                **v,
+            }
+
         dname = json_file.stem.replace("name=", "").replace("_qa_results", "")
         dname = dname.split(".")[0].strip()
         doc = {
             "meta_filters": {"name": dname},
             "client_id": client_id,
             "playbook_id": playbook_id,
-            "answers": answers,
+            "answers": parsed_answers,
         }
 
         collection.insert_one(doc)
+
+        print(f"✅ Uploaded results for {dname} to MongoDB.")
 
 
 if __name__ == "__main__":

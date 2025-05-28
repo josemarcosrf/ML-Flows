@@ -63,14 +63,25 @@ def print_sources(retrieved_nodes, print_text: bool = False):
 
 
 def parse_answer(res: BaseAnswer) -> dict[str, Any]:
+    # TODO: Ideally this logic should be included in the Answer Schemas
+    # so we can simply use .dump_json() method
     try:
         answer = res.response  # This is the BaseAnswer field
         if hasattr(answer, "value"):
             answer = answer.value
-        return {
-            "answer": answer,
-            "confidence": res.confidence,
-        }
+
+        parsed = {"answer": answer, "confidence": res.confidence}
+        if hasattr(res, "date"):
+            parsed["date"] = res.date
+        if hasattr(res, "answer_category"):
+            if hasattr(res.answer_category, "value"):
+                parsed["answer_category"] = res.answer_category.value
+            else:
+                parsed["answer_category"] = res.answer_category
+        if hasattr(res, "assigned_risk"):
+            parsed["assigned_risk"] = res.assigned_risk
+
+        return parsed
     except Exception as e:
         # Otherwise send an empty but structure respecting response
         logger.error(f"❌ Error parsing response! {e} (res: {res})")

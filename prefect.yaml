@@ -74,8 +74,11 @@ deployments:
         # AWS configuration
         AWS_DEFAULT_REGION: eu-central-1 # For Fargate
         AWS_REGION: us-east-1 # For Bedrock
-        AWS_ACCESS_KEY_ID: '{{ secrets.AWS_ACCESS_KEY_ID }}'
-        AWS_SECRET_ACCESS_KEY: '{{ secrets.AWS_SECRET_ACCESS_KEY }}'
+        # FIXME: Use Prefect secrets for AWS credentials
+        # AWS_ACCESS_KEY_ID: '{{ secrets.AWS_ACCESS_KEY_ID }}'
+        # AWS_SECRET_ACCESS_KEY: '{{ secrets.AWS_SECRET_ACCESS_KEY }}'
+        AWS_ACCESS_KEY_ID: "{{ $AWS_ACCESS_KEY_ID }}"
+        AWS_SECRET_ACCESS_KEY: "{{  $AWS_SECRET_ACCESS_KEY }}"
         # Backends configuration
         VECTOR_STORE_BACKEND: "{{ $VECTOR_STORE_BACKEND }}"
         LLM_BACKEND: "{{ $LLM_BACKEND }}"

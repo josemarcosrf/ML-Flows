@@ -10,9 +10,20 @@ from flows.common.types import Playbook
 from flows.settings import settings
 
 
+def playbook_qa_flow_run_name() -> str:
+    from prefect.runtime import flow_run
+
+    func_name = flow_run.get_flow_name()
+    parameters = flow_run.get_parameters()
+    playbook_name = parameters.get("playbook").name
+    llm_name = parameters.get("llm_model", "")
+    meta_filters = parameters.get("meta_filters", {})
+    return f"{func_name}-{playbook_name}-{llm_name}-{meta_filters}"
+
+
 @flow(
     log_prints=True,
-    flow_run_name="playbook-QA-{collection}-{llm_model}-{meta_filters}",
+    flow_run_name=playbook_qa_flow_run_name,
 )
 def playbook_qa(
     client_id: str,

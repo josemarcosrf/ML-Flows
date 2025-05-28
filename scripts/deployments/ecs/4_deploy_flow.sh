@@ -7,16 +7,16 @@ set -e
 
 # 👇 ================ Configuration - Update these values =================👇
 # Indexing flow configuration
-# FLOW_NAME="index_files"
-# FLOW_PATH="flows/preproc/__init__.py"
-# POOL_NAME="my-ecs-pool"
-# DEPLOYMENT_NAME="preproc.deus.dev" # Should match the deployment name in prefect.yaml
-
-# PlaybookQA flow configuration
-FLOW_NAME="playbook_qa"
-FLOW_PATH="flows/shrag/__init__.py"
+FLOW_NAME="index_files"
+FLOW_PATH="flows/preproc/__init__.py"
 POOL_NAME="my-ecs-pool"
-DEPLOYMENT_NAME="shrag.deus.dev" # Should match the deployment name in prefect.yaml
+DEPLOYMENT_NAME="preproc.deus.dev" # Should match the deployment name in prefect.yaml
+
+# # PlaybookQA flow configuration
+# FLOW_NAME="playbook_qa"
+# FLOW_PATH="flows/shrag/__init__.py"
+# POOL_NAME="my-ecs-pool"
+# DEPLOYMENT_NAME="shrag.deus.dev" # Should match the deployment name in prefect.yaml
 
 # Dummy flow configuration
 # FLOW_NAME="hello"

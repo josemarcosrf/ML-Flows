@@ -13,7 +13,6 @@ from flows.shrag import playbook_qa
 
 def common_rag_options(func):
     @click.argument("client_id")
-    @click.argument("collection")
     @click.argument("playbook_json")
     @click.option(
         "--vector-store-backend",
@@ -49,7 +48,6 @@ def shrag_cli():
 @click.option("-fg", "--file-glob", default="*.pdf", help="File glob pattern")
 def run_playbook_qa_from_directory(
     client_id: str,
-    collection: str,
     input_directory: str,
     output_directory: str,
     playbook_json: str,
@@ -91,7 +89,6 @@ def run_playbook_qa_from_directory(
             meta_filters = {"name": fname}
             res = playbook_qa(
                 client_id=client_id,
-                collection=collection,
                 playbook=playbook,
                 meta_filters=meta_filters,
                 llm_backend=llm_backend,
@@ -127,7 +124,6 @@ def run_playbook_qa(
     client_id: str,
     playbook_json: str,
     meta_filters: str,
-    collection: str,
     vector_store_backend: str,
     llm_backend: str,
     llm_model: str,
@@ -161,7 +157,6 @@ def run_playbook_qa(
     # Run the RAG dataflow
     res = playbook_qa(
         client_id=client_id,
-        collection=collection,
         playbook=playbook,
         meta_filters=filters,
         llm_backend=llm_backend,

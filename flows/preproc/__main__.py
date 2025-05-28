@@ -49,16 +49,16 @@ def docfile_to_markdown(
 @preproc_cli.command()
 @click.argument("client_id", type=str)
 @click.argument("file_or_dir", type=str)
-@click.option("-g", "--gather-glob", type=str, multiple=True, default=["*.*"])
+@click.option("-g", "--file-glob", type=str, multiple=True, default=["*.*"])
 def index_docfiles(
     client_id: str,
     file_or_dir: str,
-    gather_glob: list[str],
+    file_glob: list[str],
 ):
     """Index a PDF file (local or remote) or all PDF files in a local directory"""
     from flows.preproc import index_files
 
-    paths = gather_files(file_or_dir, gather_glob)
+    paths = gather_files(file_or_dir, file_glob)
     index_files(
         client_id=client_id,
         file_paths=paths,
