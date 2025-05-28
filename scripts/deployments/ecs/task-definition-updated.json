@@ -2,13 +2,13 @@
   "family": "prefect-fargate-task",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
-  "cpu": "512",
-  "memory": "4096",
+  "cpu": "2048",
+  "memory": "16384",
   "executionRoleArn": "arn:aws:iam::677276117552:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
-      "name": "dummy-container",
-      "image": "677276117552.dkr.ecr.eu-central-1.amazonaws.com/dummy-prefect-flow:latest",
+      "name": "deus-flows",
+      "image": "677276117552.dkr.ecr.eu-central-1.amazonaws.com/deus-flows:latest",
       "essential": true,
       "logConfiguration": {
         "logDriver": "awslogs",
