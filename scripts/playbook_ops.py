@@ -50,7 +50,7 @@ def merge_playbook_and_proto_questions(
     The output JSON will have the following structure:
     {
         "<Attribute>": {
-            "Group": "<Group>",
+            "group": "<Group>",
             "Question": "<Question>",
             "QuestionType": "<Question-Type>",
             "ValidAnswers": ["answer1", "answer2", ...]
@@ -87,10 +87,10 @@ def merge_playbook_and_proto_questions(
             attribute = row["Group"] + " - Yes/No"
 
         unified_playbook[attribute] = {
-            "Group": row["Group"],
-            "Question": row["Question"],
-            "QuestionType": row["Question-Type"],
-            "ValidAnswers": valid_answers,
+            "group": row["Group"],
+            "question": row["Question"],
+            "question_type": row["Question-Type"],
+            "valid_answers": valid_answers,
         }
 
     # Write the unified playbook to a JSON file

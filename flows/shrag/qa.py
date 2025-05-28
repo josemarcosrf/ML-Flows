@@ -250,24 +250,30 @@ class QAgent:
                     logger.error(f"❌ Error asking '{q.key}': {e}")
                 else:
                     # Update the answer in MongoDB and publish the progress
-                    answer_callback_task({f"answers.{q.key}": parse_answer(answer)})
+                    update = {
+                        **responses[q.key].dict(),
+                        **parse_answer(responses[q.key].answer),
+                    }
+                    answer_callback_task({f"answers.{q.key}": update})
 
             elif len(q_list) > 1:
                 # A hierarchical group of questions
                 try:
-                    group_responses = self.ask_if_yes(q_list, meta_filters, **kwargs)
-                    for i, (key, res) in enumerate(group_responses.items()):
+                    grouped_answers = self.ask_if_yes(q_list, meta_filters, **kwargs)
+                    for i, (key, ans) in enumerate(grouped_answers.items()):
                         responses[key] = QAResponse(
                             question=q_list[i].question,
                             question_type=q_list[i].question_type,
-                            answer=res,
+                            answer=ans,
                         )
                 except Exception as e:
                     logger.error(f"❌ Error asking group '{q.key}': {e}")
                 else:
-                    for key, ans in group_responses.items():
-                        answer_callback_task(
-                            update={f"answers.{key}": parse_answer(ans)}
-                        )
+                    for key, ans in grouped_answers.items():
+                        update = {
+                            **responses[q.key].dict(),
+                            **parse_answer(responses[q.key].answer),
+                        }
+                        answer_callback_task(update={f"answers.{key}": update})
 
         return responses
