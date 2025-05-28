@@ -85,6 +85,10 @@ deployments:
         # MongoDB connection details
         MONGO_URI: "{{ $MONGO_URI }}"
         MONGO_DB: "{{ $MONGO_DB }}"
+        # Redis connection details
+        REDIS_HOST: "{{ $REDIS_HOST }}"
+        REDIS_PORT: "{{ $REDIS_PORT }}"
+        REDIS_PWD: "{{ $REDIS_PWD }}"
         # Models
         EMBEDDING_MODEL: "{{ $EMBEDDING_MODEL }}"
         LLM_MODEL: "{{ $LLM_MODEL }}"
@@ -118,6 +122,10 @@ deployments:
         # MongoDB connection details
         MONGO_URI: "{{ $MONGO_URI }}"
         MONGO_DB: "{{ $MONGO_DB }}"
+        # Redis connection details
+        REDIS_HOST: "{{ $REDIS_HOST }}"
+        REDIS_PORT: "{{ $REDIS_PORT }}"
+        REDIS_PWD: "{{ $REDIS_PWD }}"
         # Models
         EMBEDDING_MODEL: "{{ $EMBEDDING_MODEL }}"
         LLM_MODEL: "{{ $LLM_MODEL }}"
