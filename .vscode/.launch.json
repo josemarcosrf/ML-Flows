@@ -1,0 +1,49 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Module",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "${input:PyModulePrompt}",
+            "args": "${input:PyModuleParams}"
+        },
+        {
+            "name": "Python: Current File with Arguments",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "${command:pickArgs}"
+            ]
+        },
+        {
+            "name": "Python: Flow Debug",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/.venv/bin/prefect",
+            "args": [
+                "run",
+                "--path",
+                "${file}"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ],
+    "inputs": [
+        {
+            "id": "PyModulePrompt",
+            "description": "Please enter your module path",
+            "default": "flows.melior",
+            "type": "promptString"
+        },
+        {
+            "id": "PyModuleParams",
+            "description": "Please enter your module's params",
+            "default": "run",
+            "type": "promptString"
+        },
+    ]
+}
