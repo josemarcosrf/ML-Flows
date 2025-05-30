@@ -75,12 +75,22 @@ def build_question_library(
         elif q_type == QuestionType.RISK:
             # NOTE: This is a bit hacky. We are altering the original question to embed
             # the risk mapping directly as part of it
-            cls_to_risk_msg = "\n".join(
-                [
-                    f"category:{a} -> risk:{r}"
-                    for a, r in zip(categories, risk_weights, strict=True)
-                ]
-            )
+            try:
+                if not risk_weights:
+                    risk_weights = [0] * len(categories)
+
+                cls_to_risk_msg = "\n".join(
+                    [
+                        f"category:{a} -> risk:{r}"
+                        for a, r in zip(categories, risk_weights, strict=True)
+                    ]
+                )
+            except ValueError as e:
+                logger.error(
+                    f"Error while creating risk mapping for question '{question}': {e}"
+                )
+                raise
+
             question = (
                 f"{question}\n"
                 f"These are the valid answer categories and their associated risk:\n"
