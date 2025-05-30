@@ -17,8 +17,8 @@ def playbook_qa_flow_run_name() -> str:
     parameters = flow_run.get_parameters()
     playbook_name = parameters["playbook"].name
     llm_name = parameters["llm_model"]
-    meta_filters = parameters.get("meta_filters", {})
-    return f"{func_name}-{playbook_name}-{llm_name}-{meta_filters}"
+    # meta_filters = parameters.get("meta_filters", {})
+    return f"{func_name}-{playbook_name}-{llm_name}"
 
 
 @flow(

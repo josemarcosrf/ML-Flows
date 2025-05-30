@@ -1,13 +1,15 @@
 # Use the official Prefect image as a base
 FROM prefecthq/prefect:3-latest
 
-# Copy your flow into the container
+
 RUN mkdir -p /app
-COPY flows/ /app/flows/
-COPY requirements.txt /app/requirements.txt
 
 # Install any additional dependencies
+COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# Copy the flow files into the container
+COPY flows/ /app/flows/
 
 # Set the working directory
 WORKDIR /app
