@@ -34,6 +34,21 @@ def generate_ask_run_name():
     return task_name
 
 
+def build_filter(k: str, v: Any) -> MetadataFilter:
+    """Helper function to build a MetadataFilter"""
+    if isinstance(v, list):
+        return MetadataFilter(
+            key=k,
+            operator=FilterOperator.IN,
+            value=v,
+        )
+    return MetadataFilter(
+        key=k,
+        operator=FilterOperator.EQ,
+        value=v,
+    )
+
+
 class QAResponse(BaseModel):
     question: str
     question_type: str
@@ -81,14 +96,7 @@ class QAgent:
         """
         # Build the Retriever with its metadata filters
         filters = MetadataFilters(
-            filters=[
-                MetadataFilter(
-                    key=k,
-                    operator=FilterOperator.EQ,
-                    value=v,
-                )
-                for k, v in meta_filters.items()
-            ]
+            filters=[build_filter(k, v) for k, v in meta_filters.items()]
         )
         retriever = self.index.as_retriever(
             filters=filters,
