@@ -11,7 +11,7 @@ from flows.common.clients.vector_stores import get_vector_store
 from flows.preproc.convert import docling_2_md
 
 
-def custom_task_run_name() -> str:
+def custom_index_task_run_name() -> str:
     from prefect.runtime import task_run
 
     function_name = task_run.get_task_name()
@@ -22,7 +22,7 @@ def custom_task_run_name() -> str:
 
 @task(
     log_prints=True,
-    task_run_name=custom_task_run_name,
+    task_run_name=custom_index_task_run_name,
 )
 def index_file(
     fpath: Path,

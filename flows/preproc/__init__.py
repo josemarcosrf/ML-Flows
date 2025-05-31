@@ -13,9 +13,23 @@ from flows.common.types import DOC_STATUS, DocumentInfo
 from flows.settings import settings
 
 
+def custom_index_flow_run_name() -> str:
+    """Generate a custom flow run name for indexing files"""
+    from prefect.runtime import flow_run
+
+    # function_name = flow_run.get_flow_name()
+    parameters = flow_run.get_parameters()
+
+    client_id = parameters.get("client_id", "unknown")
+    vector_store_backend = parameters.get("vector_store_backend", "unknown")
+    n_files = len(parameters.get("file_paths", []))
+
+    return f"Index {n_files} files for {client_id} ({vector_store_backend})"
+
+
 @flow(
     log_prints=True,
-    flow_run_name="Index Files for {client_id} using {vector_store_backend}",
+    flow_run_name=custom_index_flow_run_name,
 )
 @download_if_remote(include=["file_paths"])
 def index_files(
