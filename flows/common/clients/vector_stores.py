@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any
 
-from llama_index.core import VectorStoreIndex
+from llama_index.core import StorageContext, VectorStoreIndex
 from loguru import logger
 from tabulate import tabulate
 from tqdm.rich import tqdm
@@ -182,7 +182,10 @@ class MongoVectorStore(VectorStore):
         else:
             logger.warning(f"Index '{vector_index_name}' already exists")
 
-        return VectorStoreIndex.from_vector_store(store, embed_model=self.embed_model)
+        storage_context = StorageContext.from_defaults(vector_store=store)
+        return VectorStoreIndex.from_vector_store(
+            store, embed_model=self.embed_model, storage_context=storage_context
+        )
 
     def get_index(
         self, collection_name: str, create_if_not_exists: bool = False, **kwargs
@@ -399,8 +402,9 @@ class ChromaVectorStore(VectorStore):
                 raise CollectionNotFoundError(collection_name=collection_name)
 
         vector_store = self._get_vector_store(collection_name)
+        storage_context = StorageContext.from_defaults(vector_store=vector_store)
         return VectorStoreIndex.from_vector_store(
-            vector_store, embed_model=self.embed_model
+            vector_store, embed_model=self.embed_model, storage_context=storage_context
         )
 
     def get_doc(
@@ -472,7 +476,22 @@ class ChromaVectorStore(VectorStore):
             print("👀 No documents found!")
 
 
-def get_vector_store(store_backend: str, embed_model, **kwargs) -> VectorStore:
+def get_vector_store(store_backend: str, embed_model: Any, **kwargs) -> VectorStore:
+    """Vector store factory function.
+    This function returns an instance of a vector store based on the specified backend.
+    Supported backends are 'mongo' and 'chroma'.
+
+    Args:
+        store_backend (str): The vector store backend to use. One of 'mongo' or 'chroma'.
+        embed_model (Any): The **embedding model instance** to use for vectorization.
+        **kwargs: Additional keyword arguments to pass to the vector store constructor.
+
+    Raises:
+        ValueError: If the specified vector store backend is not supported.
+
+    Returns:
+        VectorStore: An instance of the specified vector store backend.
+    """
     if store_backend.lower() == VectorStoreBackend.MONGO:
         return MongoVectorStore(embed_model, **kwargs)
     elif store_backend.lower() == VectorStoreBackend.CHROMA:
