@@ -16,7 +16,7 @@ class RedisPubSubClient:
         port: int = settings.REDIS_PORT,
         db: int = 0,
         password: str | None = None,
-        use_ssl: bool = False,
+        use_ssl: bool = True,
     ):
         """Initialize Redis connection parameters (but don't connect yet).
 
@@ -27,11 +27,16 @@ class RedisPubSubClient:
             password (str, optional): Redis password if authentication is required
         """
         # Store connection parameters instead of creating connections immediately
+        pwd = (
+            password or settings.REDIS_PWD.get_secret_value()
+            if settings.REDIS_PWD
+            else None
+        )
         self.connection_params = {
             "host": host,
             "port": port,
             "db": db,
-            "password": password,
+            "password": pwd,
             "decode_responses": True,
             "ssl": use_ssl,
         }
@@ -46,6 +51,7 @@ class RedisPubSubClient:
     def client(self):
         """Lazy initialization of Redis client."""
         if self._client is None:
+            print(f"🔗 Connecting to Redis server {self.connection_params['host']}")
             self._client = redis.Redis(**self.connection_params)
         return self._client
 
