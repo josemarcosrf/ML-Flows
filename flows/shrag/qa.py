@@ -95,9 +95,14 @@ class QAgent:
             BaseAnswer: Retrieval Augmented Generated Answer
         """
         # Build the Retriever with its metadata filters
-        filters = MetadataFilters(
-            filters=[build_filter(k, v) for k, v in meta_filters.items()]
+        filters = (
+            MetadataFilters(
+                filters=[build_filter(k, v) for k, v in meta_filters.items()]
+            )
+            if meta_filters
+            else None
         )
+
         retriever = self.index.as_retriever(
             filters=filters,
             similarity_cutoff=similarity_cutoff,

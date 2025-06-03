@@ -27,7 +27,7 @@ def playbook_qa_flow_run_name() -> str:
 def playbook_qa(
     client_id: str,
     playbook: Playbook,
-    meta_filters: dict[str, Any],
+    meta_filters: dict[str, Any] = {},
     llm_backend: str = settings.LLM_BACKEND,
     llm_model: str = settings.LLM_MODEL,
     embedding_model: str = settings.EMBEDDING_MODEL,
@@ -131,6 +131,17 @@ def playbook_qa(
     # Build the Question Library
     pub(f"📚 Building question library for playbook {playbook.name}")
     q_collection = build_question_library(playbook.definition)
+
+    # Update the metafilters to include the LLM backend and embedding model
+    # This way we ensure that the retrieval is consistent with the LLM and
+    # embedding model used
+    meta_filters.update(
+        {
+            "llm_backend": llm_backend,
+            "embedding_model": embedding_model,
+            "vector_store_backend": vector_store_backend,
+        }
+    )
 
     # Run the Q-collection and return the responses
     responses = questioner.run_q_collection(

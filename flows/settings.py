@@ -48,8 +48,8 @@ class Settings(BaseSettings):
     VECTOR_STORE_BACKEND: str = "mongo"  # Options: "mongo", "chroma"
 
     # ChromaDB configuration
-    CHROMA_HOST: str | None = None
-    CHROMA_PORT: int | None = None
+    CHROMA_HOST: str = "localhost"
+    CHROMA_PORT: int = 7000
     CHROMA_COLLECTION: str | None = None
 
     # MongoDB
@@ -110,8 +110,7 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "CHROMA_HOST and CHROMA_PORT are required for ChromaDB"
                 )
-            return value
-        return None
+        return value
 
     @field_validator("MONGO_URI", "MONGO_DB", mode="before")
     @classmethod
