@@ -145,7 +145,6 @@ class QAgent:
             meta_filters (dict[str, Any]): Metadata Retrieval filter dictionary in the form
                 metadata-key, value pairs
         """
-
         prompt = get_question_prompt(q)
         try:
             logger.info(f"🔍 Extracting '{q.key}'")
@@ -158,7 +157,7 @@ class QAgent:
         except Exception as e:
             logger.error(f"❌ Error extracting '{q.key}' [filter={meta_filters}]: {e}")
             return BaseAnswer(
-                response=f"Error answering q={q.key}",
+                response=f"Error answering q={q.key} ({q.question_type}): {e}",
                 confidence=0.0,
             )
 

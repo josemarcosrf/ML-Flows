@@ -113,13 +113,13 @@ def main(
 
     # Perform the retrieval & display results
     results = retriever.retrieve(query)
-    print("\n🗂️ Retrieved document nodes:\n")
     if results:
+        print("\n🗂️  Retrieved document nodes:\n")
         headers = results[0].metadata.keys()
         rows = [doc.metadata.values() for doc in results]
         print(tabulate(rows, headers=headers, tablefmt="grid"))
     else:
-        print("👀 No documents nodes found.")
+        print("\n👀 No documents nodes found.")
 
 
 if __name__ == "__main__":
