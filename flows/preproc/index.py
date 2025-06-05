@@ -57,11 +57,12 @@ def index_file(
             text = f.read()
 
     # Create a document object
+    doc_name = metadata.get("name", fpath.stem)
     doc = Document(
-        doc_id=doc_id,  # Use the SHA1 hash of the PDF file as the ID
+        doc_id=doc_id,  # Use the SHA1 hash of the file as the ID
         text=text,
         extra_info={
-            "name": fpath.stem,
+            "name": doc_name,
             "llm_backend": llm_backend,
             "vector_store_backend": vector_store_backend,
             "embedding_model": embedding_model,
