@@ -1,4 +1,5 @@
 import json
+import re
 from collections import defaultdict
 from hashlib import sha1
 
@@ -16,6 +17,12 @@ class QuestionItem(BaseModel):
     question: str
     question_type: str
     answer_schema: type[BaseModel]
+
+
+def str_to_snake_case(s):
+    s = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", s)
+    s = re.sub("([a-z0-9])([A-Z])", r"\1_\2", s)
+    return s.replace("-", "_").lower()
 
 
 def q_library_hash(q_library) -> str:
@@ -59,12 +66,22 @@ def build_question_library(
     # Add the Answer Schema based on the extracted values
     q_collection = defaultdict(list)
     for i, (attr, p_item) in enumerate(playbook.items()):
+        # Convert all keys in p_item to snake_case
+        p_item_snake = {str_to_snake_case(k): v for k, v in p_item.items()}
+
         attr = attr.strip()
-        group = p_item["group"]
-        question = p_item["question"]
-        q_type = p_item["question_type"].strip().lower()
-        categories = p_item.get("valid_answers", [])
-        risk_weights = p_item.get("risk_weights", [])
+        group = p_item_snake.get("group", "")
+        question = p_item_snake.get("question")
+        q_type = p_item_snake.get("question_type", "").strip().lower()
+        categories = p_item_snake.get("valid_answers", [])
+        risk_weights = p_item_snake.get("risk_weights", [])
+
+        # If the question is not defined, skip it
+        if not question:
+            logger.warning(
+                f"Skipping question for attribute '{attr}' as it is not defined."
+            )
+            continue
 
         if q_type == QuestionType.CATEGORICAL:
             # For Categorical questions we use a dynamic schema based on the valid answers
@@ -99,7 +116,14 @@ def build_question_library(
             answer_schema = RiskAssesmentAnswer
         else:
             # For everything else we use a fixed Schema
-            answer_schema = QUESTION_FORMATS[q_type]["schema"]
+            if schema := QUESTION_FORMATS.get(q_type, None):
+                answer_schema = schema["schema"]
+            else:
+                logger.error(
+                    f"Unknown question type '{q_type}' for attribute '{attr}'. "
+                    "Skipping this question."
+                )
+                continue
 
         summary = f"{i:03d}. G: {group} | A: {attr} | T: {q_type}"
         if q_type == QuestionType.RISK:
