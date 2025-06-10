@@ -63,8 +63,8 @@ def playbook_qa(
         pubsub (bool, optional): Whether to use Pub/Sub for updates.
             Defaults to False.
     Returns:
-        responses (list[QAResponse]): List of QAResponse objects containing the question, question type and answer
-        for each question in the question library.
+        responses (list[QAResponse]): List of QAResponse objects containing the
+        question, question type and answer for each question in the question library.
     """
     from flows.common.clients.llms import get_embedding_model, get_llm
     from flows.common.clients.vector_stores import get_vector_store
@@ -72,7 +72,9 @@ def playbook_qa(
     from flows.shrag.qa import QAgent
 
     def answer_callback():
-        """Create a callback task to update the answer in MongoDB and publish the progress."""
+        """Create a callback task to update the answer in MongoDB
+        and publish the progress.
+        """
         query = {
             "meta_filters": meta_filters,
             "client_id": client_id,
