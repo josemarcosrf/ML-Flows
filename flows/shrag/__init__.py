@@ -1,3 +1,4 @@
+from datetime import datetime as dt
 from typing import Any
 
 from loguru import logger
@@ -71,15 +72,17 @@ def playbook_qa(
     from flows.shrag.playbook import build_question_library
     from flows.shrag.qa import QAgent
 
-    def answer_callback():
-        """Create a callback task to update the answer in MongoDB
-        and publish the progress.
+    def db_update_callback():
+        """Closure to create a callback task that updates the MongoDB
+        collection with the results of the QAgent run.
+        This task will be called for each answer extracted by the QAgent.
         """
         query = {
             "meta_filters": meta_filters,
             "client_id": client_id,
             "collection": collection_name,
-            "playbook_id": playbook.id,  # playbook["id"],
+            "playbook_id": playbook.id,
+            "playbook_version": playbook.version,
         }
 
         # The callback task defined in a closure so that it can access the db and query.
@@ -152,7 +155,20 @@ def playbook_qa(
         similarity_top_k=similarity_top_k,
         similarity_cutoff=similarity_cutoff,
         pbar=False,
-        answer_callback_task=answer_callback(),
+        answer_callback_task=db_update_callback(),
+    )
+
+    # Invoke the callback to update the MongoDB with the timestamp of completion
+    db.update_one(
+        settings.MONGO_RESULTS_COLLECTION,
+        filter={
+            "client_id": client_id,
+            "collection": collection_name,
+            "playbook_id": playbook.id,
+            "playbook_version": playbook.version,
+        },
+        update={"$set": {"completed_at": dt.now().isoformat()}},
+        upsert=True,
     )
 
     return {k: v.model_dump() for k, v in responses.items()}

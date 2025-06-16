@@ -104,11 +104,12 @@ def index_files(
     )
 
     for i, (fpath, doc_id) in enumerate(zip(full_paths, doc_ids)):
+        doc_name = metadatas[i].get("name") or fpath.stem
         # Launch the indexing tasks
         try:
             pub(
                 "®️ Registering file in the database...",
-                doc_name=fpath.stem,
+                doc_name=doc_name,
                 doc_id=doc_id,
             )
             # Insert the document metadata into the MongoDB collection
@@ -116,7 +117,7 @@ def index_files(
                 doc_id,
                 DocumentInfo(
                     id=doc_id,
-                    name=fpath.stem,
+                    name=doc_name,
                     client_id=client_id,
                     collection=collection_name,
                     status=DOC_STATUS.PENDING.value,
@@ -126,7 +127,7 @@ def index_files(
             )
 
             # Read the file (possibly a PDF which will be converted to text)
-            pub("📝 Indexing file...", doc_name=fpath.stem, doc_id=doc_id)
+            pub("📝 Indexing file...", doc_name=doc_name, doc_id=doc_id)
             future = index_file.submit(
                 fpath=fpath,
                 doc_id=doc_id,
@@ -141,7 +142,7 @@ def index_files(
             logger.debug(f"Task {future} submitted for {fpath.name}")
             tasks.append(future)
         except Exception as e:
-            pub(f"💥 Error processing '{fpath.name}': {e}", level="error")
+            pub(f"💥 Error processing '{doc_name}': {e}", level="error")
             update_doc_db(doc_id, {"status": DOC_STATUS.FAILED.value})
             total_errors += 1
 
@@ -163,7 +164,7 @@ def index_files(
                     )
                     total_skipped += 1
             except Exception as e:
-                pub(f"💥 Error inserting '{fpath.name}': {e}", level="error")
+                pub(f"💥 Error inserting '{doc_name}': {e}", level="error")
                 update_doc_db(doc_id, {"status": DOC_STATUS.FAILED.value})
                 total_errors += 1
             else:

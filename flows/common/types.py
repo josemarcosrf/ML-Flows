@@ -20,6 +20,7 @@ class DOC_STATUS(str, Enum):
 class Playbook(BaseModel):
     id: str
     name: str
+    version: int = 1
     definition: dict[str, dict[str, str | list[str]]]
 
     @classmethod

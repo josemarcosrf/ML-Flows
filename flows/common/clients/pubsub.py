@@ -206,10 +206,18 @@ class UpdatePublisher(RedisPubSubClient):
     def publish_update(
         self, message: str, doc_id: str | None = None, **extra_fields
     ) -> int:
+        # Construct the channel name based on client_id, project_id, and doc_id
+        # Possible channels:
+        #   - client_id/updates
+        #   - client_id/project:<project_id>/updates
+        #   - client_id/project:<project_id>/doc:<doc_id>/updates
+        channel = f"{self.client_id}/"
+        if "project_id" in extra_fields:
+            channel += f"project:{extra_fields['project_id']}/"
         if doc_id:
-            channel = f"{self.client_id}/doc:{doc_id}"
-        else:
-            channel = f"{self.client_id}/updates"
+            channel += f"doc:{doc_id}/"
+        channel += "updates"
+
         try:
             payload = {"message": message, **extra_fields}
             logger.debug(f"📨 Publishing update for channel {channel}: {payload}")
