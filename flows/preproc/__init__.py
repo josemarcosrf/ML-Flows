@@ -4,6 +4,7 @@ from pathlib import Path
 
 from loguru import logger
 from prefect import Flow, flow
+from prefect.runtime import flow_run
 
 from flows.common.clients.mongo import MongoDBClient
 from flows.common.clients.vector_stores import get_default_vector_collection_name
@@ -15,7 +16,6 @@ from flows.settings import settings
 
 def custom_index_flow_run_name() -> str:
     """Generate a custom flow run name for indexing files"""
-    from prefect.runtime import flow_run
 
     # function_name = flow_run.get_flow_name()
     parameters = flow_run.get_parameters()
@@ -115,14 +115,17 @@ def index_files(
             # Insert the document metadata into the MongoDB collection
             update_doc_db(
                 doc_id,
-                DocumentInfo(
-                    id=doc_id,
-                    name=doc_name,
-                    client_id=client_id,
-                    collection=collection_name,
-                    status=DOC_STATUS.PENDING.value,
-                    created_at=datetime.now().isoformat(),
-                ).model_dump(),
+                update={
+                    "run_id": flow_run.id,
+                    **DocumentInfo(
+                        id=doc_id,
+                        name=doc_name,
+                        client_id=client_id,
+                        collection=collection_name,
+                        status=DOC_STATUS.PENDING.value,
+                        created_at=datetime.now().isoformat(),
+                    ).model_dump(),
+                },
                 upsert=True,
             )
 
