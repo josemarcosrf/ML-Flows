@@ -3,6 +3,7 @@ from typing import Any
 
 from loguru import logger
 from prefect import Flow, flow, task
+from prefect.runtime import flow_run
 
 from flows.common.clients.mongo import MongoDBClient
 from flows.common.clients.vector_stores import get_default_vector_collection_name
@@ -12,8 +13,6 @@ from flows.settings import settings
 
 
 def playbook_qa_flow_run_name() -> str:
-    from prefect.runtime import flow_run
-
     func_name = flow_run.get_flow_name()
     parameters = flow_run.get_parameters()
     playbook_name = parameters["playbook"].name
@@ -83,6 +82,7 @@ def playbook_qa(
             "collection": collection_name,
             "playbook_id": playbook.id,
             "playbook_version": playbook.version,
+            "run_id": flow_run.id,
         }
 
         # The callback task defined in a closure so that it can access the db and query.
