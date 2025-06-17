@@ -1,6 +1,7 @@
 import json
 from enum import Enum
 from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel, field_validator
 
@@ -22,6 +23,7 @@ class Playbook(BaseModel):
     name: str
     version: int = 1
     definition: dict[str, dict[str, str | list[str]]]
+    metadata: dict[str, Any] = {}
 
     @classmethod
     def from_json_file(cls, file_path: Path | str):
