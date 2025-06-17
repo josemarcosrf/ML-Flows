@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from flows.common.helpers.auto_download import download_if_remote
+from flows.common.helpers.auto_download import download_if_remote, is_url
 
 
 # Mock functions for downloading
@@ -14,15 +14,6 @@ def mock_download_from_url(path):
     return Path("/mock/local/url/file")
 
 
-# Mock the is_s3_path and is_url functions
-def mock_is_s3_path(path):
-    return path.startswith("s3://")
-
-
-def mock_is_url(path):
-    return path.startswith("http://") or path.startswith("https://")
-
-
 # Apply the mocks
 @pytest.fixture(autouse=True)
 def apply_mocks(monkeypatch):
@@ -32,10 +23,19 @@ def apply_mocks(monkeypatch):
     monkeypatch.setattr(
         "flows.common.helpers.auto_download.download_from_url", mock_download_from_url
     )
-    monkeypatch.setattr(
-        "flows.common.helpers.auto_download.is_s3_path", mock_is_s3_path
-    )
-    monkeypatch.setattr("flows.common.helpers.auto_download.is_url", mock_is_url)
+
+
+@pytest.mark.parametrize(
+    "url,expected",
+    [
+        ("http://example.com/file.txt", True),
+        ("https://example.com/file.txt", True),
+        ("s3://bucket/key", False),
+        ("/local/path", False),
+    ],
+)
+def test_is_url(url, expected):
+    assert is_url(url) == expected
 
 
 @download_if_remote(include=["file_path"])
@@ -112,3 +112,30 @@ def test_download_if_remote_with_include_dict():
     assert local_paths == remote_paths  # Unchanged as it doesn't support dict
     assert a == "a"
     assert b == "b"
+
+
+def test_download_if_remote_raises_on_invalid_path():
+    # Should raise Exception if download_from_url fails (simulate by raising in the mock)
+    def fail_download_from_url(path):
+        raise Exception("💥 Error downloading from URL: fail")
+
+    # Patch only download_from_url to raise
+    import importlib
+
+    from flows.common.helpers import auto_download as ad
+
+    importlib.reload(ad)
+
+    @ad.download_if_remote(include=["file_path"])
+    def proc(file_path):
+        return file_path
+
+    # Patch download_from_url to raise
+
+    orig = ad.download_from_url
+    ad.download_from_url = fail_download_from_url
+    try:
+        with pytest.raises(Exception, match="💥 Error downloading from URL: fail"):
+            proc("http://example.com/remote/file")
+    finally:
+        ad.download_from_url = orig
