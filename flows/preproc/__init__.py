@@ -105,32 +105,34 @@ def index_files(
 
     for i, (fpath, doc_id) in enumerate(zip(full_paths, doc_ids)):
         doc_name = metadatas[i].get("name") or fpath.stem
+        project_id = metadatas[i].get("project_id")
+        doc_ctx = {
+            "doc_name": doc_name,
+            "doc_id": doc_id,
+            "client_id": client_id,
+            "project_id": project_id,
+        }
         # Launch the indexing tasks
         try:
-            pub(
-                "®️ Registering file in the database...",
-                doc_name=doc_name,
-                doc_id=doc_id,
-            )
+            pub("®️ Registering file in the database...", **doc_ctx)
             # Insert the document metadata into the MongoDB collection
             update_doc_db(
                 doc_id,
-                update={
-                    "run_id": flow_run.id,
-                    **DocumentInfo(
-                        id=doc_id,
-                        name=doc_name,
-                        client_id=client_id,
-                        collection=collection_name,
-                        status=DOC_STATUS.PENDING.value,
-                        created_at=datetime.now().isoformat(),
-                    ).model_dump(),
-                },
+                **DocumentInfo(
+                    id=doc_id,
+                    name=doc_name,
+                    client_id=client_id,
+                    collection=collection_name,
+                    status=DOC_STATUS.PENDING.value,
+                    created_at=datetime.now().isoformat(),
+                    run_id=flow_run.id,
+                    project_id=project_id,
+                ).model_dump(),
                 upsert=True,
             )
 
             # Read the file (possibly a PDF which will be converted to text)
-            pub("📝 Indexing file...", doc_name=doc_name, doc_id=doc_id)
+            pub("📝 Indexing file...", **doc_ctx)
             future = index_file.submit(
                 fpath=fpath,
                 doc_id=doc_id,
@@ -145,7 +147,7 @@ def index_files(
             logger.debug(f"Task {future} submitted for {fpath.name}")
             tasks.append(future)
         except Exception as e:
-            pub(f"💥 Error processing '{doc_name}': {e}", level="error")
+            pub(f"💥 Error processing '{doc_name}': {e}", **doc_ctx, level="error")
             update_doc_db(doc_id, {"status": DOC_STATUS.FAILED.value})
             total_errors += 1
 
@@ -153,21 +155,13 @@ def index_files(
         for task in tasks:
             try:
                 if inserted_nodes := task.result():
-                    pub(
-                        f"✅ Successfully indexed {inserted_nodes} nodes.",
-                        doc_name=fpath.stem,
-                        doc_id=doc_id,
-                    )
+                    pub(f"✅ Successfully indexed {inserted_nodes} nodes.", **doc_ctx)
                     total_inserted += 1
                 else:
-                    pub(
-                        "⏎ Document already indexed, skipping...",
-                        doc_name=fpath.stem,
-                        doc_id=doc_id,
-                    )
+                    pub("⏎ Document already indexed, skipping...", **doc_ctx)
                     total_skipped += 1
             except Exception as e:
-                pub(f"💥 Error inserting '{doc_name}': {e}", level="error")
+                pub(f"💥 Error inserting '{doc_name}': {e}", **doc_ctx, level="error")
                 update_doc_db(doc_id, {"status": DOC_STATUS.FAILED.value})
                 total_errors += 1
             else:
@@ -178,7 +172,7 @@ def index_files(
         "skipped": total_skipped,
         "errors": total_errors,
     }
-    pub("Indexing completed!", extra=stats)
+    pub("Indexing completed!", extra=stats, run_id=flow_run.id)
 
     if total_errors > 0:
         raise RuntimeError(f"Errors occurred during indexing: {total_errors}")

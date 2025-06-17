@@ -39,6 +39,8 @@ class DocumentInfo(BaseModel):
     created_at: str
     status: str
     reason: str | None = None
+    run_id: str | None = None
+    project_id: str | None = None
 
     @field_validator("status")
     def validate_status(cls, v):
