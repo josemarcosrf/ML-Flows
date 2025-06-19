@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from flows.common.types import DOC_STATUS, DocumentInfo, ExportFormat, Playbook
+from flows.common.types import DBDocumentInfo, DOC_STATUS, ExportFormat, Playbook
 
 
 def test_export_format_enum():
@@ -40,7 +40,7 @@ def test_playbook_from_json_file(tmp_path):
 
 
 def test_document_status_validation():
-    doc = DocumentInfo(
+    doc = DBDocumentInfo(
         id="1",
         name="n",
         client_id="c",
@@ -51,7 +51,7 @@ def test_document_status_validation():
     assert doc.status == "pending"
 
     with pytest.raises(ValueError):
-        DocumentInfo(
+        DBDocumentInfo(
             id="2",
             name="n",
             client_id="c",

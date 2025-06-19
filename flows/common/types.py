@@ -33,7 +33,7 @@ class Playbook(BaseModel):
         return cls(**data)
 
 
-class DocumentInfo(BaseModel):
+class DBDocumentInfo(BaseModel):
     id: str
     name: str
     client_id: str
@@ -42,7 +42,8 @@ class DocumentInfo(BaseModel):
     status: str
     reason: str | None = None
     run_id: str | None = None
-    project_id: str | None = None
+    metadata: dict = Field(default_factory=dict)
+    tags: list[str] = Field(default_factory=list)
 
     @field_validator("status")
     def validate_status(cls, v):

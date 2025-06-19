@@ -10,7 +10,7 @@ from flows.common.clients.mongo import MongoDBClient
 from flows.common.clients.vector_stores import get_default_vector_collection_name
 from flows.common.helpers import pub_and_log
 from flows.common.helpers.auto_download import download_if_remote
-from flows.common.types import DOC_STATUS, DocumentInfo
+from flows.common.types import DBDocumentInfo, DOC_STATUS
 from flows.settings import settings
 
 
@@ -63,12 +63,14 @@ def index_document_file(
     def update_doc_db(doc_id: str, update: dict, upsert=False):
         res = db.update_one(
             settings.MONGO_DOC_COLLECTION,
-            filter={"id": doc_id},
+            filter={"id": doc_id, "client_id": client_id},
             update=update,
             upsert=upsert,
         )
         logger.debug(f"DB update results: {res}")
 
+    # metadata is any user defined data for the document; e.g. project_id, name, etc.
+    # We ensure it also has a client_id field so it get's stored in the vectors DB
     if metadata is None:
         metadata = {"client_id": client_id}
     else:
@@ -87,19 +89,20 @@ def index_document_file(
     fpath = Path(file_path).resolve()
     doc_id = sha1(fpath.open("rb").read()).hexdigest()
     doc_name = metadata.get("name") or fpath.stem
-    project_id = metadata.get("project_id")
+
+    # doc ctx is used for logging and pub/sub messages
     doc_ctx = {
         "doc_name": doc_name,
         "doc_id": doc_id,
         "client_id": client_id,
-        "project_id": project_id,
+        "project_id": metadata.get("project_id"),
     }
     try:
         pub("®️ Registering file in the database...", **doc_ctx)
         update_doc_db(
             doc_id,
             # Review the DocumentInfo model to ensure it matches your schema
-            **DocumentInfo(
+            **DBDocumentInfo(
                 id=doc_id,
                 name=doc_name,
                 client_id=client_id,
@@ -107,7 +110,7 @@ def index_document_file(
                 status=DOC_STATUS.PENDING.value,
                 created_at=datetime.now().isoformat(),
                 run_id=flow_run.id,
-                project_id=project_id,
+                metadata=metadata,
             ).model_dump(),
             upsert=True,
         )
