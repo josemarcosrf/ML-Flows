@@ -3,7 +3,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class ExportFormat(str, Enum):
@@ -23,7 +23,7 @@ class Playbook(BaseModel):
     name: str
     version: int = 1
     definition: dict[str, dict[str, str | list[str]]]
-    metadata: dict[str, Any] = {}
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
     @classmethod
     def from_json_file(cls, file_path: Path | str):

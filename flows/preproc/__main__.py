@@ -56,10 +56,15 @@ def index_docfiles(
     file_glob: list[str],
 ):
     """Index a PDF file (local or remote) or all PDF files in a local directory"""
-    from flows.preproc import index_files
+    from flows.preproc import index_document_file
 
-    paths = gather_files(file_or_dir, file_glob)
-    index_files(
-        client_id=client_id,
-        file_paths=paths,
-    )
+    doc_paths = gather_files(file_or_dir, file_glob)
+    print(f"📂 Found {len(doc_paths)} files to index for client {client_id}")
+    for doc_path in doc_paths:
+        print(f"📄 Indexing {doc_path} for client {client_id}")
+        index_document_file(
+            client_id=client_id,
+            file_path=doc_path,
+        )
+
+    print("✅ Done!")
