@@ -6,9 +6,10 @@
 
 set -e
 
-# 👇 ================ Configuration - Update these values =================👇
-POOL_NAME="my-ecs-pool"
-# 👆 ================ Configuration - Update these values =================👆
+# 👇 ================ Configuration - Pool Name Input =================👇
+read -p "Enter POOL_NAME [my-ecs-pool]: " POOL_NAME
+POOL_NAME=${POOL_NAME:-my-ecs-pool}
+# 👆 ================ Configuration - Pool Name Input =================👆
 
 echo "🎱 Starting Set Up for Prefect Pool..."
 

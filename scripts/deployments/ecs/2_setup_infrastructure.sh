@@ -5,13 +5,22 @@
 
 set -e
 
-# 👇 ================ Configuration - Update these values =================👇
-AWS_REGION="eu-central-1"
-AWS_ACCOUNT_ID="677276117552"
-CLUSTER_NAME="prefect-fargate-cluster"
-SERVICE_NAME="prefect-worker-service"
-TASK_DEFINITION_NAME="prefect-worker-service"
-# 👆 ================ Configuration - Update these values =================👆
+# 👇 ================ Configuration - User Input or Defaults =================👇
+read -p "Enter AWS_REGION [eu-central-1]: " AWS_REGION
+AWS_REGION=${AWS_REGION:-eu-central-1}
+
+read -p "Enter AWS_ACCOUNT_ID [677276117552]: " AWS_ACCOUNT_ID
+AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID:-677276117552}
+
+read -p "Enter CLUSTER_NAME [prefect-fargate-cluster]: " CLUSTER_NAME
+CLUSTER_NAME=${CLUSTER_NAME:-prefect-fargate-cluster}
+
+read -p "Enter SERVICE_NAME [prefect-worker-service]: " SERVICE_NAME
+SERVICE_NAME=${SERVICE_NAME:-prefect-worker-service}
+
+read -p "Enter TASK_DEFINITION_NAME [prefect-worker-service]: " TASK_DEFINITION_NAME
+TASK_DEFINITION_NAME=${TASK_DEFINITION_NAME:-prefect-worker-service}
+# 👆 ================ Configuration - User Input or Defaults =================👆
 
 echo "🚀 Starting Set Up for AWS Infrastructure..."
 
