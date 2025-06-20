@@ -100,9 +100,9 @@ def index_document_file(
     try:
         pub("®️ Registering file in the database...", **doc_ctx)
         update_doc_db(
-            doc_id,
+            doc_id=doc_id,
             # Review the DocumentInfo model to ensure it matches your schema
-            **DBDocumentInfo(
+            update=DBDocumentInfo(
                 id=doc_id,
                 name=doc_name,
                 client_id=client_id,
