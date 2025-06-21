@@ -5,7 +5,7 @@
 groups = ["default", "bedrock", "chroma", "dev", "huggingface", "ollama", "openai"]
 strategy = []
 lock_version = "4.5.0"
-content_hash = "sha256:04b638d7e29792dbe073d2ad86fb6a7af30b60980996eedf775b886b6653d496"
+content_hash = "sha256:3e29c7fe290ea5ee8e82f9fa06d0fb59e412cafcfd4ebf909d515819d96a59b2"
 
 [[metadata.targets]]
 requires_python = "==3.12.*"
@@ -2974,6 +2974,18 @@ dependencies = [
 files = [
     {file = "pytest_cov-6.2.1-py3-none-any.whl", hash = "sha256:f5bc4c23f42f1cdd23c70b1dab1bbaef4fc505ba950d53e0081d0730dd7e86d5"},
     {file = "pytest_cov-6.2.1.tar.gz", hash = "sha256:25cc6cc0a5358204b8108ecedc51a9b57b34cc6b8c967cc2c01a4e00d8a67da2"},
+]
+
+[[package]]
+name = "pytest-mock"
+version = "3.14.1"
+summary = ""
+dependencies = [
+    "pytest",
+]
+files = [
+    {file = "pytest_mock-3.14.1-py3-none-any.whl", hash = "sha256:178aefcd11307d874b4cd3100344e7e2d888d9791a6a1d9bfe90fbc1b74fd1d0"},
+    {file = "pytest_mock-3.14.1.tar.gz", hash = "sha256:159e9edac4c451ce77a5cdb9fc5d1100708d2dd4ba3c3df572f14097351af80e"},
 ]
 
 [[package]]
