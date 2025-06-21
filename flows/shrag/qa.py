@@ -73,7 +73,7 @@ class QAgent:
     def rag(
         self,
         query: str,
-        meta_filters: dict[str, Any] = {},
+        meta_filters: dict[str, Any] | None = None,
         output_cls: type[BaseAnswer] = BaseAnswer,
         similarity_top_k: int = 3,
         similarity_cutoff: float = 0.2,
@@ -94,6 +94,8 @@ class QAgent:
         Returns:
             BaseAnswer: Retrieval Augmented Generated Answer
         """
+        if meta_filters is None:
+            meta_filters = {}
         # Build the Retriever with its metadata filters
         filters = (
             MetadataFilters(
@@ -131,7 +133,7 @@ class QAgent:
     def ask(
         self,
         q: QuestionItem,
-        meta_filters: dict[str, Any] = {},
+        meta_filters: dict[str, Any] | None = None,
         **kwargs,
     ) -> BaseAnswer | None:
         """Shorthand method for RAG given a 'Question Item'
@@ -145,6 +147,8 @@ class QAgent:
             meta_filters (dict[str, Any]): Metadata Retrieval filter dictionary in the form
                 metadata-key, value pairs
         """
+        if meta_filters is None:
+            meta_filters = {}
         prompt = get_question_prompt(q)
         try:
             logger.info(f"🔍 Extracting '{q.key}'")
@@ -165,7 +169,7 @@ class QAgent:
     def ask_if_yes(
         self,
         questions: list[QuestionItem],
-        meta_filters: dict[str, Any] = {},
+        meta_filters: dict[str, Any] | None = None,
         **kwargs,
     ) -> dict[str, BaseAnswer] | None:
         """Ask a group of questions in sequence. If the first question is affirmative
@@ -181,7 +185,8 @@ class QAgent:
         Returns:
             dict[str, BaseAnswer] | None: A dictionary of the responses
         """
-
+        if meta_filters is None:
+            meta_filters = {}
         # Check if the first question is of type YES/NO. If not, raise an error
         if questions[0].question_type != QuestionType.YES_NO:
             raise ValueError(

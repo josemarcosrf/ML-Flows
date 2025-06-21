@@ -41,6 +41,10 @@ class VectorStore:
     def get_doc(self, doc_id: str, collection_name: str, **kwargs) -> list | None:
         raise NotImplementedError
 
+    def delete_doc(self, doc_id: str, collection_name: str, **kwargs) -> None:
+        """Delete a document by its ID from the specified collection."""
+        raise NotImplementedError
+
     def get_index(
         self, collection_name: str, create_if_not_exists: bool = False, **kwargs
     ):
@@ -231,7 +235,7 @@ class MongoVectorStore(VectorStore):
         **kwargs: Any,
     ) -> list[dict] | None:
         """
-        Get a document by its ID from the specified collection.
+        Get a document's vector by its ID from the specified collection.
         Args:
             collection_name (str): The name of the collection to get the document from.
             doc_id (str): The ID of the document to retrieve.
@@ -240,6 +244,26 @@ class MongoVectorStore(VectorStore):
         """
         col = self._get_collection(collection_name)
         return list(col.find({"metadata.doc_id": doc_id}))
+
+    def delete_doc(self, doc_id: str, collection_name: str, **kwargs) -> None:
+        """
+        Delete a document's vectors by its ID from the specified collection.
+        Args:
+            collection_name (str): The name of the collection to delete the document from.
+            doc_id (str): The ID of the document to delete.
+        """
+        col = self._get_collection(collection_name)
+        result = col.delete_many({"metadata.doc_id": doc_id})
+        if result.deleted_count == 0:
+            logger.warning(
+                f"No document found with doc_id '{doc_id}' "
+                f"in collection '{collection_name}'."
+            )
+        else:
+            logger.info(
+                f"🗑️ Deleted document with doc_id '{doc_id}' "
+                f"from collection '{collection_name}'."
+            )
 
     def print_collection(
         self,
@@ -424,6 +448,26 @@ class ChromaVectorStore(VectorStore):
         col = self.db.get_collection(collection_name)
         include = kwargs.get("include", ["metadatas"])
         return col.get(ids=[doc_id], include=include).get("metadatas")
+
+    def delete_doc(self, doc_id: str, collection_name: str, **kwargs) -> None:
+        """
+        Delete a document by its ID from the specified collection in ChromaDB.
+        Args:
+            collection_name (str): The name of the collection to delete the document from.
+            doc_id (str): The ID of the document to delete.
+        """
+        col = self.db.get_collection(collection_name)
+        try:
+            col.delete(where={"metadata.doc_id": doc_id})
+            logger.info(
+                f"🗑️ Deleted document with doc_id '{doc_id}' "
+                f"from collection '{collection_name}'."
+            )
+        except Exception as e:
+            logger.warning(
+                f"Failed to delete doc_id '{doc_id}' "
+                f"from collection '{collection_name}': {e}"
+            )
 
     def _get_collection_documents(
         self,

@@ -33,7 +33,7 @@ def index_file(
     chunk_overlap: int,
     llm_backend: str,
     vector_store_backend: str,
-    metadata: dict = {},
+    metadata: dict | None = None,
 ) -> int:
     """Index a single file in ChromaDB.
 
@@ -49,6 +49,9 @@ def index_file(
     Returns:
         int: The Number of nodes inserted
     """
+    if metadata is None:
+        metadata = {}
+
     # Read the file (OCR or otherwise)
     if fpath.suffix == ".pdf":
         text = docling_2_md.submit(str(fpath)).result()

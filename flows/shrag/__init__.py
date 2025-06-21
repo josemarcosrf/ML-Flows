@@ -24,10 +24,10 @@ def playbook_qa_flow_run_name() -> str:
     log_prints=True,
     flow_run_name=playbook_qa_flow_run_name,
 )
-def playbook_qa(
+def run_qa_playbook(
     client_id: str,
     playbook: Playbook,
-    meta_filters: dict[str, Any] = {},
+    meta_filters: dict[str, Any] | None = None,
     llm_backend: str = settings.LLM_BACKEND,
     llm_model: str = settings.LLM_MODEL,
     embedding_model: str = settings.EMBEDDING_MODEL,
@@ -42,12 +42,17 @@ def playbook_qa(
     been pre-processed and present in the given chromaDB collection.
 
     Args:
-        client_id (str): Client ID for the Pub/Sub updates
+        client_id (str): external ID of the client, used to identify the
+            documents and results in the MongoDB collection.
         playbook (str): Mapping with 'id','name' and 'defintion' keys.
             The definition key contains the question library with each item having:
             'question', 'question_type' and 'valid_answers' for each attribute
         meta_filters (dict[str, Any], optional): Metadata filters for retrieval
             as {key:value} mapping. Leave as an empty dict for no filtering.
+        llm_backend (str, optional): LLM backend to use.
+            Defaults to LLM_BACKEND_DEFAULT.
+        llm_model (str, optional): LLM model to use.
+            Defaults to LLM_MODEL_DEFAULT.
         embedding_model (str, optional): Embedding model to use.
             Defaults to EMBEDDING_MODEL_DEFAULT.
         reranker_model (str | None, optional): Reranker model to use.
@@ -56,10 +61,8 @@ def playbook_qa(
             Defaults to SIMILARITY_TOP_K_DEFAULT.
         similarity_cutoff (float, optional): Similarity cutoff for retrieval.
             Defaults to SIMILARITY_CUTOFF_DEFAULT.
-        llm_backend (str, optional): LLM backend to use.
-            Defaults to LLM_BACKEND_DEFAULT.
-        llm_model (str, optional): LLM model to use.
-            Defaults to LLM_MODEL_DEFAULT.
+        vector_store_backend (str): Vector store backend to use.
+            Defaults to settings.VECTOR_STORE_BACKEND.
         pubsub (bool, optional): Whether to use Pub/Sub for updates.
             Defaults to False.
     Returns:
@@ -100,7 +103,10 @@ def playbook_qa(
 
         return _callback
 
-    # Initialize the MongoDB client and create an empty results item
+    # Ensure meta_filters is a dict
+    meta_filters = meta_filters or {}
+
+    # Initialize the MongoDB client
     db = MongoDBClient()
 
     # Combine the logger and the publisher
@@ -167,7 +173,7 @@ def playbook_qa(
             "playbook_id": playbook.id,
             "playbook_version": playbook.version,
         },
-        update={"$set": {"completed_at": dt.now().isoformat()}},
+        update={"completed_at": dt.now().isoformat()},
         upsert=True,
     )
 
@@ -175,5 +181,5 @@ def playbook_qa(
 
 
 PUBLIC_FLOWS: dict[str, Flow] = {
-    playbook_qa.name: playbook_qa,
+    run_qa_playbook.name: run_qa_playbook,
 }

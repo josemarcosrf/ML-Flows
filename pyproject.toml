@@ -50,6 +50,9 @@ dev = [
     "isort>=6.0.0",
     "ruff>=0.9.7",
     "pre-commit>=4.1.0",
+    "pytest>=8.4.0",
+    "pytest-cov>=6.2.1",
+    "pytest-mock>=3.14.1",
 ]
 
 [tool.pdm]
@@ -58,11 +61,14 @@ distribution = false
 [tool.pdm.scripts]
 flows = "python -m flows"
 
+# Testing scripts
+tests = "python -m pytest tests --cov=flows --maxfail=3 --disable-warnings -v"
+
 # ECS Deployment scripts
-ecs-docker = "./scripts/deployments/ecs/1_build_and_push_docker.sh"
-ecs-setup = "./scripts/deployments/ecs/2_setup_infrastructure.sh"
-ecs-pool = "./scripts/deployments/ecs/3_prefect_pool.sh"
-ecs-flow-deploy = "./scripts/deployments/ecs/4_deploy_flow.sh"
+ecs-docker = "./deployments/ecs/1_build_and_push_docker.sh"
+ecs-setup = "./deployments/ecs/2_setup_infrastructure.sh"
+ecs-pool = "./deployments/ecs/3_prefect_pool.sh"
+ecs-flow-deploy = "./deployments/ecs/4_deploy_flow.sh"
 
 [tool.pdm.scripts.check-lint]
 shell = """
@@ -74,6 +80,7 @@ help = "Run linting and formating checks."
 
 [tool.pdm.scripts.reformat]
 shell = """
+    ruff check --fix .
     isort .
     ruff format .
 """

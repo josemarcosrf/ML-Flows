@@ -7,10 +7,14 @@
 set -e
 
 # 👇 ================ Configuration - Update these values =================👇
-# Configuration - Update these values
-AWS_REGION="eu-central-1"
-AWS_ACCOUNT_ID="677276117552"
-ECR_REPO_NAME="deus-flows"
+read -p "Enter AWS_REGION [eu-central-1]: " AWS_REGION
+AWS_REGION=${AWS_REGION:-eu-central-1}
+
+read -p "Enter AWS_ACCOUNT_ID [677276117552]: " AWS_ACCOUNT_ID
+AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID:-677276117552}
+
+read -p "Enter ECR_REPO_NAME [deus-flows]: " ECR_REPO_NAME
+ECR_REPO_NAME=${ECR_REPO_NAME:-deus-flows}
 # 👆 ================ Configuration - Update these values =================👆
 
 echo "🚀 Starting Docker creation, tagging and push..."

@@ -1,8 +1,9 @@
 import json
 from enum import Enum
 from pathlib import Path
+from typing import Any
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class ExportFormat(str, Enum):
@@ -22,6 +23,7 @@ class Playbook(BaseModel):
     name: str
     version: int = 1
     definition: dict[str, dict[str, str | list[str]]]
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
     @classmethod
     def from_json_file(cls, file_path: Path | str):
@@ -31,7 +33,7 @@ class Playbook(BaseModel):
         return cls(**data)
 
 
-class DocumentInfo(BaseModel):
+class DBDocumentInfo(BaseModel):
     id: str
     name: str
     client_id: str
@@ -39,6 +41,9 @@ class DocumentInfo(BaseModel):
     created_at: str
     status: str
     reason: str | None = None
+    run_id: str | None = None
+    metadata: dict = Field(default_factory=dict)
+    tags: list[str] = Field(default_factory=list)
 
     @field_validator("status")
     def validate_status(cls, v):

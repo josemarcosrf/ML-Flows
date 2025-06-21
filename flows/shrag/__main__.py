@@ -8,7 +8,7 @@ from flows.common.clients.llms import LLMBackend
 from flows.common.clients.vector_stores import VectorStoreBackend
 from flows.common.types import Playbook
 from flows.settings import settings
-from flows.shrag import playbook_qa
+from flows.shrag import run_qa_playbook
 
 
 def common_rag_options(func):
@@ -87,7 +87,7 @@ def run_playbook_qa_from_directory(
 
             # Run the RAG dataflow
             meta_filters = {"name": fname}
-            res = playbook_qa(
+            res = run_qa_playbook(
                 client_id=client_id,
                 playbook=playbook,
                 meta_filters=meta_filters,
@@ -155,7 +155,7 @@ def run_playbook_qa(
     playbook = Playbook.from_json_file(playbook_json)
 
     # Run the RAG dataflow
-    res = playbook_qa(
+    res = run_qa_playbook(
         client_id=client_id,
         playbook=playbook,
         meta_filters=filters,
