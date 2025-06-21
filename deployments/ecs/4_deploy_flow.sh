@@ -32,7 +32,7 @@ POOL_NAME="my-ecs-pool"
 
 # ================ Deployment Name Selector =============
 
-deployment_options=("deus.dev" "deus" "Other (enter manually)")
+deployment_options=("deus.dev" "deus.prod" "Other (enter manually)")
 printf "\nAvailable Deployment Names:\n"
 for i in "${!deployment_options[@]}"; do
   printf "%d) %s\n" "$((i+1))" "${deployment_options[$i]}"
@@ -68,6 +68,8 @@ elif [[ "$FLOW_NAME" == "run_qa_playbook" ]]; then
   PREFECT_YAML="deployments/shrag.yaml"
   USE_PREFECT_YAML=true
 fi
+
+echo "🚀 Starting Prefect Flow Deployment on AWS ECS Fargate..."
 
 if [ "$USE_PREFECT_YAML" = true ]; then
   echo "Using configuration file: $PREFECT_YAML"

@@ -1,0 +1,68 @@
+# Deployments for run_qa_playbook flow (shrag) in dev and prod
+name: ML-Flows
+prefect-version: 3.4.3
+
+# build section allows you to manage and build docker images
+build: null
+
+# push section allows you to manage if and how this project is uploaded to remote locations
+push: null
+
+pull:
+  - prefect.deployments.steps.set_working_directory:
+      directory: '/app'
+
+deployments:
+- name: deus.dev
+  version: "0.1.0"
+  tags: ["fargate", "deus", "dev", "shrag"]
+  description: "Document RAG QA Deus API (dev)"
+  schedule: {}
+  flow_name: run_qa_playbook
+  entrypoint: /app/flows/shrag/__init__.py:run_qa_playbook
+  parameters: {}
+  work_pool:
+    name: my-ecs-pool
+    work_queue_name: null
+    job_variables:
+      env:
+        AWS_DEFAULT_REGION: eu-central-1
+        AWS_REGION: us-east-1
+        AWS_ACCESS_KEY_ID: "{{ $AWS_ACCESS_KEY_ID }}"
+        AWS_SECRET_ACCESS_KEY: "{{  $AWS_SECRET_ACCESS_KEY }}"
+        VECTOR_STORE_BACKEND: "{{ $VECTOR_STORE_BACKEND }}"
+        LLM_BACKEND: "{{ $LLM_BACKEND }}"
+        MONGO_URI: "{{ $MONGO_URI }}"
+        MONGO_DB: "{{ $MONGO_DB }}"
+        REDIS_HOST: "{{ $REDIS_HOST }}"
+        REDIS_PORT: "{{ $REDIS_PORT }}"
+        REDIS_PWD: "{{ $REDIS_PWD }}"
+        EMBEDDING_MODEL: "{{ $EMBEDDING_MODEL }}"
+        LLM_MODEL: "{{ $LLM_MODEL }}"
+
+- name: deus.prod
+  version: "0.1.0"
+  tags: ["fargate", "deus", "prod", "shrag"]
+  description: "Document RAG QA Deus API (prod)"
+  schedule: {}
+  flow_name: run_qa_playbook
+  entrypoint: /app/flows/shrag/__init__.py:run_qa_playbook
+  parameters: {}
+  work_pool:
+    name: my-ecs-pool
+    work_queue_name: null
+    job_variables:
+      env:
+        AWS_DEFAULT_REGION: eu-central-1
+        AWS_REGION: us-east-1
+        AWS_ACCESS_KEY_ID: "{{ $AWS_ACCESS_KEY_ID }}"
+        AWS_SECRET_ACCESS_KEY: "{{  $AWS_SECRET_ACCESS_KEY }}"
+        VECTOR_STORE_BACKEND: "{{ $VECTOR_STORE_BACKEND }}"
+        LLM_BACKEND: "{{ $LLM_BACKEND }}"
+        MONGO_URI: "{{ $MONGO_URI }}"
+        MONGO_DB: "{{ $MONGO_DB }}"
+        REDIS_HOST: "{{ $REDIS_HOST }}"
+        REDIS_PORT: "{{ $REDIS_PORT }}"
+        REDIS_PWD: "{{ $REDIS_PWD }}"
+        EMBEDDING_MODEL: "{{ $EMBEDDING_MODEL }}"
+        LLM_MODEL: "{{ $LLM_MODEL }}"
