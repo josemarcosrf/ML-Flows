@@ -191,6 +191,22 @@ class MongoVectorStore(VectorStore):
             store, embed_model=self.embed_model, storage_context=storage_context
         )
 
+    def _get_index_filters(self, collection_name: str, index_name: str) -> list[str]:
+        """Retrieve the filters for a given index name in a collection."""
+        indexes = self._get_collection(collection_name).list_search_indexes()
+        for index in indexes:
+            if index.get("name") == index_name:
+                return index.get("definition", {}).get("fields", [])
+        return []
+
+    def _drop_index(self, collection_name: str, index_name: str):
+        """Drop the specified index from the collection."""
+        col = self._get_collection(collection_name)
+        col.drop_search_index(index_name)
+        logger.info(
+            f"🗑️ Dropped index '{index_name}' from collection '{collection_name}'"
+        )
+
     def get_index(
         self, collection_name: str, create_if_not_exists: bool = False, **kwargs
     ):
@@ -206,19 +222,45 @@ class MongoVectorStore(VectorStore):
             else:
                 raise CollectionNotFoundError(collection_name)
 
+        index_filters = kwargs.get("index_filters", self.DEFAULT_INDEX_FIELDS)
+
         if not self._index_exists(collection_name, vector_index_name):
             logger.warning("🗂️  Non existing / Empty Index!")
             if create_if_not_exists:
                 return self._create_index(
                     collection_name=collection_name,
                     vector_index_name=vector_index_name,
-                    index_filters=kwargs.get(
-                        "index_filters", self.DEFAULT_INDEX_FIELDS
-                    ),
+                    index_filters=index_filters,
                 )
             else:
                 raise VectorStoreIndexNotFoundError(
                     collection_name=collection_name, index_name=vector_index_name
+                )
+        else:
+            # Index exists, check if filters need to be updated
+            current_filters = self._get_index_filters(
+                collection_name, vector_index_name
+            )
+            # Flatten current_filters if it's a list of dicts, otherwise use as is
+            if current_filters and isinstance(current_filters[0], dict):
+                current_filters = [
+                    f.get("path")
+                    for f in current_filters
+                    if isinstance(f, dict) and f.get("path")
+                ]
+
+            # Find missing filters
+            missing_filters = [f for f in index_filters if f not in current_filters]
+
+            if missing_filters:
+                logger.info(
+                    f"🔄 Updating index '{vector_index_name}' with new filters: {missing_filters}"
+                )
+                self._drop_index(collection_name, vector_index_name)
+                return self._create_index(
+                    collection_name=collection_name,
+                    vector_index_name=vector_index_name,
+                    index_filters=index_filters,
                 )
 
         store = self._get_vector_store(
