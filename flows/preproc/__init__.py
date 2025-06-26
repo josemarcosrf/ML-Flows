@@ -35,7 +35,7 @@ def custom_index_flow_run_name() -> str:
 def index_document_file(
     client_id: str,
     file_path: str,
-    embedding_model: str = settings.EMBEDDING_MODEL,
+    embedding_model_id: str = settings.EMBEDDING_MODEL,
     chunk_size: int = settings.CHUNK_SIZE,
     chunk_overlap: int = settings.CHUNK_OVERLAP,
     llm_backend: str = settings.LLM_BACKEND,
@@ -49,7 +49,7 @@ def index_document_file(
         client_id (str): external ID of the client, used to identify the
             documents and results in the MongoDB collection.
         file_path (str): File URI or path to index
-        embedding_model (str, optional): Embedding model to use.
+        embedding_model_id (str, optional): ID of the embedding model to use.
         chunk_size (int, optional): Size of the chunks to split the document into.
         chunk_overlap (int, optional): Overlap between the chunks.
         llm_backend (str, optional): LLM backend to use.
@@ -83,7 +83,7 @@ def index_document_file(
         vector_store_backend=vector_store_backend,
         client_id=client_id,
         llm_backend=llm_backend,
-        embedding_model=embedding_model,
+        embedding_model_id=embedding_model_id,
     )
 
     fpath = Path(file_path).resolve()
@@ -119,11 +119,11 @@ def index_document_file(
             fpath=fpath,
             doc_id=doc_id,
             collection_name=collection_name,
-            vector_store_backend=vector_store_backend,
-            llm_backend=llm_backend,
-            embedding_model=embedding_model,
+            embedding_model_id=embedding_model_id,
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
+            llm_backend=llm_backend,
+            vector_store_backend=vector_store_backend,
             metadata=metadata,
         ).result()
         if inserted_nodes:

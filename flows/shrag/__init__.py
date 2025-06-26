@@ -30,7 +30,7 @@ def run_qa_playbook(
     meta_filters: dict[str, Any] | None = None,
     llm_backend: str = settings.LLM_BACKEND,
     llm_model: str = settings.LLM_MODEL,
-    embedding_model: str = settings.EMBEDDING_MODEL,
+    embedding_model_id: str = settings.EMBEDDING_MODEL,
     reranker_model: str | None = None,
     similarity_top_k: int = settings.SIMILARITY_TOP_K,
     similarity_cutoff: float = settings.SIMILARITY_CUTOFF,
@@ -53,7 +53,7 @@ def run_qa_playbook(
             Defaults to LLM_BACKEND_DEFAULT.
         llm_model (str, optional): LLM model to use.
             Defaults to LLM_MODEL_DEFAULT.
-        embedding_model (str, optional): Embedding model to use.
+        embedding_model_id (str, optional): ID of the embedding model to use.
             Defaults to EMBEDDING_MODEL_DEFAULT.
         reranker_model (str | None, optional): Reranker model to use.
             Defaults to None.
@@ -114,8 +114,8 @@ def run_qa_playbook(
 
     # Get the LLM and embedding model
     llm = get_llm(llm_model=llm_model, llm_backend=llm_backend)
-    embed_model = get_embedding_model(
-        llm_backend=llm_backend, embedding_model=embedding_model
+    embedding_model = get_embedding_model(
+        llm_backend=llm_backend, embedding_model_id=embedding_model_id
     )
 
     # Get the ChromaDB index
@@ -123,10 +123,10 @@ def run_qa_playbook(
         vector_store_backend=vector_store_backend,
         client_id=client_id,
         llm_backend=llm_backend,
-        embedding_model=embedding_model,
+        embedding_model_id=embedding_model_id,
     )
     vec_store = get_vector_store(
-        store_backend=vector_store_backend, embed_model=embed_model
+        store_backend=vector_store_backend, embedding_model=embedding_model
     )
     index = vec_store.get_index(collection_name=collection_name)
     logger.info("🔍 Index loaded successfully!")
@@ -149,7 +149,7 @@ def run_qa_playbook(
     meta_filters.update(
         {
             "llm_backend": llm_backend,
-            "embedding_model": embedding_model,
+            "embedding_model": embedding_model_id,
             "vector_store_backend": vector_store_backend,
         }
     )

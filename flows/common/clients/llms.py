@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Any
 
+from llama_index.core.embeddings import BaseEmbedding
 from loguru import logger
 from prefect import task
 
@@ -13,16 +14,16 @@ class LLMBackend(str, Enum):
     OLLAMA = "ollama"
 
 
-def embedding_model_info(embed_model: str) -> tuple[int, str]:
+def embedding_model_info(embedding_model: BaseEmbedding) -> tuple[int, str]:
     """
     Get the model and embedding dimension and similarity function based on the
     embedding model.
     Args:
-        embed_model[str]: The embedding model to get information from.
+        embedding_model (BaseEmbedding): The embedding model instance to get information from.
     Returns:
         tuple: A tuple containing the embedding dimension and similarity function.
     """
-    model_name = embed_model.model_name
+    model_name = embedding_model.model_name
 
     if model_name == "text-embedding-3-small":
         embedding_dim = 1536
@@ -116,9 +117,9 @@ def get_llm(
     )
 
 
-@task(task_run_name="get_embedding_model:[{llm_backend}]-{embedding_model}")
+@task(task_run_name="get_embedding_model:[{llm_backend}]-{embedding_model_id}")
 def get_embedding_model(
-    embedding_model: str,
+    embedding_model_id: str,
     llm_backend: LLMBackend | str,
     ollama_base_url: str | None = settings.OLLAMA_BASE_URL,
 ):
@@ -126,7 +127,7 @@ def get_embedding_model(
 
     Args:
         llm_backend (LLMBackend | str): LLM backend to use. One of openai, ollama
-        embedding_model (str): Embedding model to use.
+        embedding_model_id (str): Embedding model ID to use.
         E.g.: text-embedding-3-small, nomic-embed-text, ...
 
     Raises:
@@ -137,7 +138,7 @@ def get_embedding_model(
         OpenAIEmbedding: If the LLM backend is openai
         OllamaEmbedding: If the LLM backend is ollama
     """
-    logger.info(f"🧬 Embedding model ({embedding_model})")
+    logger.info(f"🧬 Embedding model ({embedding_model_id})")
     if llm_backend == LLMBackend.OPENAI:
         from llama_index.embeddings.openai import OpenAIEmbedding
 
@@ -148,7 +149,7 @@ def get_embedding_model(
             )
 
         return OpenAIEmbedding(
-            api_key=settings.OPENAI_API_KEY.get_secret_value(), model=embedding_model
+            api_key=settings.OPENAI_API_KEY.get_secret_value(), model=embedding_model_id
         )
 
     elif llm_backend == LLMBackend.OLLAMA:
@@ -160,7 +161,7 @@ def get_embedding_model(
                 "or set the OLLAMA_BASE_URL environment variable."
             )
 
-        return OllamaEmbedding(base_url=ollama_base_url, model_name=embedding_model)
+        return OllamaEmbedding(base_url=ollama_base_url, model_name=embedding_model_id)
 
     elif llm_backend == LLMBackend.AWS:
         from llama_index.embeddings.bedrock import BedrockEmbedding
@@ -177,7 +178,7 @@ def get_embedding_model(
                 "❌ Missing AWS region. Please set the AWS_REGION environment variable."
             )
         return BedrockEmbedding(
-            model_name=embedding_model,
+            model_name=embedding_model_id,
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID.get_secret_value(),
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY.get_secret_value(),
             region_name=settings.AWS_REGION,

@@ -13,9 +13,7 @@ def get_mongo_db():
     mongo_db = os.getenv("MONGO_DB")
 
     if not mongo_uri or not mongo_db:
-        raise EnvironmentError(
-            "MONGO_URI and MONGO_DB environment variables must be set."
-        )
+        raise OSError("MONGO_URI and MONGO_DB environment variables must be set.")
 
     print(f"🔌 Connecting to MongoDB at {mongo_uri} and database {mongo_db}...")
     client = MongoClient(mongo_uri)
@@ -144,7 +142,7 @@ def json_results_to_mongo(data_dir, client_id, playbook_id):
     print(f"Found {len(json_files)} JSON files in {data_path}.")
 
     for json_file in json_files:
-        with open(json_file, "r", encoding="utf-8") as f:
+        with open(json_file, encoding="utf-8") as f:
             answers = json.load(f)
 
         parsed_answers = {}

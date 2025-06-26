@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Any
 
 from llama_index.core import StorageContext, VectorStoreIndex
+from llama_index.core.embeddings import BaseEmbedding
 from loguru import logger
 from tabulate import tabulate
 from tqdm.rich import tqdm
@@ -60,18 +61,25 @@ class VectorStore:
 
 
 class MongoVectorStore(VectorStore):
-    DEFAULT_INDEX_FIELDS = ["metadata.client_id", "metadata.doc_id", "metadata.name"]
+    DEFAULT_INDEX_FIELDS = [
+        "metadata.name",
+        "metadata.subdir",
+        "metadata.doc_id",
+        "metadata.client_id",
+        "metadata.project_id",
+        "metadata.supabase_id",
+    ]
 
     def __init__(
         self,
-        embed_model,
+        embedding_model: BaseEmbedding,
         uri: str = settings.MONGO_URI,
         db_name: str = settings.MONGO_DB,
     ):
         """Initialize the MongoDB vector store client.
 
         Args:
-            embed_model (_type_): The embedding model instance to use for vectorization.
+            embedding_model (BaseEmbedding): The embedding model instance to use for vectorization.
             uri (str, optional): Mongo connection URI with user and password if required.
                 Defaults to settings.MONGO_URI.
             db_name (str, optional): Name of the Database where to store documents.
@@ -84,7 +92,7 @@ class MongoVectorStore(VectorStore):
         self.db = self.client[db_name]
 
         logger.info(f"🔌 Connected to MongoDB at {sanitize_uri(uri)} | DB: {db_name}")
-        self.embed_model = embed_model
+        self.embedding_model = embedding_model
         self._MongoDBAtlasVectorSearch = MongoDBAtlasVectorSearch
 
     def _collection_exists(self, collection_name: str) -> bool:
@@ -175,7 +183,7 @@ class MongoVectorStore(VectorStore):
         )
         if not self._index_exists(collection_name, vector_index_name):
             logger.info(f"🪣 Creating index '{vector_index_name}'")
-            vec_dimensions, similarity = embedding_model_info(self.embed_model)
+            vec_dimensions, similarity = embedding_model_info(self.embedding_model)
             store.create_vector_search_index(
                 dimensions=vec_dimensions,
                 path="embedding",
@@ -188,7 +196,7 @@ class MongoVectorStore(VectorStore):
 
         storage_context = StorageContext.from_defaults(vector_store=store)
         return VectorStoreIndex.from_vector_store(
-            store, embed_model=self.embed_model, storage_context=storage_context
+            store, embed_model=self.embedding_model, storage_context=storage_context
         )
 
     def _get_index_filters(self, collection_name: str, index_name: str) -> list[str]:
@@ -254,7 +262,8 @@ class MongoVectorStore(VectorStore):
 
             if missing_filters:
                 logger.info(
-                    f"🔄 Updating index '{vector_index_name}' with new filters: {missing_filters}"
+                    f"🔄 Updating index '{vector_index_name}' "
+                    f"with new filters: {missing_filters}"
                 )
                 self._drop_index(collection_name, vector_index_name)
                 return self._create_index(
@@ -266,7 +275,9 @@ class MongoVectorStore(VectorStore):
         store = self._get_vector_store(
             collection_name=collection_name, vector_index_name=vector_index_name
         )
-        index = VectorStoreIndex.from_vector_store(store, embed_model=self.embed_model)
+        index = VectorStoreIndex.from_vector_store(
+            store, embed_model=self.embedding_model
+        )
         logger.info("✅ Index loaded successfully.")
         return index
 
@@ -337,14 +348,21 @@ class MongoVectorStore(VectorStore):
 class ChromaVectorStore(VectorStore):
     def __init__(
         self,
-        embed_model,
+        embedding_model: BaseEmbedding,
         host: str = settings.CHROMA_HOST,
         port: int = settings.CHROMA_PORT,
     ):
+        """Initialize the ChromaDB vector store client.
+
+        Args:
+            embedding_model (BaseEmbedding): Embedding model instance to use for vectorization.
+            host (str, optional): ChromaDB host URL. Defaults to settings.CHROMA_HOST.
+            port (int, optional): ChromaDB port number. Defaults to settings.CHROMA_PORT.
+        """
         import chromadb
         from llama_index.vector_stores.chroma import ChromaVectorStore as CVS
 
-        self.embed_model = embed_model
+        self.embedding_model = embedding_model
         self.db = chromadb.HttpClient(host, int(port))
         logger.info(f"🔌 Connected to ChromaDB at {host}:{port}")
         self._CVS = CVS
@@ -376,7 +394,7 @@ class ChromaVectorStore(VectorStore):
             raise ValueError(f"💥 Collection {collection_name} already exists!")
 
         # Get the embedding function based on the embed model
-        embed_model_name = self.embed_model.model_name
+        embed_model_name = self.embedding_model.model_name
         embed_fn = get_embedding_function(
             embed_model_name,
             kwargs.get("llm_backend", settings.LLM_BACKEND),
@@ -433,7 +451,7 @@ class ChromaVectorStore(VectorStore):
     def _get_vector_store(self, collection_name: str, **kwargs: Any):
         logger.debug(f"🔍 Getting vector store for collection {collection_name}")
         col = self.db.get_collection(collection_name)
-        return self._CVS(chroma_collection=col, embed_model=self.embed_model)
+        return self._CVS(chroma_collection=col, embed_model=self.embedding_model)
 
     def _index_exists(self, collection_name: str, **kwargs) -> bool:
         """
@@ -470,7 +488,9 @@ class ChromaVectorStore(VectorStore):
         vector_store = self._get_vector_store(collection_name)
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
         return VectorStoreIndex.from_vector_store(
-            vector_store, embed_model=self.embed_model, storage_context=storage_context
+            vector_store,
+            embed_model=self.embedding_model,
+            storage_context=storage_context,
         )
 
     def get_doc(
@@ -562,14 +582,16 @@ class ChromaVectorStore(VectorStore):
             print("👀 No documents found!")
 
 
-def get_vector_store(store_backend: str, embed_model: Any, **kwargs) -> VectorStore:
+def get_vector_store(
+    store_backend: str, embedding_model: BaseEmbedding, **kwargs
+) -> VectorStore:
     """Vector store factory function.
     This function returns an instance of a vector store based on the specified backend.
     Supported backends are 'mongo' and 'chroma'.
 
     Args:
         store_backend (str): The vector store backend to use. One of 'mongo' or 'chroma'.
-        embed_model (Any): The **embedding model instance** to use for vectorization.
+        embedding_model (BaseEmbedding): The **embedding model instance** to use for vectorization.
         **kwargs: Additional keyword arguments to pass to the vector store constructor.
 
     Raises:
@@ -579,9 +601,9 @@ def get_vector_store(store_backend: str, embed_model: Any, **kwargs) -> VectorSt
         VectorStore: An instance of the specified vector store backend.
     """
     if store_backend.lower() == VectorStoreBackend.MONGO:
-        return MongoVectorStore(embed_model, **kwargs)
+        return MongoVectorStore(embedding_model, **kwargs)
     elif store_backend.lower() == VectorStoreBackend.CHROMA:
-        return ChromaVectorStore(embed_model, **kwargs)
+        return ChromaVectorStore(embedding_model, **kwargs)
     else:
         raise ValueError(f"Unknown vector store backend: {store_backend}")
 
@@ -590,7 +612,7 @@ def get_default_vector_collection_name(
     vector_store_backend: str,
     client_id: str | None = None,
     llm_backend: str | None = None,
-    embedding_model: str | None = None,
+    embedding_model_id: str | None = None,
 ) -> str:
     """Returns the default vector collection name based on the environment.
     In MongoDB, we use a single collection for all clients, while in ChromaDB
@@ -603,12 +625,12 @@ def get_default_vector_collection_name(
         if settings.CHROMA_COLLECTION:
             return settings.CHROMA_COLLECTION
         else:
-            if not client_id or not llm_backend or not embedding_model:
+            if not client_id or not llm_backend or not embedding_model_id:
                 raise ValueError(
                     "💥 For ChromaDB, client_id, llm_backend, and embedding_model "
                     "must be provided if the CHROMA_COLLECTION setting is not set."
                 )
-            return f"{client_id}-{llm_backend}-{embedding_model}"
+            return f"{client_id}-{llm_backend}-{embedding_model_id}"
     else:
         raise ValueError(
             f"💥 Unsupported vector store backend: {vector_store_backend}. "
