@@ -40,7 +40,7 @@ def test_index_document_file_mocks(mocker, tmp_path, extension):
     result = index_document_file(
         client_id="test_client",
         file_path=dummy_file,
-        embedding_model="test-embedding",
+        embedding_model_id="test-embedding",
         chunk_size=128,
         chunk_overlap=16,
         llm_backend="test-llm",

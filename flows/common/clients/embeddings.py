@@ -5,7 +5,7 @@ from flows.settings import settings
 
 
 def get_embedding_function(
-    embedding_model: str,
+    embedding_model_id: str,
     backend: str | LLMBackend,
     ollama_base_url: str | None = settings.OLLAMA_BASE_URL,
 ) -> Callable:
@@ -20,7 +20,7 @@ def get_embedding_function(
             )
         return OllamaEmbeddingFunction(
             url=f"{ollama_base_url}/api/embeddings",
-            model_name=embedding_model,
+            model_name=embedding_model_id,
         )
     elif backend == LLMBackend.OPENAI:
         from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
@@ -32,7 +32,7 @@ def get_embedding_function(
             )
         return OpenAIEmbeddingFunction(
             api_key=settings.OPENAI_API_KEY.get_secret_value(),
-            model_name=embedding_model,
+            model_name=embedding_model_id,
         )
     elif backend == LLMBackend.AWS:
         import boto3
@@ -51,7 +51,7 @@ def get_embedding_function(
             config=Config(signature_version="v4"),
         )
 
-        return BedrockEmbeddingFunction(client=client, model_id=embedding_model)
+        return BedrockEmbeddingFunction(client=client, model_id=embedding_model_id)
 
     else:
         raise ValueError(

@@ -50,9 +50,9 @@ def parse_filters(filters: list[str]) -> dict[str, list[str]]:
 )
 @click.option(
     "-e",
-    "--embedding-model",
+    "--embedding-model-id",
     default=os.environ.get("EMBEDDING_MODEL", "default-embedding-model"),
-    help="Embedding model to use (default: from environment variable).",
+    help="ID of the embedding model to use (default: from environment variable).",
 )
 @click.option(
     "-c",
@@ -76,7 +76,13 @@ def parse_filters(filters: list[str]) -> dict[str, list[str]]:
     help="Number of top results to retrieve (default: 5).",
 )
 def main(
-    store_backend, query, filters, top_k, llm_backend, embedding_model, collection_name
+    store_backend,
+    query,
+    filters,
+    top_k,
+    llm_backend,
+    embedding_model_id,
+    collection_name,
 ):
     """
     CLI to test the retriever with MongoDB backend and flexible metadata filters.
@@ -88,16 +94,16 @@ def main(
     collection_name = collection_name or get_default_vector_collection_name(
         vector_store_backend=store_backend,
         llm_backend=llm_backend,
-        embedding_model=embedding_model,
+        embedding_model_id=embedding_model_id,
     )
 
     # Get the embedding model and vector store based on the provided backends
     embedding_model = get_embedding_model(
         llm_backend=llm_backend,
-        embedding_model=embedding_model,
+        embedding_model_id=embedding_model_id,
     )
     vector_store = get_vector_store(
-        store_backend=store_backend, embed_model=embedding_model
+        store_backend=store_backend, embedding_model=embedding_model
     )
 
     # Compose metadata filters if any filters are provided

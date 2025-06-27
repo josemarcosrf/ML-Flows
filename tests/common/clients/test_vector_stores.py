@@ -74,7 +74,7 @@ def test_mongo_vector_store_get_and_delete_doc(monkeypatch):
         {"metadata": {"doc_id": "1"}},
         {"metadata": {"doc_id": "2"}},
     ]
-    docs = store.get_doc("1", "col")
+    docs = store.get_docs("1", "col")
     assert docs == [{"metadata": {"doc_id": "1"}}]
     store.delete_doc("1", "col")
     assert store.db["col"].docs == [{"metadata": {"doc_id": "2"}}]
@@ -114,6 +114,6 @@ def test_chroma_vector_store_get_and_delete_doc(monkeypatch):
     )
     store = vector_stores.ChromaVectorStore(DummyEmbed(), host="localhost", port=8000)
     store.db = DummyChromaDB()
-    doc = store.get_doc("1", "col")
+    doc = store.get_docs("1", "col")
     assert doc == [{"doc_id": "1"}]
     store.delete_doc("1", "col")
