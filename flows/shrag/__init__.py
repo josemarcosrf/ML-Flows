@@ -16,7 +16,7 @@ def playbook_qa_flow_run_name() -> str:
     func_name = flow_run.get_flow_name()
     parameters = flow_run.get_parameters()
     playbook_name = parameters["playbook"].name
-    llm_name = parameters["llm_model"]
+    llm_name = parameters["llm_id"]
     return f"{func_name}-{playbook_name}-{llm_name}"
 
 
@@ -29,9 +29,9 @@ def run_qa_playbook(
     playbook: Playbook,
     meta_filters: dict[str, Any] | None = None,
     llm_backend: str = settings.LLM_BACKEND,
-    llm_model: str = settings.LLM_MODEL,
+    llm_id: str = settings.LLM_MODEL,
     embedding_model_id: str = settings.EMBEDDING_MODEL,
-    reranker_model: str | None = None,
+    reranker_model_id: str | None = None,
     similarity_top_k: int = settings.SIMILARITY_TOP_K,
     similarity_cutoff: float = settings.SIMILARITY_CUTOFF,
     vector_store_backend: str = settings.VECTOR_STORE_BACKEND,
@@ -51,11 +51,11 @@ def run_qa_playbook(
             as {key:value} mapping. Leave as an empty dict for no filtering.
         llm_backend (str, optional): LLM backend to use.
             Defaults to LLM_BACKEND_DEFAULT.
-        llm_model (str, optional): LLM model to use.
+        llm_id (str, optional): LLM model ID to use.
             Defaults to LLM_MODEL_DEFAULT.
         embedding_model_id (str, optional): ID of the embedding model to use.
             Defaults to EMBEDDING_MODEL_DEFAULT.
-        reranker_model (str | None, optional): Reranker model to use.
+        reranker_model_id (str | None, optional): Reranker model to use.
             Defaults to None.
         similarity_top_k (int, optional): Number of top results to retrieve.
             Defaults to SIMILARITY_TOP_K_DEFAULT.
@@ -79,7 +79,7 @@ def run_qa_playbook(
         collection with the results of the QAgent run.
         This task will be called for each answer extracted by the QAgent.
         """
-        query = {
+        results_query = {
             "meta_filters": meta_filters,
             "client_id": client_id,
             "collection": collection_name,
@@ -94,17 +94,29 @@ def run_qa_playbook(
             # Define a function to update the document in the MongoDB collection
             db.update_one(
                 settings.MONGO_RESULTS_COLLECTION,
-                filter=query,
+                filter=results_query,
                 update=update,
                 upsert=True,
             )
             attr = list(update.keys())[0].replace("answers.", "")
-            pub(f"📌 Extracted '{attr}'.", **meta_filters)
+            pub(f"✅ Extracted '{attr}'")
 
         return _callback
 
     # Ensure meta_filters is a dict
-    meta_filters = meta_filters or {}
+    meta_filters: dict = meta_filters or {}
+
+    # Update the metafilters to include:
+    # The client_id, so that we only retrieve documents for the given client and
+    # the LLM backend and embedding model so we ensure that the retrieval is
+    # consistent with the LLM and embedding model used
+    meta_filters.update(
+        {
+            "client_id": client_id,
+            "llm_backend": llm_backend,
+            "embedding_model": embedding_model_id,
+        }
+    )
 
     # Initialize the MongoDB client
     db = MongoDBClient()
@@ -113,7 +125,7 @@ def run_qa_playbook(
     pub = pub_and_log(client_id, pubsub)
 
     # Get the LLM and embedding model
-    llm = get_llm(llm_model=llm_model, llm_backend=llm_backend)
+    llm = get_llm(llm_id=llm_id, llm_backend=llm_backend)
     embedding_model = get_embedding_model(
         llm_backend=llm_backend, embedding_model_id=embedding_model_id
     )
@@ -136,25 +148,23 @@ def run_qa_playbook(
     questioner = QAgent(
         index=index,
         llm=llm,
-        reranker=reranker_model,
+        reranker=reranker_model_id,
     )
 
     # Build the Question Library
     pub(f"📚 Building question library for playbook {playbook.name}")
     q_collection = build_question_library(playbook.definition)
 
-    # Update the metafilters to include the LLM backend and embedding model
-    # This way we ensure that the retrieval is consistent with the LLM and
-    # embedding model used
-    meta_filters.update(
-        {
-            "llm_backend": llm_backend,
-            "embedding_model": embedding_model_id,
-            "vector_store_backend": vector_store_backend,
-        }
+    docs = vec_store.get_docs(
+        collection_name=collection_name,
+        filters={f"metadata.{k}": v for k, v in meta_filters.items()},
     )
-
-    # TODO: Check the DB returns some entries for given meta_filters
+    if not docs:
+        logger.error(
+            f"No documents found in collection '{collection_name}' "
+            f"with filters: {meta_filters}"
+        )
+        raise RuntimeError("No documents found for the given filters. Aborting flow.")
 
     # Run the Q-collection and return the responses
     responses = questioner.run_q_collection(

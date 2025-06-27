@@ -24,7 +24,7 @@ def common_rag_options(func):
         default=settings.LLM_BACKEND,
         type=click.Choice([e.value for e in LLMBackend]),
     )
-    @click.option("--llm-model", default=settings.LLM_MODEL)
+    @click.option("--llm-id", default=settings.LLM_MODEL)
     @click.option("--embedding-model", default=settings.EMBEDDING_MODEL)
     @click.option("--reranker-model", default=None)
     @click.option("--similarity-top-k", type=int, default=settings.SIMILARITY_TOP_K)
@@ -53,9 +53,9 @@ def run_playbook_qa_from_directory(
     playbook_json: str,
     vector_store_backend: str,
     llm_backend: str,
-    llm_model: str,
-    embedding_model: str,
-    reranker_model: str | None,
+    llm_id: str,
+    embedding_model_id: str,
+    reranker_model_id: str | None,
     similarity_top_k: int,
     similarity_cutoff: float,
     file_glob: str,
@@ -67,7 +67,7 @@ def run_playbook_qa_from_directory(
         directory (str): Path to the directory containing playbook JSON files.
         collection (str): Name of the embedding collection to use.
         llm_backend (str, optional): LLM backend to use. Defaults to "openai".
-        llm_model (str, optional): LLM model to use. Defaults to "gpt-4o".
+        llm_id (str, optional): LLM model ID to use. Defaults to "gpt-4o".
         embedding_model (str, optional): Embedding model to use. Defaults to "text-embedding-3-small".
         reranker_model (str | None, optional): Reranker model to use. Defaults to None.
         similarity_top_k (int, optional): Number of top results to retrieve. Defaults to 5.
@@ -92,9 +92,9 @@ def run_playbook_qa_from_directory(
                 playbook=playbook,
                 meta_filters=meta_filters,
                 llm_backend=llm_backend,
-                llm_model=llm_model,
-                embedding_model=embedding_model,
-                reranker_model=reranker_model,
+                llm_id=llm_id,
+                embedding_model_id=embedding_model_id,
+                reranker_model_id=reranker_model_id,
                 similarity_top_k=similarity_top_k,
                 similarity_cutoff=similarity_cutoff,
                 vector_store_backend=vector_store_backend,
@@ -126,7 +126,7 @@ def run_playbook_qa(
     meta_filters: str,
     vector_store_backend: str,
     llm_backend: str,
-    llm_model: str,
+    llm_id: str,
     embedding_model: str,
     reranker_model: str | None,
     similarity_top_k: int,
@@ -141,7 +141,7 @@ def run_playbook_qa(
         collection (str): Name of the embedding collection to use.
         vector_store_backend (str): Vector store backend to use.
         llm_backend (str, optional): LLM backend to use. Defaults to "openai".
-        llm_model (str, optional): LLM model to use. Defaults to "gpt-4o".
+        llm_id (str, optional): LLM model ID to use. Defaults to "gpt-4o".
         embedding_model (str, optional): Embedding model to use. Defaults to "text-embedding-3-small".
         reranker_model (str | None, optional): Reranker model to use. Defaults to None.
         similarity_top_k (int, optional): Number of top results to retrieve. Defaults to 5.
@@ -160,9 +160,9 @@ def run_playbook_qa(
         playbook=playbook,
         meta_filters=filters,
         llm_backend=llm_backend,
-        llm_model=llm_model,
-        embedding_model=embedding_model,
-        reranker_model=reranker_model,
+        llm_id=llm_id,
+        embedding_model_id=embedding_model,
+        reranker_model_id=reranker_model,
         similarity_top_k=similarity_top_k,
         similarity_cutoff=similarity_cutoff,
         vector_store_backend=vector_store_backend,

@@ -39,10 +39,14 @@ class VectorStoreBackend(str, Enum):
 
 
 class VectorStore:
-    def get_doc(self, doc_id: str, collection_name: str, **kwargs) -> list | None:
+    def get_docs(
+        self, collection_name: str, filters: dict[str, Any], **kwargs
+    ) -> list | None:
         raise NotImplementedError
 
-    def delete_doc(self, doc_id: str, collection_name: str, **kwargs) -> None:
+    def delete_docs(
+        self, collection_name: str, filters: dict[str, Any], **kwargs
+    ) -> None:
         """Delete a document by its ID from the specified collection."""
         raise NotImplementedError
 
@@ -374,10 +378,10 @@ class MongoVectorStore(VectorStore):
         logger.info("✅ Index loaded successfully.")
         return index
 
-    def get_doc(
+    def get_docs(
         self,
-        doc_id: str,
         collection_name: str,
+        filters: dict[str, Any],
         **kwargs: Any,
     ) -> list[dict] | None:
         """
@@ -389,9 +393,11 @@ class MongoVectorStore(VectorStore):
             list[dict]: The document with the specified ID, or None if not found.
         """
         col = self._get_collection(collection_name)
-        return list(col.find({"metadata.doc_id": doc_id}))
+        return list(col.find(filters))
 
-    def delete_doc(self, doc_id: str, collection_name: str, **kwargs) -> None:
+    def delete_docs(
+        self, collection_name: str, filters: dict[str, Any], **kwargs
+    ) -> None:
         """
         Delete a document's vectors by its ID from the specified collection.
         Args:
@@ -399,15 +405,15 @@ class MongoVectorStore(VectorStore):
             doc_id (str): The ID of the document to delete.
         """
         col = self._get_collection(collection_name)
-        result = col.delete_many({"metadata.doc_id": doc_id})
+        result = col.delete_many(filters)
         if result.deleted_count == 0:
             logger.warning(
-                f"No document found with doc_id '{doc_id}' "
+                f"No document found with filters '{filters}' "
                 f"in collection '{collection_name}'."
             )
         else:
             logger.info(
-                f"🗑️ Deleted document with doc_id '{doc_id}' "
+                f"🗑️ Deleted document with filters '{filters}' "
                 f"from collection '{collection_name}'."
             )
 
@@ -684,10 +690,10 @@ class ChromaVectorStore(VectorStore):
             storage_context=storage_context,
         )
 
-    def get_doc(
+    def get_docs(
         self,
-        doc_id: str,
         collection_name: str,
+        filters: dict[str, Any],
         **kwargs: Any,
     ) -> list | None:
         """
@@ -700,9 +706,11 @@ class ChromaVectorStore(VectorStore):
         """
         col = self.db.get_collection(collection_name)
         include = kwargs.get("include", ["metadatas"])
-        return col.get(ids=[doc_id], include=include).get("metadatas")
+        return col.get(where=filters, include=include).get("metadatas")
 
-    def delete_doc(self, doc_id: str, collection_name: str, **kwargs) -> None:
+    def delete_docs(
+        self, collection_name: str, filters: dict[str, Any], **kwargs
+    ) -> None:
         """
         Delete a document by its ID from the specified collection in ChromaDB.
         Args:
@@ -711,14 +719,14 @@ class ChromaVectorStore(VectorStore):
         """
         col = self.db.get_collection(collection_name)
         try:
-            col.delete(where={"metadata.doc_id": doc_id})
+            col.delete(where=filters)
             logger.info(
-                f"🗑️ Deleted document with doc_id '{doc_id}' "
+                f"🗑️ Deleted document with filters '{filters}' "
                 f"from collection '{collection_name}'."
             )
         except Exception as e:
             logger.warning(
-                f"Failed to delete doc_id '{doc_id}' "
+                f"Failed to delete documents with filters '{filters}' "
                 f"from collection '{collection_name}': {e}"
             )
 

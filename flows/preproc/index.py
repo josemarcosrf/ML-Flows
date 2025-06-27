@@ -137,7 +137,9 @@ def index_document(
         index_filters=[f"metadata.{field}" for field in doc.metadata.keys()],
     )
 
-    if existing_nodes := vec_store.get_doc(doc.doc_id, collection_name=collection_name):
+    if existing_nodes := vec_store.get_docs(
+        doc.doc_id, collection_name=collection_name
+    ):
         logger.info(
             f"Found {len(existing_nodes)} for document {doc.doc_id}. Skipping indexing."
         )

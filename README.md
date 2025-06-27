@@ -20,7 +20,7 @@ Which should output something like:
 │    │             │                         │ - chroma_host: ChromaDB host. Defaults to CHROMA_HOST_DEFAULT.                               │
 │    │             │                         │ - chroma_port: ChromaDB port. Defaults to CHROMA_PORT_DEFAULT.                               │
 │    │             │                         │ - llm_backend: LLM backend to use. Defaults to LLM_BACKEND_DEFAULT.                          │
-│    │             │                         │ - llm_model: LLM model to use. Defaults to LLM_MODEL_DEFAULT.                                │
+│    │             │                         │ - llm_id: LLM model ID to use. Defaults to LLM_MODEL_DEFAULT.                                │
 │    │             │                         │ - embedding_model: Embedding model to use. Defaults to EMBEDDING_MODEL_DEFAULT.              │
 │    │             │                         │ - reranker_model: Reranker model to use. Defaults to None.                                   │
 │    │             │                         │ - similarity_top_k: Number of top results to retrieve. Defaults to SIMILARITY_TOP_K_DEFAULT. │

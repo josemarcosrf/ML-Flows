@@ -40,9 +40,9 @@ def embedding_model_info(embedding_model: BaseEmbedding) -> tuple[int, str]:
     return embedding_dim, similarity_function
 
 
-@task(task_run_name="get_llm:[{llm_backend}]-{llm_model}")
+@task(task_run_name="get_llm:[{llm_backend}]-{llm_id}")
 def get_llm(
-    llm_model: str,
+    llm_id: str,
     llm_backend: LLMBackend | str,
     ollama_base_url: str | None = settings.OLLAMA_BASE_URL,
 ) -> None | Any:
@@ -55,7 +55,7 @@ def get_llm(
             f"Please use one of {LLMBackend.__members__}"
         )
 
-    logger.info(f"🔮 Getting ready {llm_backend.value} LLM ({llm_model})")
+    logger.info(f"🔮 Getting ready {llm_backend.value} LLM ({llm_id})")
 
     if llm_backend == LLMBackend.OPENAI:
         from llama_index.llms.openai import OpenAI
@@ -67,7 +67,7 @@ def get_llm(
             )
 
         return OpenAI(
-            model=llm_model,
+            model=llm_id,
             temperature=0,
             seed=42,
             api_key=settings.OPENAI_API_KEY.get_secret_value(),
@@ -84,7 +84,7 @@ def get_llm(
             )
 
         return Ollama(
-            model=llm_model,
+            model=llm_id,
             temperature=0,
             seed=42,
             base_url=ollama_base_url,
@@ -103,7 +103,7 @@ def get_llm(
             )
 
         return BedrockConverse(
-            model=llm_model,
+            model=llm_id,
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID.get_secret_value(),
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY.get_secret_value(),
             region_name=settings.AWS_REGION,
