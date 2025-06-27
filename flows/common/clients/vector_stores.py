@@ -68,6 +68,9 @@ class MongoVectorStore(VectorStore):
         "metadata.client_id",
         "metadata.project_id",
         "metadata.supabase_id",
+        "metadata.llm_backend",
+        "metadata.embedding_model",
+        "metadata.vector_store_backend",
     ]
 
     def __init__(
@@ -176,19 +179,29 @@ class MongoVectorStore(VectorStore):
         Returns:
             _type_: _description_
         """
+        # Filter out potentially problematic fields by analyzing the collection
+        safe_filters = self._get_safe_filter_fields(collection_name, index_filters)
+
+        if len(safe_filters) < len(index_filters):
+            logger.info(
+                f"🔧 Using {len(safe_filters)}/{len(index_filters)} "
+                "safe filter fields for index creation"
+            )
 
         # Get the vector store for the collection
         store = self._get_vector_store(
             collection_name=collection_name, vector_index_name=vector_index_name
         )
         if not self._index_exists(collection_name, vector_index_name):
-            logger.info(f"🪣 Creating index '{vector_index_name}'")
+            logger.info(
+                f"🪣 Creating index '{vector_index_name}' with filters: {safe_filters}"
+            )
             vec_dimensions, similarity = embedding_model_info(self.embedding_model)
             store.create_vector_search_index(
                 dimensions=vec_dimensions,
                 path="embedding",
                 similarity=similarity,
-                filters=index_filters,
+                filters=safe_filters,
             )
             logger.info("✅ Index created successfully.")
         else:
@@ -213,6 +226,98 @@ class MongoVectorStore(VectorStore):
         col.drop_search_index(index_name)
         logger.info(
             f"🗑️ Dropped index '{index_name}' from collection '{collection_name}'"
+        )
+
+    def _needs_filter_update(
+        self,
+        collection_name: str,
+        vector_index_name: str,
+        desired_filters: list[str],
+    ) -> tuple[bool, list[str]]:
+        """Check if the vector search index needs filter updates.
+
+        Compares the current index filters with the desired filters and determines
+        if an update is needed.
+
+        Args:
+            collection_name (str): The name of the collection containing the index.
+            vector_index_name (str): The name of the vector search index.
+            desired_filters (list[str]): The desired filter fields for the index.
+
+        Returns:
+            tuple[bool, list[str]]: A tuple containing:
+                - bool: True if update is needed, False otherwise
+                - list[str]: List of missing filters that need to be added
+        """
+        current_filters = self._get_index_filters(collection_name, vector_index_name)
+
+        # Flatten current_filters if it's a list of dicts, otherwise use as is
+        if current_filters and isinstance(current_filters[0], dict):
+            current_filters = [
+                f.get("path")
+                for f in current_filters
+                if isinstance(f, dict) and f.get("path")
+            ]
+
+        # Find missing filters
+        missing_filters = [f for f in desired_filters if f not in current_filters]
+
+        return bool(missing_filters), missing_filters
+
+    def _update_index_filters(
+        self,
+        collection_name: str,
+        vector_index_name: str,
+        new_filters: list[str],
+    ) -> VectorStoreIndex:
+        """Update an existing vector search index with additional filter fields.
+
+        Since PyMongo doesn't support updating vector search indexes directly,
+        this method drops the existing index and recreates it with both the
+        existing filters and the new filters combined.
+
+        Args:
+            collection_name (str): The name of the collection containing the index.
+            vector_index_name (str): The name of the vector search index to update.
+            new_filters (list[str]): The additional filter fields to add to the existing ones.
+
+        Returns:
+            VectorStoreIndex: The newly created index with combined filters.
+
+        Note:
+            This operation will temporarily make the index unavailable during the
+            drop-and-recreate process.
+        """
+        # Get current filters to preserve them
+        current_filters = self._get_index_filters(collection_name, vector_index_name)
+
+        # Flatten current_filters if it's a list of dicts
+        if current_filters and isinstance(current_filters[0], dict):
+            current_filters = [
+                f.get("path")
+                for f in current_filters
+                if isinstance(f, dict) and f.get("path")
+            ]
+
+        # Ensure current_filters is a list of strings (filter out None values)
+        current_filters = [f for f in current_filters if f is not None]
+
+        # Combine existing and new filters, removing duplicates while preserving order
+        combined_filters = list(dict.fromkeys(current_filters + new_filters))
+
+        logger.info(
+            f"🔄 Updating index '{vector_index_name}' with combined filter fields: "
+            f"{combined_filters}"
+        )
+
+        # Drop the existing index
+        self._drop_index(collection_name, vector_index_name)
+
+        # Recreate with combined filters
+        return self._create_index(
+            collection_name=collection_name,
+            vector_index_name=vector_index_name,
+            index_filters=combined_filters,
         )
 
     def get_index(
@@ -246,31 +351,19 @@ class MongoVectorStore(VectorStore):
                 )
         else:
             # Index exists, check if filters need to be updated
-            current_filters = self._get_index_filters(
-                collection_name, vector_index_name
+            needs_update, missing_filters = self._needs_filter_update(
+                collection_name, vector_index_name, index_filters
             )
-            # Flatten current_filters if it's a list of dicts, otherwise use as is
-            if current_filters and isinstance(current_filters[0], dict):
-                current_filters = [
-                    f.get("path")
-                    for f in current_filters
-                    if isinstance(f, dict) and f.get("path")
-                ]
-
-            # Find missing filters
-            missing_filters = [f for f in index_filters if f not in current_filters]
-
-            if missing_filters:
-                logger.info(
-                    f"🔄 Updating index '{vector_index_name}' "
-                    f"with new filters: {missing_filters}"
-                )
-                self._drop_index(collection_name, vector_index_name)
-                return self._create_index(
-                    collection_name=collection_name,
-                    vector_index_name=vector_index_name,
-                    index_filters=index_filters,
-                )
+            if needs_update:
+                # NOTE: We don't update the index filters automatically
+                # because it requires dropping and recreating the index,
+                # which can be disruptive.
+                logger.warning(f"🆕 Found new filters to add: {missing_filters}")
+                # return self._update_index_filters(
+                #     collection_name=collection_name,
+                #     vector_index_name=vector_index_name,
+                #     new_filters=missing_filters,
+                # )
 
         store = self._get_vector_store(
             collection_name=collection_name, vector_index_name=vector_index_name
@@ -344,6 +437,102 @@ class MongoVectorStore(VectorStore):
         else:
             print("👀 No documents found!")
 
+    def _get_safe_filter_fields(
+        self, collection_name: str, desired_filters: list[str]
+    ) -> list[str]:
+        """Get filter fields that are safe to use based on document analysis.
+
+        This method analyzes a sample of documents in the collection to determine
+        which metadata fields are commonly present and safe to use for filtering.
+
+        Args:
+            collection_name (str): The name of the collection to analyze
+            desired_filters (list[str]): The desired filter fields
+
+        Returns:
+            list[str]: Filter fields that are safe to use (present in most documents)
+        """
+        try:
+            collection = self._get_collection(collection_name)
+
+            # Get a sample of documents to check field presence
+            sample_size = min(50, collection.estimated_document_count())
+            if sample_size == 0:
+                logger.warning(
+                    f"📭 Collection '{collection_name}' is empty, "
+                    "using all desired filters"
+                )
+                return desired_filters
+
+            sample_docs = list(
+                collection.aggregate([{"$sample": {"size": sample_size}}])
+            )
+
+            if not sample_docs:
+                logger.warning(
+                    f"📭 No documents sampled from '{collection_name}', using all desired filters"
+                )
+                return desired_filters
+
+            # Check field presence in sample
+            field_counts = {field: 0 for field in desired_filters}
+
+            for doc in sample_docs:
+                for field in desired_filters:
+                    # Navigate nested fields (e.g., "metadata.supabase_id")
+                    field_parts = field.split(".")
+                    current_value = doc
+
+                    try:
+                        for part in field_parts:
+                            current_value = current_value[part]
+
+                        # If we got here, field exists and is not None
+                        if current_value is not None:
+                            field_counts[field] += 1
+                    except (KeyError, TypeError):
+                        # Field is missing or path is invalid
+                        pass
+
+            # Keep fields that are present in at least 50% of documents
+            threshold = len(sample_docs) * 0.5
+            safe_fields = []
+
+            for field, count in field_counts.items():
+                percentage = (count / len(sample_docs)) * 100 if sample_docs else 0
+                if count >= threshold:
+                    safe_fields.append(field)
+                    logger.debug(
+                        f"✅ Field '{field}' is safe: {count}/{len(sample_docs)} ({percentage:.1f}%)"
+                    )
+                else:
+                    logger.warning(
+                        f"⚠️ Field '{field}' is sparse: {count}/{len(sample_docs)} ({percentage:.1f}%) - excluding from index"
+                    )
+
+            if len(safe_fields) < len(desired_filters):
+                excluded = set(desired_filters) - set(safe_fields)
+                logger.info(f"🔧 Excluded sparse filter fields: {excluded}")
+
+            return safe_fields
+
+        except Exception as e:
+            logger.warning(
+                f"⚠️ Could not analyze field safety for '{collection_name}': {e}"
+            )
+            logger.info("🔄 Falling back to core essential fields only")
+
+            # Return only the most essential fields as fallback
+            essential_fields = [
+                "metadata.doc_id",
+                "metadata.client_id",
+                "metadata.llm_backend",
+                "metadata.embedding_model",
+            ]
+            return [field for field in essential_fields if field in desired_filters]
+
+    # ...existing code...
+
 
 class ChromaVectorStore(VectorStore):
     def __init__(
@@ -356,8 +545,10 @@ class ChromaVectorStore(VectorStore):
 
         Args:
             embedding_model (BaseEmbedding): Embedding model instance to use for vectorization.
-            host (str, optional): ChromaDB host URL. Defaults to settings.CHROMA_HOST.
-            port (int, optional): ChromaDB port number. Defaults to settings.CHROMA_PORT.
+            host (str, optional): ChromaDB host URL.
+                Defaults to settings.CHROMA_HOST.
+            port (int, optional): ChromaDB port number.
+                Defaults to settings.CHROMA_PORT.
         """
         import chromadb
         from llama_index.vector_stores.chroma import ChromaVectorStore as CVS

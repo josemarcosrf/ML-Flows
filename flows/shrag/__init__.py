@@ -154,6 +154,8 @@ def run_qa_playbook(
         }
     )
 
+    # TODO: Check the DB returns some entries for given meta_filters
+
     # Run the Q-collection and return the responses
     responses = questioner.run_q_collection(
         q_collection=q_collection,
