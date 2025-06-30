@@ -74,12 +74,12 @@ def test_mongo_vector_store_get_and_delete_doc(monkeypatch):
         {"metadata": {"doc_id": "1"}},
         {"metadata": {"doc_id": "2"}},
     ]
-    docs = store.get_docs("1", "col")
+    docs = store.get_docs("col", filters={"metadata.doc_id": "1"})
     assert docs == [{"metadata": {"doc_id": "1"}}]
-    store.delete_doc("1", "col")
+    store.delete_docs("col", filters={"metadata.doc_id": "1"})
     assert store.db["col"].docs == [{"metadata": {"doc_id": "2"}}]
     # Deleting non-existent doc
-    store.delete_doc("notfound", "col")
+    store.delete_docs("col", filters={"doc_id": "not_found"})
 
 
 @pytest.mark.skip(reason="Needs proper mocking of Chroma connection")
@@ -114,6 +114,6 @@ def test_chroma_vector_store_get_and_delete_doc(monkeypatch):
     )
     store = vector_stores.ChromaVectorStore(DummyEmbed(), host="localhost", port=8000)
     store.db = DummyChromaDB()
-    doc = store.get_docs("1", "col")
+    doc = store.get_docs("col", filters={"doc_id": "1"})
     assert doc == [{"doc_id": "1"}]
-    store.delete_doc("1", "col")
+    store.delete_docs("col", filters={"doc_id": "1"})

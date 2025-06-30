@@ -2,6 +2,7 @@ import json
 from enum import Enum
 from pathlib import Path
 from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -34,7 +35,8 @@ class Playbook(BaseModel):
 
 
 class DBDocumentInfo(BaseModel):
-    id: str
+    id: str | UUID
+    sha1: str
     name: str
     client_id: str
     collection: str

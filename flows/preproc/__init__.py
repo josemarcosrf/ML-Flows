@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from hashlib import sha1
 from pathlib import Path
@@ -87,13 +88,15 @@ def index_document_file(
     )
 
     fpath = Path(file_path).resolve()
-    doc_id = sha1(fpath.open("rb").read()).hexdigest()
-    doc_name = metadata.get("name") or fpath.stem
+    doc_id = str(uuid.uuid4())
+    doc_sha = sha1(fpath.open("rb").read()).hexdigest()
+    doc_name = metadata.get("file_name") or fpath.stem
 
     # doc ctx is used for logging and pub/sub messages
     doc_ctx = {
         "doc_name": doc_name,
         "doc_id": doc_id,
+        "doc_sha": doc_sha,
         "client_id": client_id,
         "project_id": metadata.get("project_id"),
     }
@@ -104,6 +107,7 @@ def index_document_file(
             # Review the DocumentInfo model to ensure it matches your schema
             update=DBDocumentInfo(
                 id=doc_id,
+                sha1=doc_sha,
                 name=doc_name,
                 client_id=client_id,
                 collection=collection_name,

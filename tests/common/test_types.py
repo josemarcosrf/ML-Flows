@@ -42,6 +42,7 @@ def test_playbook_from_json_file(tmp_path):
 def test_document_status_validation():
     doc = DBDocumentInfo(
         id="1",
+        sha1="sha1",
         name="n",
         client_id="c",
         collection="col",
@@ -53,6 +54,7 @@ def test_document_status_validation():
     with pytest.raises(ValueError):
         DBDocumentInfo(
             id="2",
+            sha1="sha1",
             name="n",
             client_id="c",
             collection="col",

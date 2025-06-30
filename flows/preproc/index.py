@@ -62,7 +62,7 @@ def index_file(
     # Create a document object
     doc_name = metadata.get("name", fpath.stem)
     doc = Document(
-        doc_id=doc_id,  # Use the SHA1 hash of the file as the ID
+        doc_id=doc_id,
         text=text,
         extra_info={
             "name": doc_name,
