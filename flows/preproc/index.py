@@ -138,7 +138,8 @@ def index_document(
     )
 
     if existing_nodes := vec_store.get_docs(
-        doc.doc_id, collection_name=collection_name
+        collection_name=collection_name,
+        filters={"metadata.doc_id": doc.doc_id},
     ):
         logger.info(
             f"Found {len(existing_nodes)} for document {doc.doc_id}. Skipping indexing."

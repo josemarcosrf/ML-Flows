@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 from hashlib import sha1
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 from loguru import logger
 from prefect import Flow, flow
@@ -22,8 +23,20 @@ def custom_index_flow_run_name() -> str:
     parameters = flow_run.get_parameters()
 
     client_id = parameters.get("client_id", "unknown")
-    fpath = Path(parameters.get("file_path", "unknown"))
-    doc_name = parameters.get("metadata", {}).get("name") or fpath.stem
+    file_path_param = parameters.get("file_path", "unknown")
+    doc_name = parameters.get("metadata", {}).get("file_name")
+    if not doc_name:
+        # If no file name is provided, derive it from the file path
+        parsed = urlparse(file_path_param)
+        if parsed.scheme and parsed.netloc:
+            # It's a URI, strip query and decode
+            path = unquote(parsed.path)
+            fpath = Path(path)
+        else:
+            # Local file path
+            fpath = Path(file_path_param)
+
+        doc_name = fpath.stem
 
     return f"{function_name}={doc_name} ({client_id})"
 
