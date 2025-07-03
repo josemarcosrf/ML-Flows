@@ -44,6 +44,25 @@ def q_library_hash(q_library) -> str:
     return sha1(json.dumps(d).encode()).hexdigest()
 
 
+def validate_question_library(q_collection: dict[str, list[QuestionItem]]) -> None:
+    """Validates the question library structure and content.
+
+    Args:
+        question_library (dict): The question library to validate.
+    Raises:
+        InvalidPlaybook: If the question library is invalid.
+    """
+    for group, questions in q_collection.items():
+        if not questions:
+            continue
+
+        if group and questions[0].question_type != QuestionType.YES_NO:
+            raise InvalidPlaybook(
+                "⚠️ Invalid playbook: "
+                f"First question in group '{group}' is not of type Yes/No. "
+            )
+
+
 @task
 def build_question_library(
     playbook: dict[str, dict[str, str | list[str]]],
@@ -149,15 +168,7 @@ def build_question_library(
         )
 
     # Check every first question in a group is of type Yes/No
-    for group, questions in q_collection.items():
-        if not questions:
-            continue
-        first_question = questions[0]
-        if first_question.question_type != QuestionType.YES_NO:
-            raise InvalidPlaybook(
-                "⚠️ Invalid playbook: "
-                f"First question in group '{group}' is not of type Yes/No. "
-            )
+    validate_question_library(q_collection)
 
     return q_collection
 
