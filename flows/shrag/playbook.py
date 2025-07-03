@@ -12,6 +12,12 @@ from flows.shrag.schemas.dynamic import create_categorical_schema
 from flows.shrag.schemas.questions import QUESTION_FORMATS, QuestionType
 
 
+class InvalidPlaybook(Exception):
+    """Raised when the playbook is invalid or does not meet required constraints."""
+
+    pass
+
+
 class QuestionItem(BaseModel):
     key: str  # Represents the attribute name to extract
     question: str
@@ -141,6 +147,17 @@ def build_question_library(
                 answer_schema=answer_schema,
             )
         )
+
+    # Check every first question in a group is of type Yes/No
+    for group, questions in q_collection.items():
+        if not questions:
+            continue
+        first_question = questions[0]
+        if first_question.question_type != QuestionType.YES_NO:
+            raise InvalidPlaybook(
+                "⚠️ Invalid playbook: "
+                f"First question in group '{group}' is not of type Yes/No. "
+            )
 
     return q_collection
 
