@@ -24,7 +24,9 @@ def custom_index_flow_run_name() -> str:
 
     client_id = parameters.get("client_id", "unknown")
     file_path_param = parameters.get("file_path", "unknown")
-    doc_name = parameters.get("metadata", {}).get("file_name")
+    metadata = parameters.get("metadata")
+    doc_name = metadata.get("file_name") if metadata else None
+
     if not doc_name:
         # If no file name is provided, derive it from the file path
         parsed = urlparse(file_path_param)

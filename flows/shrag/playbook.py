@@ -52,9 +52,19 @@ def validate_question_library(q_collection: dict[str, list[QuestionItem]]) -> No
     Raises:
         InvalidPlaybook: If the question library is invalid.
     """
-    for group, questions in q_collection.items():
+    for group_or_attr, questions in q_collection.items():
         if not questions:
             continue
+
+        if group_or_attr == questions[0].key:
+            # If the group name is the same as the attribute,
+            # it is a non-hierarchical question
+            group = None
+        else:
+            # If the group name is different from the attribute,
+            # it is a hierarchical question and we need to check if the first question
+            # in the group is of type Yes/No
+            group = group_or_attr
 
         if group and questions[0].question_type != QuestionType.YES_NO:
             raise InvalidPlaybook(
