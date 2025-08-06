@@ -93,7 +93,8 @@ def docling_2_md(
         export_format (ExportFormat): Export format (Markdown or HTML)
 
     """
-    if parser_base_url is None or not file_path.endswith(".pdf"):
+    extension = Path(file_path).suffix.lower()
+    if parser_base_url is None or extension != ".pdf":
         # If no parser URL is provided or the file is not a PDF,
         # use the default Docling conversion service
         return docling_convert(file_path)
