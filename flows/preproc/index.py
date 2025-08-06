@@ -53,7 +53,7 @@ def index_file(
         metadata = {}
 
     # Read the file (OCR or otherwise)
-    if fpath.suffix == ".pdf":
+    if fpath.suffix.lower() == ".pdf":
         text = docling_2_md.submit(str(fpath)).result()
     else:
         with fpath.open("r") as f:
