@@ -1,5 +1,4 @@
 import json
-from collections import OrderedDict
 
 import pytest
 
@@ -64,15 +63,15 @@ def test_playbook_from_json_file(tmp_path):
     assert pb.metadata["foo"] == "bar"
 
 
-def test_playbook_definition_accepts_list_of_tuples_and_preserves_order():
+def test_playbook_definition_accepts_list_of_objects():
     definitions = [
-        ("attrA", {"question": "First question", "valid_answers": ["a1"]}),
-        ("attrB", {"question": "Second question", "valid_answers": ["a2"]}),
-        ("attrC", {"question": "Third question", "valid_answers": ["a3"]}),
+        {"attribute": "attrA", "question": "First question", "valid_answers": ["a1"]},
+        {"attribute": "attrB", "question": "Second question", "valid_answers": ["a2"]},
+        {"attribute": "attrC", "question": "Third question", "valid_answers": ["a3"]},
     ]
     pb = Playbook(id="pb2", name="Tuple Playbook", definition=definitions)
 
-    assert isinstance(pb.definition, OrderedDict)
+    assert isinstance(pb.definition, dict)
     assert list(pb.definition.keys()) == ["attrA", "attrB", "attrC"]
     assert pb.definition["attrB"]["question"] == "Second question"
 
@@ -85,6 +84,6 @@ def test_playbook_definition_accepts_dict_and_preserves_order():
     }
     pb = Playbook(id="pb3", name="Dict Playbook", definition=definitions)
 
-    assert isinstance(pb.definition, OrderedDict)
+    assert isinstance(pb.definition, dict)
     assert list(pb.definition.keys()) == ["attrA", "attrB", "attrC"]
     assert pb.definition["attrB"]["question"] == "B question"
