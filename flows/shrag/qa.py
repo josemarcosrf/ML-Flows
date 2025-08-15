@@ -247,7 +247,7 @@ class QAgent:
         # Run on the entire Q-collection
         questions_iter = tqdm(q_collection.items()) if pbar else q_collection.items()
         responses = {}
-        # NOTE: Now the Q-collection is a 'dict[list[QuestionItem]]'
+        # NOTE: Now the Q-collection is a 'dict[str, list[QuestionItem]]'
         for _, q_list in questions_iter:
             q = q_list[0]  # Get the first question of the group
             if pbar:

@@ -1,4 +1,5 @@
 import json
+from collections import OrderedDict
 
 import pytest
 
@@ -15,28 +16,6 @@ def test_doc_status_enum():
     assert DOC_STATUS.INDEXING == "indexing"
     assert DOC_STATUS.INDEXED == "indexed"
     assert DOC_STATUS.FAILED == "failed"
-
-
-def test_playbook_from_json_file(tmp_path):
-    # Dummy playbook data
-    data = {
-        "id": "pb1",
-        "name": "Test Playbook",
-        "definition": {"step1": {"desc": "A step", "actions": ["a1"]}},
-        "metadata": {"foo": "bar"},
-    }
-
-    # Create a temporary JSON file with playbook data
-    file = tmp_path / "playbook.json"
-    file.write_text(json.dumps(data))
-
-    # Create Playbook instance from JSON file
-    pb = Playbook.from_json_file(file)
-
-    assert pb.id == "pb1"
-    assert pb.name == "Test Playbook"
-    assert pb.definition["step1"]["desc"] == "A step"
-    assert pb.metadata["foo"] == "bar"
 
 
 def test_document_status_validation():
@@ -61,3 +40,51 @@ def test_document_status_validation():
             created_at="now",
             status="not_a_status",
         )
+
+
+def test_playbook_from_json_file(tmp_path):
+    # Dummy playbook data
+    data = {
+        "id": "pb1",
+        "name": "Test Playbook",
+        "definition": {"attr1": {"question": "A Question", "valid_answers": ["a1"]}},
+        "metadata": {"foo": "bar"},
+    }
+
+    # Create a temporary JSON file with playbook data
+    file = tmp_path / "playbook.json"
+    file.write_text(json.dumps(data))
+
+    # Create Playbook instance from JSON file
+    pb = Playbook.from_json_file(file)
+
+    assert pb.id == "pb1"
+    assert pb.name == "Test Playbook"
+    assert pb.definition["attr1"]["question"] == "A Question"
+    assert pb.metadata["foo"] == "bar"
+
+
+def test_playbook_definition_accepts_list_of_tuples_and_preserves_order():
+    definitions = [
+        ("attrA", {"question": "First question", "valid_answers": ["a1"]}),
+        ("attrB", {"question": "Second question", "valid_answers": ["a2"]}),
+        ("attrC", {"question": "Third question", "valid_answers": ["a3"]}),
+    ]
+    pb = Playbook(id="pb2", name="Tuple Playbook", definition=definitions)
+
+    assert isinstance(pb.definition, OrderedDict)
+    assert list(pb.definition.keys()) == ["attrA", "attrB", "attrC"]
+    assert pb.definition["attrB"]["question"] == "Second question"
+
+
+def test_playbook_definition_accepts_dict_and_preserves_order():
+    definitions = {
+        "attrA": {"question": "A question", "valid_answers": ["aA"]},
+        "attrB": {"question": "B question", "valid_answers": ["aB"]},
+        "attrC": {"question": "C question", "valid_answers": ["aC"]},
+    }
+    pb = Playbook(id="pb3", name="Dict Playbook", definition=definitions)
+
+    assert isinstance(pb.definition, OrderedDict)
+    assert list(pb.definition.keys()) == ["attrA", "attrB", "attrC"]
+    assert pb.definition["attrB"]["question"] == "B question"
