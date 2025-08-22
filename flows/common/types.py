@@ -19,7 +19,7 @@ class DOC_STATUS(str, Enum):
     FAILED = "failed"
 
 
-# Playbook definition type, either a dict or a list of tuples both mapping to an OrderDict
+# Playbook definition type, either a dict or a list of tuples both mapping to an OrderedDict
 # PlaybookDefinition =
 
 
