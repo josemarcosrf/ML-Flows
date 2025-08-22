@@ -36,7 +36,7 @@ class Playbook(BaseModel):
         # The playbook definition can be given as a list of objects, but we always
         # convert to a dict (since python 3.7+ maintains insertion order)
         if isinstance(v, list):
-            return {item.pop("attribute"): item for item in v}
+            return {item["attribute"]: {k: v_ for k, v_ in item.items() if k != "attribute"} for item in v}
         elif isinstance(v, dict):
             return v
         else:
