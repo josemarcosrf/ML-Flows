@@ -67,7 +67,6 @@ def test_build_question_library_preserves_order():
     else:
         q_collection = result
 
-    print(q_collection)
     assert list(q_collection.keys()) == ["zero", "g"], (
         f"Order of keys is not preserved: {q_collection.keys()}"
     )
