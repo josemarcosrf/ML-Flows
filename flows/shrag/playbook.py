@@ -75,11 +75,11 @@ def validate_question_library(q_collection: dict[str, list[QuestionItem]]) -> No
 
 @task
 def build_question_library(
-    playbook: dict[str, dict[str, str | list[str]]],
+    playbook_items: dict[str, dict[str, str | list[str]]],
 ) -> dict[str, list[QuestionItem]]:
-    """Builds the Question Library from the playbook JSON file.
+    """Builds the Question Library from the playbook definition.
 
-    The playbook should have the following structure:
+    The playbook items should have the following structure:
     {
         "<Attribute>": {
             "group": "<Group>",
@@ -100,7 +100,7 @@ def build_question_library(
     """
     # Add the Answer Schema based on the extracted values
     q_collection = defaultdict(list)
-    for i, (attr, p_item) in enumerate(playbook.items()):
+    for i, (attr, p_item) in enumerate(playbook_items.items()):
         # Convert all keys in p_item to snake_case
         p_item_snake = {str_to_snake_case(k): v for k, v in p_item.items()}
 
