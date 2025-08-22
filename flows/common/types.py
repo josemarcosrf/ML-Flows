@@ -20,7 +20,6 @@ class DOC_STATUS(str, Enum):
 
 
 # Playbook definition type, either a dict or a list of tuples both mapping to an OrderedDict
-# PlaybookDefinition =
 
 
 class Playbook(BaseModel):
