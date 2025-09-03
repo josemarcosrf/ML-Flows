@@ -6,7 +6,7 @@ import pytest
 from flows.preproc.convert import docling_2_md
 
 PDF_FILE = Path("data/LeaseAgreements/E17_LEASE AGREEMENT.pdf")
-DOCX_FILE = Path("data/LeaseAgreements/Agremeent.docx.pdf")
+DOCX_FILE = Path("data/LeaseAgreements/Agreement.docx.pdf")
 
 
 @pytest.mark.parametrize(
