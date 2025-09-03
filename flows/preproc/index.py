@@ -10,6 +10,8 @@ from flows.common.clients.llms import get_embedding_model
 from flows.common.clients.vector_stores import get_vector_store
 from flows.preproc.convert import docling_2_md
 
+PLAIN_TEXT_EXTENSIONS = {".txt", ".md", ".rst"}
+
 
 def custom_index_task_run_name() -> str:
     from prefect.runtime import task_run
@@ -53,11 +55,11 @@ def index_file(
         metadata = {}
 
     # Read the file (OCR or otherwise)
-    if fpath.suffix.lower() == ".pdf":
-        text = docling_2_md.submit(str(fpath)).result()
-    else:
+    if fpath.suffix.lower() in PLAIN_TEXT_EXTENSIONS:
         with fpath.open("r") as f:
             text = f.read()
+    else:
+        text = docling_2_md.submit(str(fpath)).result()
 
     # Create a document object
     doc_name = metadata.get("name", fpath.stem)
