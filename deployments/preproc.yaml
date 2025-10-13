@@ -39,6 +39,7 @@ deployments:
         REDIS_PWD: "{{ $REDIS_PWD }}"
         EMBEDDING_MODEL: "{{ $EMBEDDING_MODEL }}"
         LLM_MODEL: "{{ $LLM_MODEL }}"
+        OPENAI_API_KEY: "{{ $OPENAI_API_KEY }}"
 
 - name: deus.prod
   version: "0.1.0"
@@ -66,3 +67,4 @@ deployments:
         REDIS_PWD: "{{ $REDIS_PWD }}"
         EMBEDDING_MODEL: "{{ $EMBEDDING_MODEL }}"
         LLM_MODEL: "{{ $LLM_MODEL }}"
+        OPENAI_API_KEY: "{{ $OPENAI_API_KEY }}"
