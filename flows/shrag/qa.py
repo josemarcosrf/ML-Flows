@@ -201,14 +201,8 @@ class QAgent:
         res = self.ask(q0, meta_filters, **kwargs)
         responses[q0.key] = res
 
-        # Check if the response is of type YesNoEnum
-        if not isinstance(res.response, YesNoEnum):
-            raise ValueError(
-                "The response of the first question should be of type YesNoEnum. "
-                f"Instead received {type(res.response)}"
-            )
         # If the response is affirmative, ask all the other questions
-        if res.response.value == YesNoEnum.pos.value:
+        if res.response == YesNoEnum.pos:
             for q in questions[1:]:
                 responses[q.key] = self.ask(q, meta_filters, **kwargs)
 

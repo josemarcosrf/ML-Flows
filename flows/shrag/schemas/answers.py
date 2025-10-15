@@ -60,6 +60,26 @@ class YesNoAnswer(BaseAnswer):
         ..., description="An Affirmative or Negative answer"
     )
 
+    @field_validator("response", mode="before")
+    @classmethod
+    def normalize_yesno(cls, v):
+        """Accept string values case-insensitively and coerce them to YesNoEnum.
+
+        Examples accepted: "yes", "No", "yEs", (will be mapped
+        to the corresponding enum). If value is already a YesNoEnum or None,
+        it's returned unchanged.
+        """
+        if v is None:
+            return None
+        # If already an enum, return as-is
+        if isinstance(v, Enum):
+            return v
+        # Normalize strings
+        if isinstance(v, str):
+            return YesNoEnum(v.strip().capitalize())
+
+        return v
+
     def model_dump(self, *args, **kwargs):
         data = super().model_dump(*args, **kwargs)
         if isinstance(data.get("response"), Enum):
