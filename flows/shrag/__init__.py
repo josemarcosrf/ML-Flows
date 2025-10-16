@@ -177,17 +177,12 @@ def run_qa_playbook(
     )
 
     # Invoke the callback to update the MongoDB with the timestamp of completion
-    db.update_one(
-        settings.MONGO_RESULTS_COLLECTION,
-        filter={
-            "client_id": client_id,
-            "collection": collection_name,
-            "playbook_id": playbook.id,
-            "playbook_version": playbook.version,
-        },
-        update={"completed_at": dt.now().isoformat()},
-        upsert=True,
+    db_update_callback()(
+        {
+            "completed_at": dt.now().isoformat(),
+        }
     )
+    pub("🏁 QA Playbook run completed!")
 
     return {k: v.model_dump() for k, v in responses.items()}
 
