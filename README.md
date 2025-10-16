@@ -115,5 +115,24 @@ pdm flows deploy index-files DEUS process local-process-pool -t preproc -t markd
 prefect deployment run 'playbook-qa/DEUS'
 ```
 
+## PDM requirements and image build notes
+
+This repo uses `pdm` to manage dependencies and geenrating a `requirements.txt`
+for building Docker images or other tooling:
+
+```bash
+# Note that as-is, this step removes nvidia-* dependencies from the requirements.txt
+pdm reqs
+
+# To leave it untouched, use instead:
+INCLUDE_GPU=true pdm reqs
+```
+
+Note that the deployment/ecs/1_build...sh script is not aware of which type
+of image is building, and therefore, potentially overwritting the image in ECS
+
+
+
+
 
 

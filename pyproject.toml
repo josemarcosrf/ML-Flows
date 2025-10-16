@@ -88,8 +88,17 @@ help = "Reformat the code using isort and ruff."
 
 [tool.pdm.scripts.reqs]
 shell = """
-    PDM_USE_UV=0 pdm lock --strategy=inherit_metadata
-    pdm export -G :all --format=requirements --without-hashes -o requirements.txt
+    # PDM_USE_UV=0 pdm lock --strategy=inherit_metadata
+    # pdm export -G :all --without dev --format=requirements --without-hashes -o requirements.txt
+    if [ "$INCLUDE_GPU" != "true" ]; then
+        echo "🧹 Removing NVIDIA CUDA dependencies for CPU build... (To include them: 'INCLUDE_GPU=true pdm reqs')"
+        grep -v '^nvidia-' requirements.txt > tmp && mv tmp requirements.txt
+        grep -v '^triton' requirements.txt > tmp && mv tmp requirements.txt
+        echo "🔥 Converting to CPU-only PyTorch..."
+        grep -v '^torch' requirements.txt > tmp && mv tmp requirements.txt
+        echo '--extra-index-url https://download.pytorch.org/whl/cpu' >> requirements.txt
+        echo 'torch==2.9.0+cpu' >> requirements.txt
+    fi
 """
 help = "Export all dependencies to requirements.txt file"
 

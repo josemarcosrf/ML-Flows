@@ -1,0 +1,87 @@
+# Python/Docker ignore file for ml-flows
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+.cache
+.pytest_cache/
+htmlcov/
+coverage.xml
+coverage/
+nosetests.xml
+test_output/
+
+# pyenv
+.python-version
+
+# PDM / virtual envs
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+
+# VS Code
+.vscode/
+
+# JetBrains IDEs
+.idea/
+
+# Mac
+.DS_Store
+
+# Logs
+*.log
+
+# Docker and compose
+docker-compose.override.yml
+docker-compose.debug.yml
+
+# Large data and database directories (do not copy into image)
+chroma_data/
+data/
+deployments/
+results/
+logs/
+
+# Local development credentials and environment files
+.env
+.env.*
+credentials
+
+# Notebooks and outputs
+*.ipynb
+*.ipynb_checkpoints
+
+# Node artifacts (if any)
+node_modules/
+
+# Misc
+.cache/
+__MACOSX/
