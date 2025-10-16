@@ -171,7 +171,7 @@ class QAgent:
         questions: list[QuestionItem],
         meta_filters: dict[str, Any] | None = None,
         **kwargs,
-    ) -> dict[str, BaseAnswer] | None:
+    ) -> dict[str, BaseAnswer]:
         """Ask a group of questions in sequence. If the first question is affirmative
         then ask all the others. If the first question is negative, return None.
 
@@ -202,7 +202,7 @@ class QAgent:
         responses[q0.key] = res
 
         # If the response is affirmative, ask all the other questions
-        if res.response == YesNoEnum.pos:
+        if res.response == YesNoEnum.pos.value:
             for q in questions[1:]:
                 responses[q.key] = self.ask(q, meta_filters, **kwargs)
 
@@ -280,11 +280,13 @@ class QAgent:
                 except Exception as e:
                     logger.error(f"❌ Error asking group '{q.key}': {e}")
                 else:
+                    # If everything worked, update the answers in MongoDB
                     for key, ans in grouped_answers.items():
                         update = {
-                            **responses[q.key].dict(),
-                            **parse_answer(responses[q.key].answer),
+                            **responses[key].dict(),
+                            **parse_answer(responses[key].answer),
                         }
-                        answer_callback_task(update={f"answers.{key}": update})
+                        # Keep the same calling convention as the non-hierarchical path
+                        answer_callback_task({f"answers.{key}": update})
 
         return responses

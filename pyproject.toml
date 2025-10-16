@@ -62,7 +62,8 @@ distribution = false
 flows = "python -m flows"
 
 # Testing scripts
-tests = "python -m pytest tests --cov=flows --maxfail=3 --disable-warnings -v"
+tests = "python -m pytest tests -m \"not integration\" --cov=flows --maxfail=3 --disable-warnings -v"
+integration-tests = "pytest tests/integration --cov=flows --maxfail=1 --disable-warnings -v"
 
 # ECS Deployment scripts
 ecs-docker = "./deployments/ecs/1_build_and_push_docker.sh"
