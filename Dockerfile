@@ -1,6 +1,12 @@
 # Use the official Prefect image as a base
 FROM prefecthq/prefect:3-latest
 
+# We might need some additional system dependencies,
+# Docling seems to fail due to missing libGL.so.1
+RUN apt-get update && apt-get install -y \
+    libgl1 \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /app
 
